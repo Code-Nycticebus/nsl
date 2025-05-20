@@ -1,3 +1,4 @@
+// defines usefull types and macros
 #pragma once
 
 #include <stdbool.h>
@@ -5,17 +6,18 @@
 #ifndef NC_NO_INT_TYPEDEFS
     #include <stdint.h>
     #include <stddef.h>
-    typedef uint8_t u8;
-    typedef int8_t i8;
-    typedef uint16_t u16;
-    typedef int16_t i16;
-    typedef uint32_t u32;
-    typedef int32_t i32;
-    typedef uint64_t u64;
-    typedef int64_t i64;
-    typedef size_t usize;
-    typedef float f32;
-    typedef double f64;
+    typedef uint8_t   u8;
+    typedef int8_t    i8;
+    typedef uint16_t  u16;
+    typedef int16_t   i16;
+    typedef uint32_t  u32;
+    typedef int32_t   i32;
+    typedef uint64_t  u64;
+    typedef int64_t   i64;
+    typedef size_t    usize;
+    typedef ptrdiff_t isize;
+    typedef float     f32;
+    typedef double    f64;
 #endif
 
 #define BOOL_FMT "%s"
@@ -47,7 +49,6 @@
 #if defined(NC_COMPILER_GCC) || defined(NC_COMPILER_CLANG)
     #define NC_EXPORT            __attribute__((used))
     #define NC_NORETURN          __attribute__((noreturn))
-    #define NC_UNUSED            __attribute__((unused))
     #define NC_PURE_FN           __attribute__((pure)) __attribute__((warn_unused_result))
     #define NC_CONST_FN          __attribute__((const)) __attribute__((warn_unused_result))
     #define NC_LIKELY(exp)       __builtin_expect(!!(exp), 1)
@@ -57,7 +58,6 @@
     #include <sal.h>
     #define NC_EXPORT            __declspec(dllexport)
     #define NC_NORETURN          __declspec(noreturn)
-    #define NC_UNUSED            __pragma(warning(suppress : 4100))
     #define NC_PURE_FN           _Check_return_
     #define NC_CONST_FN          _Check_return_
     #define NC_LIKELY(exp)       (exp)
@@ -72,4 +72,17 @@
     #define NC_LIKELY(exp)       (exp)
     #define NC_UNLIKELY(exp)     (exp)
     #define NC_FMT(fmt_idx)
+#endif
+
+
+#ifdef NC_STATIC
+    #define nc_api static
+#elif defined(_WIN32)
+    #ifdef NC_BUILD
+        #define nc_api __declspec(dllexport)
+    #else
+        #define nc_api __declspec(dllimport)
+    #endif
+#else
+    #define nc_api __attribute__((visibility("default")))
 #endif
