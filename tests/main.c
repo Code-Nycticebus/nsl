@@ -1,4 +1,4 @@
-#include "defines.h"
+#include "nc.h"
 
 #include <assert.h>
 
