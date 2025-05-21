@@ -1,4 +1,4 @@
-// defines usefull types and macros
+// defines useful types and macros
 #pragma once
 
 #include <stdbool.h>
