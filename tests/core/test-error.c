@@ -3,7 +3,7 @@
 #include <assert.h>
 
 typedef enum {
-    TEST_ERROR,
+    TEST_ERROR = 1,
 } TestError;
 
 static i32 function_that_fails(nc_Error *error) {
