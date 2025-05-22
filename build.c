@@ -18,7 +18,7 @@ void collect_files(Cmd *cmd) {
     Path path = it.current.path;
     (void)str_take(&path, 4);
     (void)str_take_right(&path, 2);
-    Path obj_path = str_format(&it.scratch, "build/obj/" STR_FMT ".o", STR_ARG(path));
+    Path obj_path = str_format(&it.scratch, "build/obj/" STR_FMT ".o", STR_ARG(path_name(path)));
 
     os_mkdir(path_parent(obj_path));
 
