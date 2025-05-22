@@ -1,8 +1,6 @@
-#include "nc.h"
-
-#include <assert.h>
-
+// tests
+#include "core/test-arena.c"
 
 int main(void) {
-    assert(true);
+    run_test_arena();
 }

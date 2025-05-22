@@ -1,0 +1,26 @@
+#pragma once
+
+#include "nc/defines.h"
+
+typedef struct nc_Chunk nc_Chunk;
+
+typedef struct {
+    nc_Chunk *begin, *end;
+} nc_Arena;
+
+
+void nc_arena_free(nc_Arena *arena);
+
+void *nc_arena_alloc(nc_Arena *arena, usize size);
+void *nc_arena_calloc(nc_Arena *arena, usize size);
+void nc_arena_reset(nc_Arena *arena);
+
+usize nc_arena_size(nc_Arena *arena);
+usize nc_arena_real_size(nc_Arena *arena);
+
+////////////////////////////////////////////////////////////////////////////
+
+void *nc_arena_alloc_chunk(nc_Arena *arena, usize size);
+void *nc_arena_calloc_chunk(nc_Arena *arena, usize size);
+void *nc_arena_realloc_chunk(nc_Arena *arena, void *ptr, usize size);
+void nc_arena_free_chunk(nc_Arena *arena, void *ptr);
