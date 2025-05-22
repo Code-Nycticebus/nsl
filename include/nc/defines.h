@@ -25,6 +25,25 @@
 
 #define NC_ARRAY_LEN(...) (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
 
+#define NC_STR(str) ((nc_Str){.len = sizeof(str) - 1, .data = (str)})
+#define NC_STR_STATIC(str) {.len = sizeof(str) - 1, .data = (str)}
+#define NC_STR_FMT "%.*s"
+#define NC_STR_REPR "'%.*s'"
+#define NC_STR_ARG(str) (i32)(str).len, (str).data
+
+typedef struct {
+    usize len;
+    const char *data;
+} nc_Str;
+
+#define NC_BYTES(...) (nc_Bytes){sizeof((const u8[]){__VA_ARGS__}), (const u8[]){ __VA_ARGS__ }}
+#define NC_BYTES_STR(s) (nc_Bytes){ sizeof(s) - 1, (const u8 *)(s)}
+
+typedef struct {
+  usize size;
+  const u8 *data;
+} nc_Bytes;
+
 #if defined(__clang__)
     #define NC_COMPILER_CLANG 1
     #define NC_COMPILER_NAME "clang"
@@ -87,4 +106,17 @@
     #endif
 #else
     #define nc_api __attribute__((visibility("default")))
+#endif
+
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && defined(__ORDER_LITTLE_ENDIAN__)
+    #define NC_ENDIAN_LITTLE __ORDER_LITTLE_ENDIAN__
+    #define NC_ENDIAN_BIG __ORDER_BIG_ENDIAN__
+    #define NC_BYTE_ORDER __BYTE_ORDER__
+#elif defined(_MSC_VER)
+    #define NC_ENDIAN_LITTLE 1234
+    #define NC_ENDIAN_BIG 4321
+    #define NC_BYTE_ORDER ENDIAN_LITTLE
+#else
+    #error "No Byte Order detected!"
 #endif
