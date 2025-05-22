@@ -23,6 +23,8 @@
 #define BOOL_FMT "%s"
 #define BOOL_ARG(b) (b ? "true" : "false")
 
+#define NC_ARRAY_LEN(...) (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
+
 #if defined(__clang__)
     #define NC_COMPILER_CLANG 1
     #define NC_COMPILER_NAME "clang"
