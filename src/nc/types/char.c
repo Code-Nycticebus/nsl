@@ -1,7 +1,6 @@
 #include "nc/types/char.h"
 
 #include <ctype.h>
-#include <assert.h>
 
 #define DBASE 10
 #define XBASE 16
@@ -27,12 +26,12 @@ char nc_char_to_lower(char c) { return (char)tolower(c); }
 char nc_char_to_upper(char c) { return (char)toupper(c); }
 
 u8 nc_char_to_u8(char c) {
-  assert(nc_char_is_digit(c) && "char not convertible");
+  NC_ASSERT(nc_char_is_digit(c) && "char not convertible");
   return (u8)c - '0';
 }
 
 u8 nc_char_hex_to_u8(char c) {
-  assert(nc_char_is_xdigit(c) && "char not convertible");
+  NC_ASSERT(nc_char_is_xdigit(c) && "char not convertible");
   if ('0' <= c && c <= '9') {
     return nc_char_to_u8(c);
   }
@@ -46,12 +45,12 @@ u8 nc_char_hex_to_u8(char c) {
 }
 
 char nc_char_from_u8(u8 d) {
-  assert(d < DBASE && "char not convertible");
+  NC_ASSERT(d < DBASE && "char not convertible");
   return '0' + (i8)d;
 }
 
 char nc_char_hex_from_u8(u8 d) {
-  assert(d < XBASE && "char not convertible");
+  NC_ASSERT(d < XBASE && "char not convertible");
   if (d < DBASE) {
     return nc_char_from_u8(d);
   }
@@ -62,7 +61,7 @@ char nc_char_hex_from_u8(u8 d) {
 }
 
 char nc_char_HEX_from_u8(u8 d) {
-  assert(d < XBASE && "char not convertible");
+  NC_ASSERT(d < XBASE && "char not convertible");
   if (d < DBASE) {
     return nc_char_from_u8(d);
   }

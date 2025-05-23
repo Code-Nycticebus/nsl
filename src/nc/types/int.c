@@ -2,8 +2,6 @@
 
 #include "nc/types/byte.h"
 
-#include <assert.h>
-
 #define BITS(T) (sizeof(T) * 8)
 
 #define INTEGER_IMPL(T)                                                                            \
@@ -110,7 +108,7 @@
     }                                                                                              \
                                                                                                    \
     T nc_##T##_from_be_bytes(nc_Bytes bytes) {                                                     \
-        assert(sizeof(T) == bytes.size && "expected " #T);                                         \
+        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                         \
         if (NC_BYTE_ORDER == NC_ENDIAN_LITTLE) {                                                   \
             return nc_##T##_swap_bytes(*(const T *)bytes.data);                                    \
         }                                                                                          \
@@ -145,7 +143,7 @@
     }                                                                                              \
                                                                                                    \
     T nc_##T##_from_le_bytes(nc_Bytes bytes) {                                                     \
-        assert(sizeof(T) == bytes.size && "expected " #T);                                         \
+        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                         \
         if (NC_BYTE_ORDER == NC_ENDIAN_BIG) {                                                      \
             return nc_##T##_swap_bytes(*(const T *)bytes.data);                                    \
         }                                                                                          \
@@ -166,7 +164,7 @@
     }                                                                                              \
                                                                                                    \
     T nc_##T##_from_ne_bytes(nc_Bytes bytes) {                                                     \
-        assert(sizeof(T) == bytes.size && "expected " #T);                                         \
+        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                         \
         return *(const T *)bytes.data;                                                             \
     }                                                                                              \
                                                                                                    \

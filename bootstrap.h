@@ -581,7 +581,7 @@ cebus_assert(2 == 2, "It can even handle arguments: %d", 420);
 condition is false.
 - `cebus_assert_warn(EXPR, FMT, ...)`: Asserts a condition and logs a warning if
 the condition is false.
-- `cebus_assert_debug(EXPR, FMT, ...)`: Debug-only assert that logs a debug
+- `cebus_assert_debug(EXPR, FMT, ...)`: Debug-only NC_ASSERT that logs a debug
 message if the condition is false.
 - `cebus_assert_return(EXPR, RETURN_VALUE)`: Asserts a condition and returns a
 value if the condition is false.

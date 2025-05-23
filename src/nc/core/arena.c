@@ -1,6 +1,5 @@
 #include "nc/core/arena.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,7 +15,7 @@ struct nc_Chunk {
 
 static nc_Chunk *chunk_allocate(usize size) {
     nc_Chunk *chunk = malloc(sizeof(nc_Chunk) + size);
-    assert(chunk != NULL && "Memory allocation failed");
+    NC_ASSERT(chunk != NULL && "Memory allocation failed");
     chunk->cap = size;
     chunk->allocated = 0;
     chunk->next = chunk->prev = 0;
@@ -70,7 +69,7 @@ void *nc_arena_alloc(nc_Arena *arena, usize size) {
     size = align(size);
     nc_Chunk *chunk = arena->begin;
     for (; chunk != NULL; chunk = chunk->next) {
-        assert(size <= SIZE_MAX - chunk->allocated && "integer overflow");
+        NC_ASSERT(size <= SIZE_MAX - chunk->allocated && "integer overflow");
         if (chunk->allocated + size < chunk->cap) {
             break;
         }

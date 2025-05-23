@@ -1,6 +1,5 @@
 #include "nc/structs/list.h"
 
-#include <assert.h>
 #include <stdio.h>
 
 static void test_vec(void) {
@@ -13,11 +12,11 @@ static void test_vec(void) {
     }
 
     for (usize i = 0; i < list.len; ++i) {
-        assert(list.items[i] == i + 1 &&
+        NC_ASSERT(list.items[i] == i + 1 &&
                "Numbers were not pushed on the stack correctly");
     }
     nc_list_clear(&list);
-    assert(list.len == 0 && "Clearing did not reset list.len");
+    NC_ASSERT(list.len == 0 && "Clearing did not reset list.len");
 
     nc_arena_free(&arena);
 }
@@ -27,12 +26,12 @@ static void test_list_init(void) {
     nc_List(usize) list = {0};
     nc_list_from_static(&list, &arena, (usize[]){1, 2, 3, 4, 5});
 
-    assert(list.len == 5 && "Did not set len correctly");
-    assert(list.cap == 5 && "Did not set cap correctly");
+    NC_ASSERT(list.len == 5 && "Did not set len correctly");
+    NC_ASSERT(list.cap == 5 && "Did not set cap correctly");
 
-    assert(list.items[0] == 1 && "Did not init correctly");
-    assert(list.items[2] == 3 && "Did not init correctly");
-    assert(list.items[4] == 5 && "Did not init correctly");
+    NC_ASSERT(list.items[0] == 1 && "Did not init correctly");
+    NC_ASSERT(list.items[2] == 3 && "Did not init correctly");
+    NC_ASSERT(list.items[4] == 5 && "Did not init correctly");
 
     nc_arena_free(&arena);
 }
@@ -50,7 +49,7 @@ static void test_map(void) {
     nc_list_map(&list, &list, times_two);
 
     for (usize i = 0; i < list.len; ++i) {
-        assert(list.items[i] == i * 2 && "Mapping did not multiply by two");
+        NC_ASSERT(list.items[i] == i * 2 && "Mapping did not multiply by two");
     }
     nc_arena_free(&arena);
 }
@@ -68,7 +67,7 @@ static void test_sort(void) {
     nc_list_sort(&list, compare);
 
     for (usize i = 0; i < list.len; ++i) {
-        assert(list.items[i] == i && "sorting did not work correctly");
+        NC_ASSERT(list.items[i] == i && "sorting did not work correctly");
     }
 
     nc_arena_free(&arena);
@@ -79,13 +78,13 @@ static void test_last(void) {
 
     nc_List(i32) list = {0};
     nc_list_init(&list, &arena);
-    assert(nc_list_is_empty(&list) && "List should be initialized empty");
+    NC_ASSERT(nc_list_is_empty(&list) && "List should be initialized empty");
     nc_list_push(&list, 10);
     nc_list_push(&list, 20);
     int last = nc_list_last(&list);
-    assert(last == 20 && "Last is not the correct number");
+    NC_ASSERT(last == 20 && "Last is not the correct number");
     int first = nc_list_first(&list);
-    assert(first == 10 && "First is not the correct number");
+    NC_ASSERT(first == 10 && "First is not the correct number");
 
     nc_arena_free(&arena);
 }
@@ -96,17 +95,17 @@ static void test_extend(void) {
     nc_list_init(&list, &arena);
 
     nc_list_extend(&list, 3, ((int[]){1, 2, 3}));
-    assert(list.len == 3 && "List did not extend correctly");
-    assert(list.items[0] == 1 && list.items[1] == 2 && list.items[2] == 3 &&
+    NC_ASSERT(list.len == 3 && "List did not extend correctly");
+    NC_ASSERT(list.items[0] == 1 && list.items[1] == 2 && list.items[2] == 3 &&
            "List did not extend correctly");
 
     i32 array[] = {1, 2, 3};
     nc_list_extend(&list, 3, array);
-    assert(list.items[3] == 1 && list.items[4] == 2 && list.items[5] == 3 &&
+    NC_ASSERT(list.items[3] == 1 && list.items[4] == 2 && list.items[5] == 3 &&
            "List did not extend correctly");
 
     nc_list_extend_da(&list, &list);
-    assert(list.items[6] == 1 && list.items[7] == 2 && list.items[8] == 3 &&
+    NC_ASSERT(list.items[6] == 1 && list.items[7] == 2 && list.items[8] == 3 &&
            "List did not extend correctly");
 
     nc_arena_free(&arena);
@@ -117,9 +116,9 @@ static void test_reserve(void) {
     nc_List(i32) list = {0};
     nc_list_init(&list, &arena);
     nc_list_resize(&list, 20);
-    assert(list.cap == 20 && "Capacity was not increased");
+    NC_ASSERT(list.cap == 20 && "Capacity was not increased");
     nc_list_reserve(&list, 50);
-    assert(list.cap == 80 && "Capacity was not increased");
+    NC_ASSERT(list.cap == 80 && "Capacity was not increased");
     nc_arena_free(&arena);
 }
 
@@ -133,7 +132,7 @@ static void test_reverse(void) {
     }
     nc_list_reverse(&list);
     for (usize i = 0; i < n; i++) {
-        assert(list.items[i] == n - i && "List was not reversed correctly");
+        NC_ASSERT(list.items[i] == n - i && "List was not reversed correctly");
     }
 
     nc_arena_free(&arena);
@@ -152,9 +151,9 @@ static void test_filter(void) {
 
     nc_list_filter(&list, &list, is_odd);
 
-    assert(list.items[1] == 2 && "list was not filtered correctly");
-    assert(list.items[2] == 4 && "list was not filtered correctly");
-    assert(list.items[3] == 6 && "list was not filtered correctly");
+    NC_ASSERT(list.items[1] == 2 && "list was not filtered correctly");
+    NC_ASSERT(list.items[2] == 4 && "list was not filtered correctly");
+    NC_ASSERT(list.items[3] == 6 && "list was not filtered correctly");
 
     nc_arena_free(&arena);
 }
@@ -176,9 +175,9 @@ static void test_filter_ctx(void) {
     Ctx ctx = {.a = 4};
     nc_list_filter_ctx(&list, &list, filter_with_context, &ctx);
 
-    assert(list.items[0] == 5 && "list was not filtered correctly");
-    assert(list.items[1] == 6 && "list was not filtered correctly");
-    assert(list.items[2] == 7 && "list was not filtered correctly");
+    NC_ASSERT(list.items[0] == 5 && "list was not filtered correctly");
+    NC_ASSERT(list.items[1] == 6 && "list was not filtered correctly");
+    NC_ASSERT(list.items[2] == 7 && "list was not filtered correctly");
 
     nc_arena_free(&arena);
 }
@@ -193,9 +192,9 @@ static void test_copy(void) {
 
     nc_List(usize) l2 = nc_list_new(&arena);
     nc_list_copy(&l1, &l2);
-    assert(l1.len == l2.len && "list was not copied correctly");
+    NC_ASSERT(l1.len == l2.len && "list was not copied correctly");
     for (usize i = 0; i < l2.len; i++) {
-        assert(l1.items[i] == l2.items[i] && "list was not copied correctly");
+        NC_ASSERT(l1.items[i] == l2.items[i] && "list was not copied correctly");
     }
 
     nc_arena_free(&arena);
@@ -211,10 +210,10 @@ static void test_pop(void) {
     }
 
     for (usize i = list.len; 0 < i; i--) {
-        assert(nc_list_pop(&list) == i && "Poping not correctly");
+        NC_ASSERT(nc_list_pop(&list) == i && "Poping not correctly");
     }
 
-    assert(nc_list_is_empty(&list) == true && "After all that not empty");
+    NC_ASSERT(nc_list_is_empty(&list) == true && "After all that not empty");
 
     nc_arena_free(&arena);
 }
@@ -230,11 +229,11 @@ static void test_insert(void) {
     nc_list_insert(&list, 2, 1);
     nc_list_insert(&list, 3, 2);
 
-    assert(list.len == 4 && "");
-    assert(list.items[0] == 1);
-    assert(list.items[1] == 2);
-    assert(list.items[2] == 3);
-    assert(list.items[3] == 4);
+    NC_ASSERT(list.len == 4 && "");
+    NC_ASSERT(list.items[0] == 1);
+    NC_ASSERT(list.items[1] == 2);
+    NC_ASSERT(list.items[2] == 3);
+    NC_ASSERT(list.items[3] == 4);
 
     nc_arena_free(&arena);
 }
@@ -252,9 +251,9 @@ static void test_remove(void) {
     nc_list_remove(&list, 1);
     nc_list_remove(&list, 1);
 
-    assert(list.len == 2 && "");
-    assert(list.items[0] == 1 && "");
-    assert(list.items[1] == 4 && "");
+    NC_ASSERT(list.len == 2 && "");
+    NC_ASSERT(list.items[0] == 1 && "");
+    NC_ASSERT(list.items[1] == 4 && "");
 
     nc_arena_free(&arena);
 }
@@ -268,10 +267,10 @@ static void test_for_each(void) {
 
     usize i = 0;
     nc_list_for_each(usize *, element, &list) {
-        assert(*element == el[i] && "");
+        NC_ASSERT(*element == el[i] && "");
         i++;
     }
-    assert(i == list.len && "");
+    NC_ASSERT(i == list.len && "");
 }
 
 void run_test_list(void) {

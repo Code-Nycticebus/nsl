@@ -6,7 +6,6 @@
 void collect_flags(Cmd *cmd) {
   cmd_push(cmd, STR("-Wall"), STR("-Werror"), STR("-Wextra"), STR("-Wpedantic"));
   cmd_push(cmd, STR("-std=c99"));
-  cmd_push(cmd, STR("-Ilibs"));
   cmd_push(cmd, STR("-Iinclude"));
 }
 
