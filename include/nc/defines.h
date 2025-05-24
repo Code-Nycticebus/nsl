@@ -2,6 +2,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 #ifndef NC_NO_INT_TYPEDEFS
     #include <stdint.h>
@@ -57,6 +58,14 @@ typedef struct {
     const u8 *data;
 } nc_Bytes;
 
+
+#define NC_UNUSED(v) (void)(v)
+#define NC_PASS ((void)(0))
+#define NC_UNREACHABLE(msg) do { fprintf(stderr, "Unreachable: %s:%d: %s", __FILE__, __LINE__, msg); abort(); } while(0)
+#define NC_TODO(msg) do { fprintf(stderr, "TODO: %s:%d: %s", __FILE__, __LINE__, msg); abort(); } while(0)
+#define NC_NOT_IMPLEMENTED(msg) do { fprintf(stderr, "Not Implemented: %s:%d: %s", __FILE__, __LINE__, msg); abort(); } while(0)
+
+
 #if defined(__clang__)
 #    define NC_COMPILER_CLANG 1
 #    define NC_COMPILER_NAME "clang"
@@ -109,15 +118,15 @@ typedef struct {
 #endif
 
 #ifdef NC_STATIC
-#    define nc_api static
+#    define NC_API static
 #elif defined(_WIN32)
 #    ifdef NC_BUILD
-#        define nc_api __declspec(dllexport)
+#        define NC_API __declspec(dllexport)
 #    else
-#        define nc_api __declspec(dllimport)
+#        define NC_API __declspec(dllimport)
 #    endif
 #else
-#    define nc_api __attribute__((visibility("default")))
+#    define NC_API __attribute__((visibility("default")))
 #endif
 
 #if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && defined(__ORDER_LITTLE_ENDIAN__)
