@@ -57,6 +57,14 @@ static void test_u8_hash(void) {
     NC_ASSERT(nc_u8_hash(69) == 0x53620494cc400a2);
     NC_ASSERT(nc_u8_hash(42) == 0x333883cd70fb570);
 }
+
+static void test_u8_next_pow2(void) {
+    NC_ASSERT(nc_u8_next_pow2(0) == 1);
+    NC_ASSERT(nc_u8_next_pow2(1) == 1);
+    NC_ASSERT(nc_u8_next_pow2(5) == 8);
+    NC_ASSERT(nc_u8_next_pow2(255) == 255); // clamped
+}
+
 /* u8 */
 
 /* i8 */
@@ -115,6 +123,14 @@ static void test_i8_hash(void) {
     NC_ASSERT(nc_i8_hash(-69) == 0xe8a748836a8337d1);
     NC_ASSERT(nc_i8_hash(42) == 0x333883cd70fb570);
 }
+
+static void test_i8_next_pow2(void) {
+    NC_ASSERT(nc_i8_next_pow2(0) == 1);
+    NC_ASSERT(nc_i8_next_pow2(1) == 1);
+    NC_ASSERT(nc_i8_next_pow2(5) == 8);
+    NC_ASSERT(nc_i8_next_pow2(127) == 127); // clamped
+}
+
 /* i8 */
 
 /* u16 */
@@ -176,6 +192,13 @@ static void test_u16_hash(void) {
     NC_ASSERT(nc_u16_hash(69) == 0x53620494cc400a2);
     NC_ASSERT(nc_u16_hash(42) == 0x333883cd70fb570);
 }
+
+static void test_u16_next_pow2(void) {
+    NC_ASSERT(nc_u16_next_pow2(0) == 1);
+    NC_ASSERT(nc_u16_next_pow2(300) == 512);
+    NC_ASSERT(nc_u16_next_pow2(65535) == 65535); // clamped
+}
+
 /* u16 */
 
 /* i16 */
@@ -237,6 +260,13 @@ static void test_i16_hash(void) {
     NC_ASSERT(nc_i16_hash(69) == 0x53620494cc400a2);
     NC_ASSERT(nc_i16_hash(42) == 0x333883cd70fb570);
 }
+
+static void test_i16_next_pow2(void) {
+    NC_ASSERT(nc_i16_next_pow2(0) == 1);
+    NC_ASSERT(nc_i16_next_pow2(300) == 512);
+    NC_ASSERT(nc_i16_next_pow2(32767) == 32767); // clamped
+}
+
 /* i16 */
 
 /* u32 */
@@ -302,6 +332,13 @@ static void test_u32_hash(void) {
     NC_ASSERT(nc_u32_hash(69) == 0x53620494cc400a2);
     NC_ASSERT(nc_u32_hash(42) == 0x333883cd70fb570);
 }
+
+static void test_u32_next_pow2(void) {
+    NC_ASSERT(nc_u32_next_pow2(0) == 1);
+    NC_ASSERT(nc_u32_next_pow2(50000) == 65536);
+    NC_ASSERT(nc_u32_next_pow2(4294967295U) == 4294967295U); // clamped
+}
+
 /* u32 */
 
 /* i32 */
@@ -367,6 +404,13 @@ static void test_i32_hash(void) {
     NC_ASSERT(nc_i32_hash(69) == 0x53620494cc400a2);
     NC_ASSERT(nc_i32_hash(42) == 0x333883cd70fb570);
 }
+
+static void test_i32_next_pow2(void) {
+    NC_ASSERT(nc_i32_next_pow2(0) == 1);
+    NC_ASSERT(nc_i32_next_pow2(50000) == 65536);
+    NC_ASSERT(nc_i32_next_pow2(2147483647) == 2147483647); // clamped
+}
+
 /* i32 */
 
 /* u64 */
@@ -433,6 +477,13 @@ static void test_u64_hash(void) {
     NC_ASSERT(nc_u64_hash(69) == 0x53620494cc400a2);
     NC_ASSERT(nc_u64_hash(42) == 0x333883cd70fb570);
 }
+
+static void test_u64_next_pow2(void) {
+    NC_ASSERT(nc_u64_next_pow2(0) == 1);
+    NC_ASSERT(nc_u64_next_pow2(10000000000ULL) == 17179869184ULL);
+    NC_ASSERT(nc_u64_next_pow2(18446744073709551615ULL) == 18446744073709551615ULL); // clamped
+}
+
 /* u64 */
 
 /* i64 */
@@ -499,6 +550,13 @@ static void test_i64_hash(void) {
     NC_ASSERT(nc_i64_hash(69) == 0x53620494cc400a2);
     NC_ASSERT(nc_i64_hash(42) == 0x333883cd70fb570);
 }
+
+static void test_i64_next_pow2(void) {
+    NC_ASSERT(nc_i64_next_pow2(0) == 1);
+    NC_ASSERT(nc_i64_next_pow2(10000000000LL) == 17179869184LL);
+    NC_ASSERT(nc_i64_next_pow2(9223372036854775807LL) == 9223372036854775807LL); // clamped
+}
+
 /* i64 */
 
 void run_test_int(void) {
@@ -509,6 +567,7 @@ void run_test_int(void) {
     test_u8_from_bytes();
     test_u8_to_bytes();
     test_u8_hash();
+    test_u8_next_pow2();
 
     test_i8_leading_bits();
     test_i8_swaping_bits();
@@ -517,6 +576,7 @@ void run_test_int(void) {
     test_i8_from_bytes();
     test_i8_to_bytes();
     test_i8_hash();
+    test_i8_next_pow2();
 
     test_u16_leading_bits();
     test_u16_swaping_bits();
@@ -525,6 +585,7 @@ void run_test_int(void) {
     test_u16_from_bytes();
     test_u16_to_bytes();
     test_u16_hash();
+    test_u16_next_pow2();
 
     test_i16_leading_bits();
     test_i16_swaping_bits();
@@ -533,6 +594,7 @@ void run_test_int(void) {
     test_i16_from_bytes();
     test_i16_to_bytes();
     test_i16_hash();
+    test_i16_next_pow2();
 
     test_u32_leading_bits();
     test_u32_swaping_bits();
@@ -541,6 +603,7 @@ void run_test_int(void) {
     test_u32_from_bytes();
     test_u32_to_bytes();
     test_u32_hash();
+    test_u32_next_pow2();
 
     test_i32_leading_bits();
     test_i32_swaping_bits();
@@ -549,6 +612,7 @@ void run_test_int(void) {
     test_i32_from_bytes();
     test_i32_to_bytes();
     test_i32_hash();
+    test_i32_next_pow2();
 
     test_u64_leading_bits();
     test_u64_swaping_bits();
@@ -557,6 +621,7 @@ void run_test_int(void) {
     test_u64_from_bytes();
     test_u64_to_bytes();
     test_u64_hash();
+    test_u64_next_pow2();
 
     test_i64_leading_bits();
     test_i64_swaping_bits();
@@ -565,4 +630,5 @@ void run_test_int(void) {
     test_i64_from_bytes();
     test_i64_to_bytes();
     test_i64_hash();
+    test_i64_next_pow2();
 }

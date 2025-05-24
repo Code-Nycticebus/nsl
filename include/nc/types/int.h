@@ -32,7 +32,9 @@
     NC_CONST_FN T nc_##T##_clamp(T min, T max, T value);                                           \
                                                                                                    \
     NC_CONST_FN u64 nc_##T##_hash(T value);                                                        \
-    void nc_##T##_swap(T *v1, T *v2);
+    void nc_##T##_swap(T *v1, T *v2);                                                              \
+                                                                                                   \
+    NC_CONST_FN T nc_##T##_next_pow2(T n);
 
 INTEGER_DECL(u8)
 INTEGER_DECL(i8)

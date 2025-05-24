@@ -108,7 +108,7 @@
     }                                                                                              \
                                                                                                    \
     T nc_##T##_from_be_bytes(nc_Bytes bytes) {                                                     \
-        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                         \
+        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
         if (NC_BYTE_ORDER == NC_ENDIAN_LITTLE) {                                                   \
             return nc_##T##_swap_bytes(*(const T *)bytes.data);                                    \
         }                                                                                          \
@@ -143,7 +143,7 @@
     }                                                                                              \
                                                                                                    \
     T nc_##T##_from_le_bytes(nc_Bytes bytes) {                                                     \
-        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                         \
+        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
         if (NC_BYTE_ORDER == NC_ENDIAN_BIG) {                                                      \
             return nc_##T##_swap_bytes(*(const T *)bytes.data);                                    \
         }                                                                                          \
@@ -164,7 +164,7 @@
     }                                                                                              \
                                                                                                    \
     T nc_##T##_from_ne_bytes(nc_Bytes bytes) {                                                     \
-        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                         \
+        NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
         return *(const T *)bytes.data;                                                             \
     }                                                                                              \
                                                                                                    \
@@ -197,6 +197,16 @@
         T temp = *v1;                                                                              \
         *v1 = *v2;                                                                                 \
         *v2 = temp;                                                                                \
+    }                                                                                              \
+                                                                                                   \
+    T nc_##T##_next_pow2(T n) {                                                                    \
+        /* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */                 \
+        if (n == 0) return 1;                                                                      \
+        n--;                                                                                       \
+        for (size_t i = 1; i < sizeof(T) * 8; i <<= 1) { n |= n >> i; }                            \
+        T max = (((T)-1) > 0) ? (T)-1 : (T)((1ULL << (sizeof(T) * 8 - 1)) - 1);                    \
+        if (n >= max) return max;                                                                  \
+        return n + 1;                                                                              \
     }
 
 INTEGER_IMPL(u8)
