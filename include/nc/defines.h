@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifndef NC_NO_INT_TYPEDEFS
     #include <stdint.h>
