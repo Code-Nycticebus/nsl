@@ -8,29 +8,29 @@ static void test_init(void) {
     nc_map_init(&map, &arena);
 
     map.type = NC_MAP_U64;
-    assert(map._cap == 0);
-    assert(map._del == 0);
+    assert(map.cap == 0);
+    assert(map.del == 0);
     assert(map.len == 0);
-    assert(map._nodes == NULL);
+    assert(map.items == NULL);
 
     nc_map_insert_u64(&map, 1, 420);
     nc_map_insert_u64(&map, 2, 42);
     nc_map_insert_u64(&map, 3, 69);
 
-    assert(map._cap == 8);
-    assert(map._del == 0);
+    assert(map.cap == 8);
+    assert(map.del == 0);
     assert(map.len == 3);
-    assert(map._nodes);
+    assert(map.items);
 
     nc_map_remove(&map, 2);
-    assert(map._cap == 8);
-    assert(map._del == 1);
+    assert(map.cap == 8);
+    assert(map.del == 1);
     assert(map.len == 2);
-    assert(map._nodes);
+    assert(map.items);
 
     nc_map_resize(&map, 10);
-    assert(map._cap == 16);
-    assert(map._del == 0);
+    assert(map.cap == 16);
+    assert(map.del == 0);
     assert(map.len == 2);
 
     nc_arena_free(&arena);
@@ -139,7 +139,7 @@ static void test_clear(void) {
 
     nc_map_clear(&map);
     assert(map.len == 0);
-    assert(map._del == 0);
+    assert(map.del == 0);
 
     u64* u = nc_map_get_ptr(&map, 1);
     assert(u == NULL);

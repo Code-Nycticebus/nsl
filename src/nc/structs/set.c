@@ -2,9 +2,6 @@
 
 #include "nc/types/int.h"
 
-#define NC_SET_DEFAULT_SIZE 8
-#define NC_SET_DELETED ((u64)0xdeaddeaddeaddead)
-
 static inline usize nc_next_pow2(usize n) {
     // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
     if (n == 0) return 1;

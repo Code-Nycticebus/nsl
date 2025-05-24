@@ -12,21 +12,37 @@ typedef enum {
     NC_MAP_PTR,
 } nc_MapType;
 
-typedef struct nc_MapNode nc_MapNode;
+typedef union {
+    i64 i64;
+    u64 u64;
+    f64 f64;
+    void* ptr;
+    const void* const_ptr;
+} nc_MapValue;
+
+typedef struct {
+    u64 hash;
+    nc_MapValue value;
+} nc_MapItem;
 
 typedef struct nc_Map {
     nc_MapType type;
     usize len;
-    usize _cap;
-    usize _del;
-    nc_Arena *_arena;
-    nc_MapNode *_nodes;
+    usize cap;
+    usize del;
+    nc_Arena *arena;
+    nc_MapItem *items;
 } nc_Map;
+
+#define NC_MAP_DEFAULT_SIZE 8
+#define NC_MAP_DELETED ((u64)0xdeaddeaddeaddead)
 
 void nc_map_init(nc_Map *map, nc_Arena *arena);
 
-void nc_map_clear(nc_Map *map);
 void nc_map_update(nc_Map *map, nc_Map *other);
+void nc_map_extend(nc_Map *map, usize count, nc_MapItem *items);
+
+void nc_map_clear(nc_Map *map);
 
 void nc_map_resize(nc_Map *map, usize size);
 void nc_map_reserve(nc_Map *map, usize size);

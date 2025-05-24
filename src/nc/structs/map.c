@@ -4,22 +4,6 @@
 
 #include <string.h>
 
-typedef union {
-    i64 i64;
-    u64 u64;
-    f64 f64;
-    void* ptr;
-    const void* const_ptr;
-} nc_MapValue;
-
-struct nc_MapNode {
-    u64 hash;
-    nc_MapValue value;
-};
-
-#define NC_MAP_DEFAULT_SIZE 8
-#define NC_MAP_DELETED ((u64)0xdeaddeaddeaddead)
-
 static inline usize nc_next_pow2(usize n) {
     // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
     if (n == 0) return 1;
@@ -36,8 +20,8 @@ static inline usize nc_next_pow2(usize n) {
 }
 
 static void nc_map_insert(nc_Map *map, u64 hash, nc_MapValue value) {
-    if (map->_cap <= map->len + map->_del) {
-        nc_map_resize(map, map->_cap * 2);
+    if (map->cap <= map->len + map->del) {
+        nc_map_resize(map, map->cap * 2);
     }
 
     // NOTE: rehash in the slight chance that the hash is 0 or NC_MAP_DELETED
@@ -47,30 +31,30 @@ static void nc_map_insert(nc_Map *map, u64 hash, nc_MapValue value) {
 
     usize del_idx = (usize)-1;
     while (true) {
-        usize idx = hash & (map->_cap - 1);
+        usize idx = hash & (map->cap - 1);
 
-        for (usize i = 0; i < map->_cap; i++) {
-            if (map->_nodes[idx].hash == 0) {
+        for (usize i = 0; i < map->cap; i++) {
+            if (map->items[idx].hash == 0) {
                 // NOTE: reusing a deleted slot
                 if (del_idx != (usize)-1) {
-                    map->_nodes[del_idx] = (nc_MapNode){.hash = hash, .value = value};
+                    map->items[del_idx] = (nc_MapItem){.hash = hash, .value = value};
                     map->len++;
-                    map->_del--;
+                    map->del--;
                     return;
                 }
-                map->_nodes[idx] = (nc_MapNode){.hash = hash, .value = value};
+                map->items[idx] = (nc_MapItem){.hash = hash, .value = value};
                 map->len++;
                 return;
-            } else if (map->_nodes[idx].hash == hash) {
-                map->_nodes[idx].value = value;
+            } else if (map->items[idx].hash == hash) {
+                map->items[idx].value = value;
                 return;
-            } else if (map->_nodes[idx].hash == NC_MAP_DELETED && del_idx == (usize)-1) {
+            } else if (map->items[idx].hash == NC_MAP_DELETED && del_idx == (usize)-1) {
                 del_idx = idx;
             }
-            idx = (idx + i * i) & (map->_cap - 1);
+            idx = (idx + i * i) & (map->cap - 1);
         }
 
-        nc_map_resize(map, map->_cap * 2);
+        nc_map_resize(map, map->cap * 2);
     }
 
     NC_UNREACHABLE("nc_map_insert");
@@ -86,15 +70,15 @@ static nc_MapValue *nc_map_get(const nc_Map *map, u64 hash) {
         hash = nc_u64_hash(hash);
     }
 
-    usize idx = hash & (map->_cap - 1);
-    for (usize i = 0; i < map->_cap; i++) {
-        if (map->_nodes[idx].hash == 0) {
+    usize idx = hash & (map->cap - 1);
+    for (usize i = 0; i < map->cap; i++) {
+        if (map->items[idx].hash == 0) {
             return NULL;
         }
-        if (map->_nodes[idx].hash == hash) {
-            return &map->_nodes[idx].value;
+        if (map->items[idx].hash == hash) {
+            return &map->items[idx].value;
         }
-        idx = (idx + i * i) & (map->_cap - 1);
+        idx = (idx + i * i) & (map->cap - 1);
     }
 
     return NULL;
@@ -102,54 +86,61 @@ static nc_MapValue *nc_map_get(const nc_Map *map, u64 hash) {
 
 void nc_map_init(nc_Map *map, nc_Arena *arena) {
     assert(map && arena);
-    assert(map->_nodes == NULL && "The map was already initialized");
+    assert(map->items == NULL && "The map was already initialized");
 
     map->type = 0;
     map->len = 0;
-    map->_cap = 0;
-    map->_del = 0;
-    map->_arena = arena;
-    map->_nodes = NULL;
-}
-
-void nc_map_clear(nc_Map* map) {
-    map->len = 0;
-    map->_del = 0;
-    memset(map->_nodes, 0, sizeof(map->_nodes[0]) * map->_cap);
+    map->cap = 0;
+    map->del = 0;
+    map->arena = arena;
+    map->items = NULL;
 }
 
 void nc_map_update(nc_Map *map, nc_Map *other) {
     nc_map_reserve(map, other->len);
-    for (usize i = 0; i < other->_cap; ++i) {
-        if (other->_nodes[i].hash && other->_nodes[i].hash != NC_MAP_DELETED) {
-            nc_map_insert(map, other->_nodes[i].hash, other->_nodes[i].value);
+    for (usize i = 0; i < other->cap; ++i) {
+        if (other->items[i].hash && other->items[i].hash != NC_MAP_DELETED) {
+            nc_map_insert(map, other->items[i].hash, other->items[i].value);
         }
     }
 }
 
+void nc_map_extend(nc_Map* map, usize count, nc_MapItem* items) {
+    nc_map_reserve(map, count);
+    for (usize i = 0; i < count; i++) {
+        nc_map_insert(map, items[i].hash, items[i].value);
+    }
+}
+
+void nc_map_clear(nc_Map* map) {
+    map->len = 0;
+    map->del = 0;
+    memset(map->items, 0, sizeof(map->items[0]) * map->cap);
+}
+
 void nc_map_resize(nc_Map *map, usize size) {
-    if (size < map->_cap) {
+    if (size < map->cap) {
         return;
     }
-    usize old_cap = map->_cap;
-    nc_MapNode *old_nodes = map->_nodes;
+    usize old_cap = map->cap;
+    nc_MapItem *old_items = map->items;
 
-    map->_cap = size == 0 ? NC_MAP_DEFAULT_SIZE : nc_next_pow2(size);
-    map->_nodes = nc_arena_calloc_chunk(map->_arena, map->_cap * sizeof(map->_nodes[0]));
+    map->cap = size == 0 ? NC_MAP_DEFAULT_SIZE : nc_next_pow2(size);
+    map->items = nc_arena_calloc_chunk(map->arena, map->cap * sizeof(map->items[0]));
 
     map->len = 0;
-    map->_del = 0;
+    map->del = 0;
     for (usize i = 0; i < old_cap; ++i) {
-        if (old_nodes[i].hash && old_nodes[i].hash != NC_MAP_DELETED) {
-            nc_map_insert(map, old_nodes[i].hash, old_nodes[i].value);
+        if (old_items[i].hash && old_items[i].hash != NC_MAP_DELETED) {
+            nc_map_insert(map, old_items[i].hash, old_items[i].value);
         }
     }
-    nc_arena_free_chunk(map->_arena, old_nodes);
+    nc_arena_free_chunk(map->arena, old_items);
 }
 
 void nc_map_reserve(nc_Map *map, usize size) {
     usize target = map->len + size;
-    if (target <= map->_cap) return;
+    if (target <= map->cap) return;
     nc_map_resize(map, target);
 }
 
@@ -163,18 +154,18 @@ bool nc_map_remove(nc_Map *map, u64 hash) {
         hash = nc_u64_hash(hash);
     }
 
-    usize idx = hash & (map->_cap - 1);
-    for (usize i = 0; i < map->_cap; i++) {
-        if (map->_nodes[idx].hash == 0) {
+    usize idx = hash & (map->cap - 1);
+    for (usize i = 0; i < map->cap; i++) {
+        if (map->items[idx].hash == 0) {
             return false;
         }
-        if (map->_nodes[idx].hash && map->_nodes[idx].hash == hash) {
-            map->_nodes[idx].hash = NC_MAP_DELETED;
+        if (map->items[idx].hash && map->items[idx].hash == hash) {
+            map->items[idx].hash = NC_MAP_DELETED;
             map->len--;
-            map->_del++;
+            map->del++;
             return true;
         }
-        idx = (idx + i * i) & (map->_cap - 1);
+        idx = (idx + i * i) & (map->cap - 1);
     }
     return false;
 }

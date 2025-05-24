@@ -12,6 +12,9 @@ typedef struct {
     u64 *items;
 } nc_Set;
 
+#define NC_SET_DEFAULT_SIZE 8
+#define NC_SET_DELETED ((u64)0xdeaddeaddeaddead)
+
 void nc_set_init(nc_Set* set, nc_Arena *arena);
 
 void nc_set_resize(nc_Set *set, usize size);
