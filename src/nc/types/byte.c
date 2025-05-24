@@ -9,11 +9,11 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-nc_Bytes nc_bytes_from_parts(usize size, const void *data) { return (nc_Bytes){.size = size, .data = data}; }
+NC_API nc_Bytes nc_bytes_from_parts(usize size, const void *data) { return (nc_Bytes){.size = size, .data = data}; }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-nc_Bytes nc_bytes_copy(nc_Bytes bytes, nc_Arena *arena) {
+NC_API nc_Bytes nc_bytes_copy(nc_Bytes bytes, nc_Arena *arena) {
   u8 *buffer = nc_arena_alloc(arena, bytes.size);
   memcpy(buffer, bytes.data, bytes.size);
   return nc_bytes_from_parts(bytes.size, buffer);
@@ -21,14 +21,14 @@ nc_Bytes nc_bytes_copy(nc_Bytes bytes, nc_Arena *arena) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-nc_Bytes nc_bytes_slice(nc_Bytes bytes, usize idx1, usize idx2) {
+NC_API nc_Bytes nc_bytes_slice(nc_Bytes bytes, usize idx1, usize idx2) {
   if (idx2 <= idx1 || bytes.size <= idx1 || bytes.size < idx2) {
     return nc_bytes_from_parts(0, bytes.data);
   }
   return nc_bytes_from_parts(idx2 - idx1, &bytes.data[idx1]);
 }
 
-nc_Bytes nc_bytes_take(nc_Bytes *bytes, usize count) {
+NC_API nc_Bytes nc_bytes_take(nc_Bytes *bytes, usize count) {
   count = nc_usize_min(bytes->size, count);
   nc_Bytes ret = nc_bytes_from_parts(count, bytes->data);
   bytes->size -= count;
@@ -38,14 +38,14 @@ nc_Bytes nc_bytes_take(nc_Bytes *bytes, usize count) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool nc_bytes_eq(nc_Bytes b1, nc_Bytes b2) {
+NC_API bool nc_bytes_eq(nc_Bytes b1, nc_Bytes b2) {
   if (b1.size != b2.size) {
     return false;
   }
   return memcmp(b1.data, b2.data, b1.size) == 0;
 }
 
-u64 nc_bytes_hash(nc_Bytes bytes) {
+NC_API u64 nc_bytes_hash(nc_Bytes bytes) {
   const u64 offset = 2166136261UL;
   const u64 prime = 16777619;
   u64 hash = offset;
@@ -58,7 +58,7 @@ u64 nc_bytes_hash(nc_Bytes bytes) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-nc_Str nc_bytes_to_hex(nc_Bytes bytes, nc_Arena *arena) {
+NC_API nc_Str nc_bytes_to_hex(nc_Bytes bytes, nc_Arena *arena) {
   char *buf = nc_arena_calloc(arena, bytes.size * 2 + 1);
   usize idx = 0;
   for (usize i = 0; i < bytes.size; i++) {
@@ -67,7 +67,7 @@ nc_Str nc_bytes_to_hex(nc_Bytes bytes, nc_Arena *arena) {
   return (nc_Str){.len = idx, .data = buf};
 }
 
-nc_Bytes nc_bytes_from_hex(nc_Str s, nc_Arena *arena) {
+NC_API nc_Bytes nc_bytes_from_hex(nc_Str s, nc_Arena *arena) {
   if (nc_str_startswith(s, NC_STR("0x"))) {
     s = nc_str_substring(s, 2, s.len);
   }

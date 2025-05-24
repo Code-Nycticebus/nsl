@@ -12,23 +12,23 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-nc_Str nc_str_from_parts(usize size, const char *cstr) {
+NC_API nc_Str nc_str_from_parts(usize size, const char *cstr) {
     return (nc_Str){.len = size, .data = cstr};
 }
 
-nc_Str nc_str_from_bytes(nc_Bytes bytes) {
+NC_API nc_Str nc_str_from_bytes(nc_Bytes bytes) {
     return nc_str_from_parts(bytes.size, (const char *)bytes.data);
 }
 
-nc_Bytes nc_str_to_bytes(nc_Str s) {
+NC_API nc_Bytes nc_str_to_bytes(nc_Str s) {
     return nc_bytes_from_parts(s.len, s.data);
 }
 
-nc_Str nc_str_from_cstr(const char *cstr) {
+NC_API nc_Str nc_str_from_cstr(const char *cstr) {
     return (nc_Str){.len = strlen(cstr), .data = cstr};
 }
 
-nc_Str nc_str_format(nc_Arena *arena, const char *fmt, ...) {
+NC_API nc_Str nc_str_format(nc_Arena *arena, const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
     usize size = (usize)vsnprintf(NULL, 0, fmt, va) + 1;
@@ -43,14 +43,14 @@ nc_Str nc_str_format(nc_Arena *arena, const char *fmt, ...) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-nc_Str nc_str_copy(nc_Str s, nc_Arena *arena) {
+NC_API nc_Str nc_str_copy(nc_Str s, nc_Arena *arena) {
     char *buffer = nc_arena_alloc(arena, s.len + 1);
     memcpy(buffer, s.data, s.len);
     buffer[s.len] = '\0';
     return nc_str_from_parts(s.len, buffer);
 }
 
-nc_Str nc_str_append(nc_Str s, nc_Str suffix, nc_Arena *arena) {
+NC_API nc_Str nc_str_append(nc_Str s, nc_Str suffix, nc_Arena *arena) {
     const usize new_size = s.len + suffix.len;
     char *buffer = nc_arena_alloc(arena, new_size + 1);
     memcpy(&buffer[0], s.data, s.len);
@@ -59,7 +59,7 @@ nc_Str nc_str_append(nc_Str s, nc_Str suffix, nc_Arena *arena) {
     return nc_str_from_parts(new_size, buffer);
 }
 
-nc_Str nc_str_prepend(nc_Str s, nc_Str prefix, nc_Arena *arena) {
+NC_API nc_Str nc_str_prepend(nc_Str s, nc_Str prefix, nc_Arena *arena) {
     const usize new_size = s.len + prefix.len;
     char *buffer = nc_arena_alloc(arena, new_size + 1);
     memcpy(&buffer[0], prefix.data, prefix.len);
@@ -68,7 +68,7 @@ nc_Str nc_str_prepend(nc_Str s, nc_Str prefix, nc_Arena *arena) {
     return nc_str_from_parts(new_size, buffer);
 }
 
-nc_Str nc_str_wrap(nc_Str s, nc_Str wrap, nc_Arena *arena) {
+NC_API nc_Str nc_str_wrap(nc_Str s, nc_Str wrap, nc_Arena *arena) {
     const usize new_size = s.len + wrap.len * 2;
     char *buffer = nc_arena_alloc(arena, new_size + 1);
     memcpy(&buffer[0], wrap.data, wrap.len);
@@ -78,7 +78,7 @@ nc_Str nc_str_wrap(nc_Str s, nc_Str wrap, nc_Arena *arena) {
     return nc_str_from_parts(new_size, buffer);
 }
 
-nc_Str nc_str_join(nc_Str sep, usize count, nc_Str *s, nc_Arena *arena) {
+NC_API nc_Str nc_str_join(nc_Str sep, usize count, nc_Str *s, nc_Arena *arena) {
     if (count == 0) {
         return (nc_Str){0};
     }
@@ -101,7 +101,7 @@ nc_Str nc_str_join(nc_Str sep, usize count, nc_Str *s, nc_Arena *arena) {
     return nc_str_from_parts(size, buffer);
 }
 
-nc_Str nc_str_join_suffix(nc_Str suffix, usize count, nc_Str *s, nc_Arena *arena) {
+NC_API nc_Str nc_str_join_suffix(nc_Str suffix, usize count, nc_Str *s, nc_Arena *arena) {
     usize size = suffix.len * count;
     for (usize i = 0; i < count; i++) {
         size += s[i].len;
@@ -119,7 +119,7 @@ nc_Str nc_str_join_suffix(nc_Str suffix, usize count, nc_Str *s, nc_Arena *arena
     return nc_str_from_parts(size, buffer);
 }
 
-nc_Str nc_str_join_prefix(nc_Str prefix, usize count, nc_Str *s, nc_Arena *arena) {
+NC_API nc_Str nc_str_join_prefix(nc_Str prefix, usize count, nc_Str *s, nc_Arena *arena) {
     usize size = prefix.len * count;
     for (usize i = 0; i < count; i++) {
         size += s[i].len;
@@ -137,7 +137,7 @@ nc_Str nc_str_join_prefix(nc_Str prefix, usize count, nc_Str *s, nc_Arena *arena
     return nc_str_from_parts(size, buffer);
 }
 
-nc_Str nc_str_join_wrap(nc_Str sep, nc_Str wrap, usize count, nc_Str *s, nc_Arena *arena) {
+NC_API nc_Str nc_str_join_wrap(nc_Str sep, nc_Str wrap, usize count, nc_Str *s, nc_Arena *arena) {
     usize size = sep.len * (count - 1) + wrap.len * count * 2;
     for (usize i = 0; i < count; i++) {
         size += s[i].len;
@@ -161,7 +161,7 @@ nc_Str nc_str_join_wrap(nc_Str sep, nc_Str wrap, usize count, nc_Str *s, nc_Aren
     return nc_str_from_parts(size, buffer);
 }
 
-nc_Str nc_str_upper(nc_Str s, nc_Arena *arena) {
+NC_API nc_Str nc_str_upper(nc_Str s, nc_Arena *arena) {
     char *buffer = nc_arena_alloc(arena, s.len + 1);
     buffer[s.len] = '\0';
     for (usize i = 0; i < s.len; i++) {
@@ -170,7 +170,7 @@ nc_Str nc_str_upper(nc_Str s, nc_Arena *arena) {
     return nc_str_from_parts(s.len, buffer);
 }
 
-nc_Str nc_str_lower(nc_Str s, nc_Arena *arena) {
+NC_API nc_Str nc_str_lower(nc_Str s, nc_Arena *arena) {
     char *buffer = nc_arena_alloc(arena, s.len + 1);
     buffer[s.len] = '\0';
     for (usize i = 0; i < s.len; i++) {
@@ -179,7 +179,7 @@ nc_Str nc_str_lower(nc_Str s, nc_Arena *arena) {
     return nc_str_from_parts(s.len, buffer);
 }
 
-nc_Str nc_str_replace(nc_Str s, nc_Str old, nc_Str new, nc_Arena *arena) {
+NC_API nc_Str nc_str_replace(nc_Str s, nc_Str old, nc_Str new, nc_Arena *arena) {
     usize count = nc_str_count(s, old);
     usize new_size = (s.len - (old.len * count) + (count * new.len));
     char *buffer = nc_arena_alloc(arena, new_size + 1);
@@ -198,7 +198,7 @@ nc_Str nc_str_replace(nc_Str s, nc_Str old, nc_Str new, nc_Arena *arena) {
     return nc_str_from_parts(new_size, buffer);
 }
 
-nc_Str nc_str_center(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
+NC_API nc_Str nc_str_center(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
     if (width < s.len) {
         return nc_str_copy(s, arena);
     }
@@ -218,7 +218,7 @@ nc_Str nc_str_center(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
     return nc_str_from_parts(width, buffer);
 }
 
-nc_Str nc_str_ljust(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
+NC_API nc_Str nc_str_ljust(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
     if (width < s.len) {
         return nc_str_copy(s, arena);
     }
@@ -233,7 +233,7 @@ nc_Str nc_str_ljust(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
     return nc_str_from_parts(width, buffer);
 }
 
-nc_Str nc_str_rjust(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
+NC_API nc_Str nc_str_rjust(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
     if (width < s.len) {
         return nc_str_copy(s, arena);
     }
@@ -249,7 +249,7 @@ nc_Str nc_str_rjust(nc_Str s, usize width, char fillchar, nc_Arena *arena) {
     return nc_str_from_parts(width, buffer);
 }
 
-nc_Str nc_str_repeat(nc_Str s, usize count, nc_Arena *arena) {
+NC_API nc_Str nc_str_repeat(nc_Str s, usize count, nc_Arena *arena) {
     usize len = s.len * count;
     char *buffer = nc_arena_alloc(arena, len + 1);
     buffer[len] = '\0';
@@ -264,7 +264,7 @@ nc_Str nc_str_repeat(nc_Str s, usize count, nc_Arena *arena) {
     return nc_str_from_parts(len, buffer);
 }
 
-nc_Str nc_str_reverse(nc_Str s, nc_Arena *arena) {
+NC_API nc_Str nc_str_reverse(nc_Str s, nc_Arena *arena) {
     char *buffer = nc_arena_alloc(arena, s.len + 1);
     buffer[s.len] = '\0';
     for (usize i = 0; i < s.len; i++) {
@@ -275,14 +275,14 @@ nc_Str nc_str_reverse(nc_Str s, nc_Arena *arena) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool nc_str_eq(nc_Str s1, nc_Str s2) {
+NC_API bool nc_str_eq(nc_Str s1, nc_Str s2) {
     if (s1.len != s2.len) {
         return false;
     }
     return memcmp(s1.data, s2.data, s1.len) == 0;
 }
 
-bool nc_str_eq_ignorecase(nc_Str s1, nc_Str s2) {
+NC_API bool nc_str_eq_ignorecase(nc_Str s1, nc_Str s2) {
     if (s1.len != s2.len) {
         return false;
     }
@@ -294,14 +294,14 @@ bool nc_str_eq_ignorecase(nc_Str s1, nc_Str s2) {
     return true;
 }
 
-bool nc_str_startswith(nc_Str s1, nc_Str prefix) {
+NC_API bool nc_str_startswith(nc_Str s1, nc_Str prefix) {
     if (s1.len < prefix.len) {
         return false;
     }
     return memcmp(s1.data, prefix.data, prefix.len) == 0;
 }
 
-bool nc_str_endswith(nc_Str s1, nc_Str suffix) {
+NC_API bool nc_str_endswith(nc_Str s1, nc_Str suffix) {
     if (s1.len < suffix.len) {
         return false;
     }
@@ -309,7 +309,7 @@ bool nc_str_endswith(nc_Str s1, nc_Str suffix) {
     return memcmp(&s1.data[idx], suffix.data, suffix.len) == 0;
 }
 
-bool nc_str_contains(nc_Str haystack, nc_Str needle) {
+NC_API bool nc_str_contains(nc_Str haystack, nc_Str needle) {
     if (haystack.len < needle.len) {
         return false;
     }
@@ -321,7 +321,7 @@ bool nc_str_contains(nc_Str haystack, nc_Str needle) {
     return false;
 }
 
-bool nc_str_includes(nc_Str haystack, char needle) {
+NC_API bool nc_str_includes(nc_Str haystack, char needle) {
     if (haystack.len == 0) {
         return false;
     }
@@ -333,11 +333,11 @@ bool nc_str_includes(nc_Str haystack, char needle) {
     return false;
 }
 
-bool nc_str_is_empty(nc_Str s) {
+NC_API bool nc_str_is_empty(nc_Str s) {
     return s.len == 0;
 }
 
-nc_Str nc_str_trim_left(nc_Str s) {
+NC_API nc_Str nc_str_trim_left(nc_Str s) {
     nc_Str result = s;
     for (usize i = 0; i < s.len && nc_char_is_space(s.data[i]); ++i) {
         result.data++;
@@ -346,7 +346,7 @@ nc_Str nc_str_trim_left(nc_Str s) {
     return result;
 }
 
-nc_Str nc_str_trim_left_by_delim(nc_Str s, char delim) {
+NC_API nc_Str nc_str_trim_left_by_delim(nc_Str s, char delim) {
     nc_Str result = s;
     for (usize i = 0; i < s.len && s.data[i] == delim; ++i) {
         result.data++;
@@ -355,7 +355,7 @@ nc_Str nc_str_trim_left_by_delim(nc_Str s, char delim) {
     return result;
 }
 
-nc_Str nc_str_trim_left_by_predicate(nc_Str s, bool (*predicate)(char)) {
+NC_API nc_Str nc_str_trim_left_by_predicate(nc_Str s, bool (*predicate)(char)) {
     nc_Str result = s;
     for (usize i = 0; i < s.len && predicate(s.data[i]); ++i) {
         result.data++;
@@ -364,7 +364,7 @@ nc_Str nc_str_trim_left_by_predicate(nc_Str s, bool (*predicate)(char)) {
     return result;
 }
 
-nc_Str nc_str_trim_right(nc_Str s) {
+NC_API nc_Str nc_str_trim_right(nc_Str s) {
     nc_Str result = s;
     for (usize i = 0; i < s.len && nc_char_is_space(s.data[s.len - i - 1]); ++i) {
         result.len--;
@@ -372,7 +372,7 @@ nc_Str nc_str_trim_right(nc_Str s) {
     return result;
 }
 
-nc_Str nc_str_trim_right_by_delim(nc_Str s, char delim) {
+NC_API nc_Str nc_str_trim_right_by_delim(nc_Str s, char delim) {
     nc_Str result = s;
     for (usize i = 0; i < s.len && s.data[s.len - i - 1] == delim; ++i) {
         result.len--;
@@ -380,7 +380,7 @@ nc_Str nc_str_trim_right_by_delim(nc_Str s, char delim) {
     return result;
 }
 
-nc_Str nc_str_trim_right_by_predicate(nc_Str s, bool (*predicate)(char)) {
+NC_API nc_Str nc_str_trim_right_by_predicate(nc_Str s, bool (*predicate)(char)) {
     nc_Str result = s;
     for (usize i = 0; i < s.len && predicate(s.data[s.len - i - 1]); ++i) {
         result.len--;
@@ -388,19 +388,19 @@ nc_Str nc_str_trim_right_by_predicate(nc_Str s, bool (*predicate)(char)) {
     return result;
 }
 
-nc_Str nc_str_trim(nc_Str s) {
+NC_API nc_Str nc_str_trim(nc_Str s) {
     return nc_str_trim_left(nc_str_trim_right(s));
 }
 
-nc_Str nc_str_trim_by_delim(nc_Str s, char delim) {
+NC_API nc_Str nc_str_trim_by_delim(nc_Str s, char delim) {
     return nc_str_trim_left_by_delim(nc_str_trim_right_by_delim(s, delim), delim);
 }
 
-nc_Str nc_str_trim_by_predicate(nc_Str s, bool (*predicate)(char)) {
+NC_API nc_Str nc_str_trim_by_predicate(nc_Str s, bool (*predicate)(char)) {
     return nc_str_trim_left_by_predicate(nc_str_trim_right_by_predicate(s, predicate), predicate);
 }
 
-bool nc_str_try_chop_by_delim(nc_Str *s, char delim, nc_Str *chunk) {
+NC_API bool nc_str_try_chop_by_delim(nc_Str *s, char delim, nc_Str *chunk) {
     if (s->len == 0) {
         return false;
     }
@@ -423,7 +423,7 @@ bool nc_str_try_chop_by_delim(nc_Str *s, char delim, nc_Str *chunk) {
     return false;
 }
 
-nc_Str nc_str_chop_by_delim(nc_Str *s, char delim) {
+NC_API nc_Str nc_str_chop_by_delim(nc_Str *s, char delim) {
     usize i = 0;
     while (i < s->len && s->data[i] != delim) {
         ++i;
@@ -441,7 +441,7 @@ nc_Str nc_str_chop_by_delim(nc_Str *s, char delim) {
     return *s;
 }
 
-bool nc_str_try_chop_by_predicate(nc_Str *s, bool (*predicate)(char), nc_Str *chunk) {
+NC_API bool nc_str_try_chop_by_predicate(nc_Str *s, bool (*predicate)(char), nc_Str *chunk) {
     usize i = 0;
     while (i < s->len && !predicate(s->data[i])) {
         ++i;
@@ -460,7 +460,7 @@ bool nc_str_try_chop_by_predicate(nc_Str *s, bool (*predicate)(char), nc_Str *ch
     return false;
 }
 
-nc_Str nc_str_chop_by_predicate(nc_Str *s, bool (*predicate)(char)) {
+NC_API nc_Str nc_str_chop_by_predicate(nc_Str *s, bool (*predicate)(char)) {
     usize i = 0;
     while (i < s->len && !predicate(s->data[i])) {
         ++i;
@@ -477,7 +477,7 @@ nc_Str nc_str_chop_by_predicate(nc_Str *s, bool (*predicate)(char)) {
     return *s;
 }
 
-nc_Str nc_str_chop_right_by_delim(nc_Str *s, char delim) {
+NC_API nc_Str nc_str_chop_right_by_delim(nc_Str *s, char delim) {
     usize i = 0;
     while (i < s->len && s->data[s->len - i - 1] != delim) {
         ++i;
@@ -492,7 +492,7 @@ nc_Str nc_str_chop_right_by_delim(nc_Str *s, char delim) {
     return *s;
 }
 
-nc_Str nc_str_chop_right_by_predicate(nc_Str *s, bool (*predicate)(char)) {
+NC_API nc_Str nc_str_chop_right_by_predicate(nc_Str *s, bool (*predicate)(char)) {
     usize i = 0;
     while (i < s->len && !predicate(s->data[s->len - i - 1])) {
         ++i;
@@ -507,14 +507,14 @@ nc_Str nc_str_chop_right_by_predicate(nc_Str *s, bool (*predicate)(char)) {
     return *s;
 }
 
-nc_Str nc_str_substring(nc_Str s, usize start, usize end) {
+NC_API nc_Str nc_str_substring(nc_Str s, usize start, usize end) {
     if (end <= start || s.len <= start || s.len < end) {
         return NC_STR("");
     }
     return nc_str_from_parts(end - start, &s.data[start]);
 }
 
-nc_Str nc_str_take(nc_Str *s, usize count) {
+NC_API nc_Str nc_str_take(nc_Str *s, usize count) {
     count = nc_usize_min(s->len, count);
     nc_Str ret = nc_str_from_parts(count, s->data);
     s->len -= count;
@@ -522,7 +522,7 @@ nc_Str nc_str_take(nc_Str *s, usize count) {
     return ret;
 }
 
-bool nc_str_try_take(nc_Str *s, usize count, nc_Str *chunk) {
+NC_API bool nc_str_try_take(nc_Str *s, usize count, nc_Str *chunk) {
     if (s->len == 0) {
         return false;
     }
@@ -533,14 +533,14 @@ bool nc_str_try_take(nc_Str *s, usize count, nc_Str *chunk) {
     return true;
 }
 
-nc_Str nc_str_take_right(nc_Str *s, usize count) {
+NC_API nc_Str nc_str_take_right(nc_Str *s, usize count) {
     count = nc_usize_min(s->len, count);
     nc_Str ret = nc_str_from_parts(count, &s->data[s->len - count]);
     s->len -= count;
     return ret;
 }
 
-bool nc_str_try_take_right(nc_Str *s, usize count, nc_Str *chunk) {
+NC_API bool nc_str_try_take_right(nc_Str *s, usize count, nc_Str *chunk) {
     if (s->len == 0) {
         return false;
     }
@@ -550,7 +550,7 @@ bool nc_str_try_take_right(nc_Str *s, usize count, nc_Str *chunk) {
     return true;
 }
 
-u64 nc_str_u64(nc_Str s) {
+NC_API u64 nc_str_u64(nc_Str s) {
     const int radix = 10;
     nc_Arena arena = {0};
     nc_Str owned = nc_str_copy(s, &arena);
@@ -559,7 +559,7 @@ u64 nc_str_u64(nc_Str s) {
     return value;
 }
 
-u64 nc_str_chop_u64(nc_Str *s) {
+NC_API u64 nc_str_chop_u64(nc_Str *s) {
     const int radix = 10;
     nc_Arena arena = {0};
     nc_Str owned = nc_str_copy(*s, &arena);
@@ -574,7 +574,7 @@ u64 nc_str_chop_u64(nc_Str *s) {
     return value;
 }
 
-i64 nc_str_i64(nc_Str s) {
+NC_API i64 nc_str_i64(nc_Str s) {
     const int radix = 10;
     nc_Arena arena = {0};
     nc_Str owned = nc_str_copy(s, &arena);
@@ -583,7 +583,7 @@ i64 nc_str_i64(nc_Str s) {
     return value;
 }
 
-i64 nc_str_chop_i64(nc_Str *s) {
+NC_API i64 nc_str_chop_i64(nc_Str *s) {
     const int radix = 10;
     nc_Arena arena = {0};
     nc_Str owned = nc_str_copy(*s, &arena);
@@ -598,7 +598,7 @@ i64 nc_str_chop_i64(nc_Str *s) {
     return value;
 }
 
-f64 nc_str_f64(nc_Str s) {
+NC_API f64 nc_str_f64(nc_Str s) {
     nc_Arena arena = {0};
     nc_Str owned = nc_str_copy(s, &arena);
     double value = strtod(owned.data, NULL);
@@ -606,7 +606,7 @@ f64 nc_str_f64(nc_Str s) {
     return value;
 }
 
-f64 nc_str_chop_f64(nc_Str *s) {
+NC_API f64 nc_str_chop_f64(nc_Str *s) {
     nc_Arena arena = {0};
     nc_Str owned = nc_str_copy(*s, &arena);
 
@@ -621,7 +621,7 @@ f64 nc_str_chop_f64(nc_Str *s) {
     return value;
 }
 
-usize nc_str_find(nc_Str haystack, nc_Str needle) {
+NC_API usize nc_str_find(nc_Str haystack, nc_Str needle) {
     if (haystack.len < needle.len) {
         return NC_STR_NOT_FOUND;
     }
@@ -633,7 +633,7 @@ usize nc_str_find(nc_Str haystack, nc_Str needle) {
     return NC_STR_NOT_FOUND;
 }
 
-usize nc_str_find_last(nc_Str haystack, nc_Str needle) {
+NC_API usize nc_str_find_last(nc_Str haystack, nc_Str needle) {
     if (haystack.len < needle.len) {
         return NC_STR_NOT_FOUND;
     }
@@ -645,7 +645,7 @@ usize nc_str_find_last(nc_Str haystack, nc_Str needle) {
     return NC_STR_NOT_FOUND;
 }
 
-usize nc_str_count(nc_Str haystack, nc_Str needle) {
+NC_API usize nc_str_count(nc_Str haystack, nc_Str needle) {
     usize count = 0;
     if (haystack.len < needle.len) {
         return count;
@@ -659,14 +659,14 @@ usize nc_str_count(nc_Str haystack, nc_Str needle) {
     return count;
 }
 
-char nc_str_getc(nc_Str s, usize idx) {
+NC_API char nc_str_getc(nc_Str s, usize idx) {
     if (s.len <= idx) {
         return '\0';
     }
     return s.data[idx];
 }
 
-u64 nc_str_hash(nc_Str s) {
+NC_API u64 nc_str_hash(nc_Str s) {
     const uint64_t magic_prime = 0x00000100000001b3;
     uint64_t hash = 0xcbf29ce484222325; // NOLINT
     for (usize i = 0; i < s.len; ++i) {

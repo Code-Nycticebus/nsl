@@ -31,7 +31,7 @@ NC_CONST_FN static usize align(usize size) {
     return (size + mask) & ~mask;
 }
 
-void nc_arena_free(nc_Arena *arena) {
+NC_API void nc_arena_free(nc_Arena *arena) {
     nc_Chunk *next = arena->begin;
     while (next != NULL) {
         nc_Chunk *temp = next;
@@ -41,7 +41,7 @@ void nc_arena_free(nc_Arena *arena) {
     arena->begin = NULL;
 }
 
-void nc_arena_reset(nc_Arena *arena) {
+NC_API void nc_arena_reset(nc_Arena *arena) {
     for (nc_Chunk *next = arena->begin; next != NULL; next = next->next) {
         if (next->cap != 0) {
             next->allocated = 0;
@@ -49,7 +49,7 @@ void nc_arena_reset(nc_Arena *arena) {
     }
 }
 
-usize nc_arena_size(nc_Arena *arena) {
+NC_API usize nc_arena_size(nc_Arena *arena) {
     usize size = 0;
     for (nc_Chunk *chunk = arena->begin; chunk != NULL; chunk = chunk->next) {
         size += chunk->allocated;
@@ -57,7 +57,7 @@ usize nc_arena_size(nc_Arena *arena) {
     return size;
 }
 
-usize nc_arena_real_size(nc_Arena *arena) {
+NC_API usize nc_arena_real_size(nc_Arena *arena) {
     usize size = 0;
     for (nc_Chunk *chunk = arena->begin; chunk != NULL; chunk = chunk->next) {
         size += chunk->cap ? chunk->cap : chunk->allocated;
@@ -134,7 +134,7 @@ void *nc_arena_realloc_chunk(nc_Arena *arena, void *ptr, usize size) {
     return new_chunk->data;
 }
 
-void nc_arena_free_chunk(nc_Arena *arena, void *ptr) {
+NC_API void nc_arena_free_chunk(nc_Arena *arena, void *ptr) {
     if (ptr == NULL) {
         return;
     }
