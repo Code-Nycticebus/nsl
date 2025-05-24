@@ -2,21 +2,6 @@
 
 #include "nc/types/int.h"
 
-static inline usize nc_next_pow2(usize n) {
-    // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-    if (n == 0) return 1;
-    n--;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-#if __SIZEOF_SIZE_T__ == 8
-    n |= n >> 32;
-#endif
-    return n + 1;
-}
-
 void nc_set_init(nc_Set *set, nc_Arena *arena) {
     assert(set && arena);
     assert(set->items == NULL && "The map was already initialized");
@@ -35,7 +20,7 @@ void nc_set_resize(nc_Set *set, usize size) {
     usize old_cap = set->_cap;
     u64 *old_items = set->items;
 
-    set->_cap = size == 0 ? NC_SET_DEFAULT_SIZE : nc_next_pow2(size);
+    set->_cap = size == 0 ? NC_SET_DEFAULT_SIZE : nc_usize_next_pow2(size);
     set->items = nc_arena_calloc_chunk(set->arena, set->_cap * sizeof(set->items[0]));
 
     set->len = 0;

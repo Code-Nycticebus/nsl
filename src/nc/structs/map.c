@@ -4,21 +4,6 @@
 
 #include <string.h>
 
-static inline usize nc_next_pow2(usize n) {
-    // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-    if (n == 0) return 1;
-    n--;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-#if __SIZEOF_SIZE_T__ == 8
-    n |= n >> 32;
-#endif
-    return n + 1;
-}
-
 static void nc_map_insert(nc_Map *map, u64 hash, nc_MapValue value) {
     if (map->cap <= map->len + map->del) {
         nc_map_resize(map, map->cap * 2);
@@ -125,7 +110,7 @@ void nc_map_resize(nc_Map *map, usize size) {
     usize old_cap = map->cap;
     nc_MapItem *old_items = map->items;
 
-    map->cap = size == 0 ? NC_MAP_DEFAULT_SIZE : nc_next_pow2(size);
+    map->cap = size == 0 ? NC_MAP_DEFAULT_SIZE : nc_usize_next_pow2(size);
     map->items = nc_arena_calloc_chunk(map->arena, map->cap * sizeof(map->items[0]));
 
     map->len = 0;
