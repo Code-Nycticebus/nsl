@@ -5,6 +5,7 @@
 
 #include "structs/test-list.c"
 #include "structs/test-map.c"
+#include "structs/test-set.c"
 
 #include "types/test-char.c"
 #include "types/test-byte.c"
@@ -19,6 +20,7 @@ int main(void) {
     // structs
     run_test_list();
     run_test_map();
+    run_test_set();
 
     // types
     run_test_char();
