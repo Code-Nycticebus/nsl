@@ -81,7 +81,6 @@ void nc_map_init(nc_Map *map, nc_Arena *arena) {
 }
 
 void nc_map_update(nc_Map *map, nc_Map *other) {
-    NC_ASSERT(map->items && other->items);
     nc_map_reserve(map, other->len);
     for (usize i = 0; i < other->cap; ++i) {
         if (other->items[i].hash && other->items[i].hash != NC_MAP_DELETED) {

@@ -1,6 +1,6 @@
 #include "nc/structs/set.h"
 
-#include <NC_ASSERT.h>
+#include <assert.h>
 
 static void test_set_init(void) {
     nc_Arena arena = {0};
