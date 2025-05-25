@@ -280,6 +280,8 @@ static void test_for_each(void) {
         i++;
     }
     NC_ASSERT(i == list.len && "");
+
+    nc_arena_free(&arena);
 }
 
 void run_test_list(void) {

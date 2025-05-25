@@ -30,7 +30,9 @@ static void test_to_hex(void) {
     nc_Arena arena = {0};
     nc_Bytes b = NC_BYTES(0x41, 0x42, 0x43);
     nc_Str s = nc_bytes_to_hex(b, &arena);
-    NC_ASSERT(nc_str_eq(s, NC_STR("414243")) && "nc_String conversion was not correct");
+    nc_Str ec = NC_STR("414243");
+    NC_ASSERT(ec.data);
+    NC_ASSERT(nc_str_eq(s, ec) && "nc_String conversion was not correct");
 
     nc_Bytes b2 = NC_BYTES(0x02, 0xFF, 0xAA, 0xBB, 0x01, 0x02, 0x03);
     nc_Str s2 = nc_bytes_to_hex(b2, &arena);

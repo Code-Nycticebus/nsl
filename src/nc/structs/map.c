@@ -176,42 +176,42 @@ void nc_map_insert_ptr(nc_Map *map, u64 hash, void *value) {
 
 i64 *nc_map_get_i64(nc_Map *map, u64 hash) {
     assert(map->type == NC_MAP_DYNAMIC || map->type == NC_MAP_I64);
-    return &nc_map_get(map, hash)->i64;
+    return (i64 *)nc_map_get(map, hash);
 }
 
 u64 *nc_map_get_u64(nc_Map *map, u64 hash) {
     assert(map->type == NC_MAP_DYNAMIC || map->type == NC_MAP_U64);
-    return &nc_map_get(map, hash)->u64;
+    return (u64 *)nc_map_get(map, hash);
 }
 
 f64 *nc_map_get_f64(nc_Map *map, u64 hash) {
     assert(map->type == NC_MAP_DYNAMIC || map->type == NC_MAP_F64);
-    return &nc_map_get(map, hash)->f64;
+    return (f64 *)nc_map_get(map, hash);
 }
 
 void *nc_map_get_ptr(nc_Map *map, u64 hash) {
     assert(map->type == NC_MAP_DYNAMIC || map->type == NC_MAP_PTR);
-    nc_MapValue* value = nc_map_get(map, hash);
+    nc_MapValue *value = nc_map_get(map, hash);
     return value ? value->ptr : NULL;
 }
 
 const i64 *nc_map_get_i64_const(const nc_Map *map, u64 hash) {
     assert(map->type == NC_MAP_DYNAMIC || map->type == NC_MAP_I64);
-    return &nc_map_get(map, hash)->i64;
+    return (const i64 *)nc_map_get(map, hash);
 }
 
 const u64 *nc_map_get_u64_const(const nc_Map *map, u64 hash) {
     assert(map->type == NC_MAP_DYNAMIC || map->type == NC_MAP_U64);
-    return &nc_map_get(map, hash)->u64;
+    return (const u64 *)nc_map_get(map, hash);
 }
 
 const f64 *nc_map_get_f64_const(const nc_Map *map, u64 hash) {
     assert(map->type == NC_MAP_DYNAMIC || map->type == NC_MAP_F64);
-    return &nc_map_get(map, hash)->f64;
+    return (const f64 *)nc_map_get(map, hash);
 }
 
 const void *nc_map_get_ptr_const(const nc_Map *map, u64 hash) {
     assert(map->type == NC_MAP_DYNAMIC || map->type == NC_MAP_PTR);
-    nc_MapValue* value = nc_map_get(map, hash);
+    nc_MapValue *value = nc_map_get(map, hash);
     return value ? value->ptr : NULL;
 }

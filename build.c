@@ -7,6 +7,11 @@ void collect_flags(Cmd *cmd) {
     cmd_push(cmd, STR("-Wall"), STR("-Werror"), STR("-Wextra"), STR("-Wpedantic"));
     cmd_push(cmd, STR("-std=c99"));
     cmd_push(cmd, STR("-Iinclude"));
+    cmd_push(cmd, STR("-g"));
+    cmd_push(cmd, STR("-O0"));
+    cmd_push(cmd, STR("-fsanitize=address,undefined"));
+    cmd_push(cmd, STR("-fPIE"));
+
 }
 
 void collect_files(Cmd *cmd) {
@@ -108,7 +113,17 @@ int main(void) {
     write_compile_commands();
 
     da_clear(&cmd);
-    cmd_push(&cmd, STR(CC), STR("-o"), STR("build/test"), STR("tests/main.c"), STR("-Iinclude"),
-             STR("-Lbuild/lib"), STR("-lnc"));
+    cmd_push(&cmd, 
+             STR(CC),
+             STR("-o"),
+             STR("build/test"),
+             STR("tests/main.c"),
+             STR("-Iinclude"),
+             STR("-Lbuild/lib"),
+             STR("-lnc"),
+             STR("-fsanitize=address,undefined"),
+             STR("-g"),
+             STR("-O0"),
+    );
     cmd_exec_da(ErrPanic, &cmd);
 }

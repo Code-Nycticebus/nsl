@@ -190,7 +190,9 @@ void run_test_map(void) {
     test_init();
     test_access();
     test_update();
-    test_remove();
+    test_clear();
+    test_remove_entries();
     test_overwriting();
     test_stress();
 }
+

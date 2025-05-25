@@ -80,7 +80,7 @@ NC_API nc_Str nc_str_wrap(nc_Str s, nc_Str wrap, nc_Arena *arena) {
 
 NC_API nc_Str nc_str_join(nc_Str sep, usize count, nc_Str *s, nc_Arena *arena) {
     if (count == 0) {
-        return (nc_Str){0};
+        return NC_STR("");
     }
     usize size = sep.len * (count - 1);
     for (usize i = 0; i < count; i++) {

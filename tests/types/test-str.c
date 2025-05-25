@@ -86,7 +86,8 @@ static void test_str_chop(void) {
     nc_Str rest = nc_str_chop_by_predicate(&text, nc_char_is_space);
     NC_ASSERT(nc_str_eq(rest, NC_STR("This")));
     rest = nc_str_chop_by_predicate(&text, nc_char_is_space);
-    NC_ASSERT(nc_str_eq(rest, NC_STR("is")));
+    nc_Str test = NC_STR("is");
+    NC_ASSERT(nc_str_eq(rest, test));
     rest = nc_str_chop_by_predicate(&text, nc_char_is_space);
     NC_ASSERT(nc_str_eq(rest, NC_STR("text")));
 }
