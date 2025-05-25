@@ -24,7 +24,8 @@ static void test_vec(void) {
 static void test_list_init(void) {
     nc_Arena arena = {0};
     nc_List(usize) list = {0};
-    nc_list_from_static(&list, &arena, (usize[]){1, 2, 3, 4, 5});
+    nc_list_init(&list, &arena);
+    nc_list_extend_static(&list, (usize[]){1, 2, 3, 4, 5});
 
     NC_ASSERT(list.len == 5 && "Did not set len correctly");
     NC_ASSERT(list.cap == 5 && "Did not set cap correctly");
@@ -41,7 +42,9 @@ static usize times_two(usize v) { return v * 2; }
 static void test_map(void) {
     nc_Arena arena = {0};
     const usize n = 10;
-    nc_List(usize) list = nc_list_new(&arena);
+    nc_List(usize) list = {0};
+    nc_list_init(&list, &arena);
+
     for (usize i = 0; i < n; ++i) {
         nc_list_push(&list, i);
     }
@@ -62,7 +65,8 @@ static void test_sort(void) {
     nc_Arena arena = {0};
 
     nc_List(usize) list = {0};
-    nc_list_from_static(&list, &arena, (usize[]){0, 3, 2, 5, 1, 4, 8, 7, 9, 6});
+    nc_list_init(&list, &arena);
+    nc_list_extend_static(&list, (usize[]){0, 3, 2, 5, 1, 4, 8, 7, 9, 6});
 
     nc_list_sort(&list, compare);
 
@@ -94,17 +98,17 @@ static void test_extend(void) {
     nc_List(i32) list = {0};
     nc_list_init(&list, &arena);
 
-    nc_list_extend(&list, 3, ((int[]){1, 2, 3}));
+    nc_list_extend_static(&list, ((int[]){1, 2, 3}));
     NC_ASSERT(list.len == 3 && "List did not extend correctly");
     NC_ASSERT(list.items[0] == 1 && list.items[1] == 2 && list.items[2] == 3 &&
            "List did not extend correctly");
 
     i32 array[] = {1, 2, 3};
-    nc_list_extend(&list, 3, array);
+    nc_list_extend_static(&list, array);
     NC_ASSERT(list.items[3] == 1 && list.items[4] == 2 && list.items[5] == 3 &&
            "List did not extend correctly");
 
-    nc_list_extend_da(&list, &list);
+    nc_list_extend_list(&list, &list);
     NC_ASSERT(list.items[6] == 1 && list.items[7] == 2 && list.items[8] == 3 &&
            "List did not extend correctly");
 
@@ -184,13 +188,17 @@ static void test_filter_ctx(void) {
 
 static void test_copy(void) {
     nc_Arena arena = {0};
-    nc_List(usize) l1 = nc_list_new(&arena);
+    nc_List(usize) l1 = {0};
+    nc_list_init(&l1, &arena);
+
     const usize n = 10;
     for (usize i = 0; i < n; i++) {
         nc_list_push(&l1, i + 1);
     }
 
-    nc_List(usize) l2 = nc_list_new(&arena);
+    nc_List(usize) l2 = {0};
+    nc_list_init(&l2, &arena);
+
     nc_list_copy(&l1, &l2);
     NC_ASSERT(l1.len == l2.len && "list was not copied correctly");
     for (usize i = 0; i < l2.len; i++) {
@@ -261,9 +269,10 @@ static void test_remove(void) {
 static void test_for_each(void) {
     nc_Arena arena = {0};
     nc_List(usize) list = {0};
+    nc_list_init(&list, &arena);
 
     usize el[] = {1, 2, 3, 4};
-    nc_list_from_static(&list, &arena, el);
+    nc_list_extend_static(&list, el);
 
     usize i = 0;
     nc_list_for_each(usize *, element, &list) {
