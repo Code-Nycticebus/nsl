@@ -8,30 +8,30 @@ static void test_init(void) {
     nc_map_init(&map, &arena);
 
     map.type = NC_MAP_U64;
-    assert(map.cap == 0);
-    assert(map.del == 0);
-    assert(map.len == 0);
-    assert(map.items == NULL);
+    NC_ASSERT(map.cap == 0);
+    NC_ASSERT(map.del == 0);
+    NC_ASSERT(map.len == 0);
+    NC_ASSERT(map.items == NULL);
 
     nc_map_insert_u64(&map, 1, 420);
     nc_map_insert_u64(&map, 2, 42);
     nc_map_insert_u64(&map, 3, 69);
 
-    assert(map.cap == 8);
-    assert(map.del == 0);
-    assert(map.len == 3);
-    assert(map.items);
+    NC_ASSERT(map.cap == 8);
+    NC_ASSERT(map.del == 0);
+    NC_ASSERT(map.len == 3);
+    NC_ASSERT(map.items);
 
     nc_map_remove(&map, 2);
-    assert(map.cap == 8);
-    assert(map.del == 1);
-    assert(map.len == 2);
-    assert(map.items);
+    NC_ASSERT(map.cap == 8);
+    NC_ASSERT(map.del == 1);
+    NC_ASSERT(map.len == 2);
+    NC_ASSERT(map.items);
 
     nc_map_resize(&map, 10);
-    assert(map.cap == 16);
-    assert(map.del == 0);
-    assert(map.len == 2);
+    NC_ASSERT(map.cap == 16);
+    NC_ASSERT(map.del == 0);
+    NC_ASSERT(map.len == 2);
 
     nc_arena_free(&arena);
 }
@@ -47,23 +47,23 @@ static void test_access(void) {
     nc_map_insert_ptr(&map, 4, &map);
 
     i64 *i = nc_map_get_i64(&map, 1);
-    assert(i);
-    assert(*i == -64);
+    NC_ASSERT(i);
+    NC_ASSERT(*i == -64);
 
     u64 *u = nc_map_get_u64(&map, 2);
-    assert(u);
-    assert(*u == 64);
+    NC_ASSERT(u);
+    NC_ASSERT(*u == 64);
 
     f64 *f = nc_map_get_f64(&map, 3);
-    assert(f);
-    assert(3.140 < *f && *f < 3.142);
+    NC_ASSERT(f);
+    NC_ASSERT(3.140 < *f && *f < 3.142);
 
     void* ptr = nc_map_get_ptr(&map, 4);
-    assert(ptr);
-    assert(ptr == &map);
+    NC_ASSERT(ptr);
+    NC_ASSERT(ptr == &map);
 
     void* n = nc_map_get_ptr(&map, 5);
-    assert(n == NULL);
+    NC_ASSERT(n == NULL);
 
     nc_arena_free(&arena);
 }
@@ -84,20 +84,20 @@ static void test_update(void) {
     nc_map_update(&map2, &map1);
 
     i64 *i = nc_map_get_i64(&map2, 1);
-    assert(i);
-    assert(*i == -64);
+    NC_ASSERT(i);
+    NC_ASSERT(*i == -64);
 
     u64 *u = nc_map_get_u64(&map2, 2);
-    assert(u);
-    assert(*u == 64);
+    NC_ASSERT(u);
+    NC_ASSERT(*u == 64);
 
     f64 *f = nc_map_get_f64(&map2, 3);
-    assert(f);
-    assert(3.140 < *f && *f < 3.142);
+    NC_ASSERT(f);
+    NC_ASSERT(3.140 < *f && *f < 3.142);
 
     void* ptr = nc_map_get_ptr(&map2, 4);
-    assert(ptr);
-    assert(ptr == &map1);
+    NC_ASSERT(ptr);
+    NC_ASSERT(ptr == &map1);
 
     nc_arena_free(&arena);
 }
@@ -109,8 +109,8 @@ static void test_remove_entries(void) {
 
     nc_map_insert_u64(&map, 1, 420);
 
-    assert(nc_map_remove(&map, 1) == true);
-    assert(nc_map_remove(&map, 1) == false);
+    NC_ASSERT(nc_map_remove(&map, 1) == true);
+    NC_ASSERT(nc_map_remove(&map, 1) == false);
 
     nc_arena_free(&arena);
 }
@@ -124,8 +124,8 @@ static void test_overwriting(void) {
     nc_map_insert_u64(&map, 1, 69);
 
     u64* u = nc_map_get_u64(&map, 1);
-    assert(u);
-    assert(*u == 69);
+    NC_ASSERT(u);
+    NC_ASSERT(*u == 69);
 
     nc_arena_free(&arena);
 }
@@ -138,11 +138,11 @@ static void test_clear(void) {
     nc_map_insert_u64(&map, 1, 69);
 
     nc_map_clear(&map);
-    assert(map.len == 0);
-    assert(map.del == 0);
+    NC_ASSERT(map.len == 0);
+    NC_ASSERT(map.del == 0);
 
     u64* u = nc_map_get_ptr(&map, 1);
-    assert(u == NULL);
+    NC_ASSERT(u == NULL);
 
     nc_arena_free(&arena);
 }
@@ -159,26 +159,26 @@ static void test_stress(void) {
         nc_map_insert_u64(&map, i, i * 2);
     }
 
-    assert(map.len == num_entries);
+    NC_ASSERT(map.len == num_entries);
 
     for (usize i = 0; i < num_entries; ++i) {
         u64 *val = nc_map_get_u64(&map, i);
-        assert(val && *val == i * 2);
+        NC_ASSERT(val && *val == i * 2);
     }
 
     for (usize i = 0; i < num_entries; i += 2) {
         bool removed = nc_map_remove(&map, i);
-        assert(removed);
+        NC_ASSERT(removed);
     }
 
-    assert(map.len == num_entries / 2);
+    NC_ASSERT(map.len == num_entries / 2);
 
     for (usize i = 0; i < num_entries; ++i) {
         u64 *val = nc_map_get_u64(&map, i);
         if (i % 2 == 0) {
-            assert(val == NULL);
+            NC_ASSERT(val == NULL);
         } else {
-            assert(val && *val == i * 2);
+            NC_ASSERT(val && *val == i * 2);
         }
     }
 

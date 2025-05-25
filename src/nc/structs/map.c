@@ -70,8 +70,7 @@ static nc_MapValue *nc_map_get(const nc_Map *map, u64 hash) {
 }
 
 void nc_map_init(nc_Map *map, nc_Arena *arena) {
-    assert(map && arena);
-    assert(map->items == NULL && "The map was already initialized");
+    NC_ASSERT(map->items == NULL && "The map was already initialized");
 
     map->type = 0;
     map->len = 0;
@@ -82,6 +81,7 @@ void nc_map_init(nc_Map *map, nc_Arena *arena) {
 }
 
 void nc_map_update(nc_Map *map, nc_Map *other) {
+    NC_ASSERT(map->items && other->items);
     nc_map_reserve(map, other->len);
     for (usize i = 0; i < other->cap; ++i) {
         if (other->items[i].hash && other->items[i].hash != NC_MAP_DELETED) {

@@ -3,8 +3,8 @@
 #include "nc/types/int.h"
 
 void nc_set_init(nc_Set *set, nc_Arena *arena) {
-    assert(set && arena);
-    assert(set->items == NULL && "The map was already initialized");
+    NC_ASSERT(set && arena);
+    NC_ASSERT(set->items == NULL && "The map was already initialized");
 
     set->len = 0;
     set->_cap = 0;
