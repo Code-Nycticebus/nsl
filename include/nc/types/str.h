@@ -48,6 +48,7 @@ NC_API bool nc_str_eq(nc_Str s1, nc_Str s2);
 NC_API bool nc_str_eq_ignorecase(nc_Str s1, nc_Str s2);
 NC_API bool nc_str_startswith(nc_Str s1, nc_Str prefix);
 NC_API bool nc_str_endswith(nc_Str s1, nc_Str suffix);
+NC_API bool nc_str_endswith_predicate(nc_Str s1, bool (*predicate)(char));
 
 NC_API bool nc_str_contains(nc_Str haystack, nc_Str needle);
 NC_API bool nc_str_includes(nc_Str haystack, char needle);
@@ -91,6 +92,7 @@ NC_API f64 nc_str_chop_f64(nc_Str *s);
 NC_API usize nc_str_find(nc_Str haystack, nc_Str needle);
 // Returns 'STR_NOT_FOUND' if 'needle' was not found.
 NC_API usize nc_str_find_last(nc_Str haystack, nc_Str needle);
+NC_API usize nc_str_find_last_by_predicate(nc_Str haystack, bool (*predicate)(char));
 NC_API usize nc_str_count(nc_Str haystack, nc_Str needle);
 // Returns '\0' if the index is out of bounds.
 NC_API char nc_str_getc(nc_Str s, usize idx);

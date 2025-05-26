@@ -309,6 +309,14 @@ NC_API bool nc_str_endswith(nc_Str s1, nc_Str suffix) {
     return memcmp(&s1.data[idx], suffix.data, suffix.len) == 0;
 }
 
+NC_API bool nc_str_endswith_predicate(nc_Str s1, bool (*predicate)(char)) {
+    if (s1.len == 0) {
+        return false;
+    }
+    const usize idx = s1.len - 1;
+    return predicate(s1.data[idx]);
+}
+
 NC_API bool nc_str_contains(nc_Str haystack, nc_Str needle) {
     if (haystack.len < needle.len) {
         return false;
@@ -639,6 +647,19 @@ NC_API usize nc_str_find_last(nc_Str haystack, nc_Str needle) {
     }
     for (usize i = haystack.len - needle.len + 1; i > 0; i--) {
         if (memcmp(&haystack.data[i - 1], needle.data, needle.len) == 0) {
+            return i - 1;
+        }
+    }
+    return NC_STR_NOT_FOUND;
+}
+
+
+NC_API usize nc_str_find_last_by_predicate(nc_Str haystack, bool (*predicate)(char)) {
+    if (haystack.len == 0) {
+        return NC_STR_NOT_FOUND;
+    }
+    for (usize i = haystack.len; i > 0; i--) {
+        if (predicate(haystack.data[i - 1])) {
             return i - 1;
         }
     }
