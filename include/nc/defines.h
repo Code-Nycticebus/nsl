@@ -33,8 +33,7 @@
 #define NC_ARRAY_LEN(...) (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
 
 #define NC_STR(str) ((nc_Str){.len = sizeof(str) - 1, .data = (str)})
-#define NC_STR_STATIC(str)                                                                         \
-    { .len = sizeof(str) - 1, .data = (str) }
+#define NC_STR_STATIC(str) { .len = sizeof(str) - 1, .data = (str) }
 #define NC_STR_FMT "%.*s"
 #define NC_STR_REPR "'%.*s'"
 #define NC_STR_ARG(str) (i32)(str).len, (str).data
@@ -59,6 +58,8 @@ typedef struct {
     const u8 *data;
 } nc_Bytes;
 
+typedef nc_Str nc_Path;
+#define NC_PATH(cstr) ((nc_Path){.len = sizeof(cstr) - 1, .data = (cstr)})
 
 #define NC_UNUSED(v) (void)(v)
 #define NC_PASS ((void)(0))

@@ -11,6 +11,7 @@
 #include "types/test-byte.c"
 #include "types/test-int.c"
 #include "types/test-str.c"
+#include "types/test-path.c"
 
 int main(void) {
     // core
@@ -27,4 +28,5 @@ int main(void) {
     run_test_bytes();
     run_test_int();
     run_test_str();
+    run_test_path();
 }
