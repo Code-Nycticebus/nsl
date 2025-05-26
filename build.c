@@ -5,13 +5,13 @@
 
 void collect_flags(Cmd *cmd) {
     cmd_push(cmd, STR("-Wall"), STR("-Werror"), STR("-Wextra"), STR("-Wpedantic"));
+    cmd_push(cmd, STR("-Wmissing-prototypes"), STR("-Wmissing-declarations"));
     cmd_push(cmd, STR("-std=c99"));
     cmd_push(cmd, STR("-Iinclude"));
     cmd_push(cmd, STR("-g"));
     cmd_push(cmd, STR("-O0"));
     cmd_push(cmd, STR("-fsanitize=address,undefined"));
     cmd_push(cmd, STR("-fPIE"));
-
 }
 
 void collect_files(Cmd *cmd) {
