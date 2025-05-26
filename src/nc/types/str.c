@@ -641,6 +641,19 @@ NC_API usize nc_str_find(nc_Str haystack, nc_Str needle) {
     return NC_STR_NOT_FOUND;
 }
 
+
+NC_API usize nc_str_find_by_predicate(nc_Str haystack, bool (*predicate)(char)) {
+    if (haystack.len == 0) {
+        return NC_STR_NOT_FOUND;
+    }
+    for (usize i = 0; i < haystack.len; i++) {
+        if (predicate(haystack.data[i])) {
+            return i;
+        }
+    }
+    return NC_STR_NOT_FOUND;
+}
+
 NC_API usize nc_str_find_last(nc_Str haystack, nc_Str needle) {
     if (haystack.len < needle.len) {
         return NC_STR_NOT_FOUND;

@@ -90,9 +90,13 @@ NC_API f64 nc_str_chop_f64(nc_Str *s);
 
 // Returns 'STR_NOT_FOUND' if 'needle' was not found.
 NC_API usize nc_str_find(nc_Str haystack, nc_Str needle);
+// Returns 'STR_NOT_FOUND' if 'predicate' was not found.
+NC_API usize nc_str_find_by_predicate(nc_Str haystack, bool (*predicate)(char));
 // Returns 'STR_NOT_FOUND' if 'needle' was not found.
 NC_API usize nc_str_find_last(nc_Str haystack, nc_Str needle);
+// Returns 'STR_NOT_FOUND' if 'predicate' was not found.
 NC_API usize nc_str_find_last_by_predicate(nc_Str haystack, bool (*predicate)(char));
+
 NC_API usize nc_str_count(nc_Str haystack, nc_Str needle);
 // Returns '\0' if the index is out of bounds.
 NC_API char nc_str_getc(nc_Str s, usize idx);
