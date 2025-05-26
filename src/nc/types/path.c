@@ -1,5 +1,6 @@
 #include "nc/types/path.h"
 
+#include "nc/defines.h"
 #include "nc/types/str.h"
 #include "nc/types/char.h"
 #include "nc/types/int.h"
@@ -19,38 +20,65 @@ nc_Path nc_path_join(usize len, const nc_Path *parts, nc_Arena *arena) {
     if (len == 1) {
         return nc_str_copy(parts[0], arena);
     }
+    nc_List(char) buffer = {0};
+    nc_list_init(&buffer, arena);
 
-    usize size = 0;
     for (usize i = 0; i < len; i++) {
-        nc_Path part = parts[i];
-        if (part.len == 0) continue;
-        if (size == 0) {
-            part = nc_str_trim_right_by_predicate(part, _nc_path_separator);
-        } else {
-            size += 1;
-            part = nc_str_trim_by_predicate(part, _nc_path_separator);
+        nc_list_reserve(&buffer, parts[i].len + 2);
+        if (i && buffer.len && !_nc_path_separator(nc_list_last(&buffer))) {
+            nc_list_push(&buffer, '/');
         }
-        size += part.len;
+        for (usize j = 0; j < parts[i].len; j++) {
+            if (_nc_path_separator(parts[i].data[j])) {
+                if (buffer.len && _nc_path_separator(nc_list_last(&buffer))) {
+                    continue;
+                }
+                nc_list_push(&buffer, '/');
+            } else {
+                nc_list_push(&buffer, parts[i].data[j]);
+            }
+        }
     }
 
-    char *buffer = nc_arena_alloc(arena, size + 1);
-    usize b_idx = 0;
-    for (usize i = 0; i < len; i++) {
-        nc_Path part = parts[i];
-        if (part.len == 0) continue;
-        if (b_idx == 0) {
-            part = nc_str_trim_right_by_predicate(part, _nc_path_separator);
-        } else {
-            part = nc_str_trim_by_predicate(part, _nc_path_separator);
-            buffer[b_idx++] = '/';
+    nc_list_push(&buffer, '\0');
+    return nc_str_from_parts(buffer.len-1, buffer.items);
+}
+
+nc_Path nc_path_normalize(nc_Path path, nc_Arena *arena) {
+    nc_Arena scratch = {0};
+    nc_List(nc_Path) parts = {0};
+    nc_list_init(&parts, &scratch);
+    char win_path_prefix_buffer[4] = "C:/";
+
+    nc_Path prefix = NC_PATH("");
+    if (nc_path_is_absolute(path)) {
+        if (path.len && _nc_path_separator(path.data[0])) {
+            prefix = NC_PATH("/");
+        } else if (path.len > 2) {
+            win_path_prefix_buffer[0] = path.data[0];
+            prefix = nc_str_from_parts(3, win_path_prefix_buffer);
+            path = nc_str_substring(path, 3, path.len);
         }
-
-        memcpy(&buffer[b_idx], part.data, part.len);
-        b_idx += part.len;
     }
-    buffer[size] = '\0';
 
-    return nc_str_from_parts(size, buffer);
+    nc_Path part;
+    while (nc_str_try_chop_by_predicate(&path, _nc_path_separator, &part)) {
+        if (part.len == 0) {
+            continue;
+        } else if (nc_str_eq(part, NC_STR("."))) {
+            continue;
+        } else if (nc_str_eq(part, NC_STR(".."))) {
+            if (parts.len) (void)nc_list_pop(&parts);
+            else if (!prefix.len) nc_list_push(&parts, part);
+            continue;
+        }
+        nc_list_push(&parts, part);
+    }
+
+    nc_Path result = nc_path_join(parts.len, parts.items, &scratch);
+    result = nc_str_prepend(result, prefix, arena);
+    nc_arena_free(&scratch);
+    return result;
 }
 
 bool nc_path_eq(nc_Path p1, nc_Path p2) {
