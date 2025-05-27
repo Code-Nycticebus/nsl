@@ -186,6 +186,7 @@ static void test_stress(void) {
     nc_arena_free(&arena);
 }
 
+void run_test_map(void);
 void run_test_map(void) {
     test_init();
     test_access();

@@ -2,6 +2,8 @@
 
 #include "nc/types/byte.h"
 
+#include <string.h>
+
 #define BITS(T) (sizeof(T) * 8)
 
 #define INTEGER_IMPL(T)                                                                            \
@@ -109,10 +111,12 @@
                                                                                                    \
     NC_API T nc_##T##_from_be_bytes(nc_Bytes bytes) {                                              \
         NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
+        T value = 0;                                                                               \
+        memcpy(&value, bytes.data, sizeof(T));                                                     \
         if (NC_BYTE_ORDER == NC_ENDIAN_LITTLE) {                                                   \
-            return nc_##T##_swap_bytes(*(const T *)bytes.data);                                    \
+            return nc_##T##_swap_bytes(value);                                                     \
         }                                                                                          \
-        return *(const T *)bytes.data;                                                             \
+        return value;                                                                              \
     }                                                                                              \
                                                                                                    \
     NC_API nc_Bytes nc_##T##_to_be_bytes(T value, nc_Arena *arena) {                               \
@@ -144,10 +148,12 @@
                                                                                                    \
     NC_API T nc_##T##_from_le_bytes(nc_Bytes bytes) {                                              \
         NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
+        T value = 0;                                                                               \
+        memcpy(&value, bytes.data, sizeof(T));                                                     \
         if (NC_BYTE_ORDER == NC_ENDIAN_BIG) {                                                      \
-            return nc_##T##_swap_bytes(*(const T *)bytes.data);                                    \
+            return nc_##T##_swap_bytes(value);                                                     \
         }                                                                                          \
-        return *(const T *)bytes.data;                                                             \
+        return value;                                                                              \
     }                                                                                              \
                                                                                                    \
     NC_API nc_Bytes nc_##T##_to_le_bytes(T value, nc_Arena *arena) {                               \
@@ -165,7 +171,9 @@
                                                                                                    \
     NC_API T nc_##T##_from_ne_bytes(nc_Bytes bytes) {                                              \
         NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
-        return *(const T *)bytes.data;                                                             \
+        T value = 0;                                                                               \
+        memcpy(&value, bytes.data, sizeof(T));                                                     \
+        return value;                                                                              \
     }                                                                                              \
                                                                                                    \
     NC_API nc_Bytes nc_##T##_to_ne_bytes(T value, nc_Arena *arena) {                               \
@@ -202,13 +210,14 @@
     NC_API T nc_##T##_next_pow2(T n) {                                                             \
         /* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */                 \
         if (n == 0) return 1;                                                                      \
-        n--;                                                                                       \
+        u64 x = (u64)n;                                                                            \
+        x--;                                                                                       \
         for (size_t i = 1; i < sizeof(T) * 8; i <<= 1) {                                           \
-            n |= n >> i;                                                                           \
+            x |= x >> i;                                                                           \
         }                                                                                          \
         T max = (((T)-1) > 0) ? (T)-1 : (T)((1ULL << (sizeof(T) * 8 - 1)) - 1);                    \
-        if (n >= max) return max;                                                                  \
-        return n + 1;                                                                              \
+        if (x >= (u64)max) return max;                                                             \
+        return (T)(x + 1);                                                                         \
     }
 
 INTEGER_IMPL(u8)

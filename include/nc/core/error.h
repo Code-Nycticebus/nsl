@@ -28,7 +28,7 @@ typedef struct {
 #undef NC_ERROR_EMIT
 #define NC_ERROR_EMIT(E, error_code, error_message)                            \
     do {                                                                       \
-        if (!(E)) {                                                            \
+        if ((E) == NULL) {                                                            \
             nc_Error _panic_error = {                                          \
                 error_code, __FILE__, __LINE__, __func__, error_message,       \
             };                                                                 \
@@ -45,7 +45,7 @@ typedef struct {
 #undef NC_ERROR_HANDLE
 #define NC_ERROR_HANDLE(E, ...)                                                \
     do {                                                                       \
-        if ((E) && (E)->code) {                                                \
+        if ((E) != NULL && (E)->code) {                                                \
             { __VA_ARGS__; }                                                   \
             if ((E)->code) {                                                   \
                 NC_ERROR_RAISE(E);                                             \
@@ -64,7 +64,7 @@ typedef struct {
 #undef NC_ERROR_PROPAGATE
 #define NC_ERROR_PROPAGATE(E, ...)                                             \
     do {                                                                       \
-        if ((E) && (E)->code) {                                                \
+        if ((E) != NULL && (E)->code) {                                                \
             { __VA_ARGS__; }                                                   \
         }                                                                      \
     } while (0)

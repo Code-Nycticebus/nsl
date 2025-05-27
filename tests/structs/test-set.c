@@ -195,6 +195,7 @@ static void test_nc_set_union(void) {
     nc_arena_free(&arena);
 }
 
+void run_test_set(void);
 void run_test_set(void) {
     test_set_init();
     test_set_update();

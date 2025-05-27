@@ -64,6 +64,7 @@ static void test_char_convertion(void) {
     NC_ASSERT(nc_char_HEX_from_u8(10) == 'A' && "should be 'A'");
 }
 
+void run_test_char(void);
 void run_test_char(void) {
     test_char_test();
     test_char_convertion();

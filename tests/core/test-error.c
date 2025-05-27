@@ -9,7 +9,7 @@ static i32 function_that_fails(nc_Error *error) {
     return 0;
 }
 
-static void test_emit() {
+static void test_emit(void) {
     nc_Error error = {0};
     function_that_fails(&error);
     NC_ASSERT(error.code != 0 && "The error code should not be '0'");
@@ -19,7 +19,7 @@ static void test_emit() {
     NC_ASSERT(error.message && "The 'message' was not set");
 }
 
-static void test_propagate() {
+static void test_propagate(void) {
     nc_Error error = {0};
     function_that_fails(&error);
     NC_ERROR_PROPAGATE(&error, {
@@ -28,7 +28,7 @@ static void test_propagate() {
     NC_ASSERT(error.code == -2 && "The error code was not changed!");
 }
 
-static void test_handle() {
+static void test_handle(void) {
     bool handled = false;
     nc_Error error = {0};
     function_that_fails(&error);
@@ -40,7 +40,8 @@ static void test_handle() {
     NC_ASSERT(handled && "the error was not handled correctly");
 }
 
-void run_test_error() {
+void run_test_error(void);
+void run_test_error(void) {
     test_emit();
     test_propagate();
     test_handle();

@@ -79,7 +79,7 @@ NC_API nc_Bytes nc_bytes_from_hex(nc_Str s, nc_Arena *arena) {
   usize idx = 0;
   for (nc_Str ch = {0}; nc_str_try_take(&s, idx == 0 ? 2 - s.len % 2 : 2, &ch);) {
     for (usize i = 0; i < ch.len; i++) {
-      buffer[idx] <<= 4;
+      buffer[idx] = (u8)(buffer[idx] << 4);
       if (nc_char_is_xdigit(ch.data[i])) {
         buffer[idx] |= nc_char_hex_to_u8(ch.data[i]);
       }

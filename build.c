@@ -1,11 +1,18 @@
 #define CEBUS_IMPLEMENTATION
 #include "bootstrap.h"
 
-#define CC CEBUS_COMPILER
+#define CC "gcc"
 
 void collect_flags(Cmd *cmd) {
     cmd_push(cmd, STR("-Wall"), STR("-Werror"), STR("-Wextra"), STR("-Wpedantic"));
     cmd_push(cmd, STR("-Wmissing-prototypes"), STR("-Wmissing-declarations"));
+    cmd_push(cmd, STR("-Wconversion"), STR("-Wsign-conversion"));
+    cmd_push(cmd, STR("-Wshadow"), STR("-Wpointer-arith"), STR("-Wstrict-prototypes"));
+    cmd_push(cmd, STR("-Wcast-qual"), STR("-Wcast-align"), STR("-Wwrite-strings"));
+    cmd_push(cmd, STR("-Wundef"), STR("-Wswitch-enum"), STR("-Wdouble-promotion"));
+    cmd_push(cmd, STR("-Wbad-function-cast"), STR("-Wuninitialized"));
+    cmd_push(cmd, STR("-Wredundant-decls"), STR("-Wvla"), STR("-Wnested-externs"));
+    cmd_push(cmd, STR("-Wstrict-aliasing=2"), STR("-Wno-unused-parameter"));
     cmd_push(cmd, STR("-std=c99"));
     cmd_push(cmd, STR("-Iinclude"));
     cmd_push(cmd, STR("-g"));
@@ -113,6 +120,7 @@ int main(void) {
     write_compile_commands();
 
     da_clear(&cmd);
+
     cmd_push(&cmd, 
              STR(CC),
              STR("-o"),
@@ -120,10 +128,8 @@ int main(void) {
              STR("tests/main.c"),
              STR("-Iinclude"),
              STR("-Lbuild/lib"),
-             STR("-lnc"),
-             STR("-fsanitize=address,undefined"),
-             STR("-g"),
-             STR("-O0"),
+             STR("-lnc")
     );
+    collect_flags(&cmd);
     cmd_exec_da(ErrPanic, &cmd);
 }

@@ -106,7 +106,8 @@ static void test_size(void) {
     nc_arena_free(&arena);
 }
 
-void run_test_arena() {
+void run_test_arena(void);
+void run_test_arena(void) {
     test_arena();
     test_chunks();
     test_calloc();

@@ -313,6 +313,7 @@ static void test_str_try_take(void) {
     NC_ASSERT(nc_str_try_take_right(&s, 2, &chunk) == false);
 }
 
+void run_test_str(void);
 void run_test_str(void) {
     test_str_compare();
     test_str_transform();

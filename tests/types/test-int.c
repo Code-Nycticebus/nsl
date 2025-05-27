@@ -559,6 +559,7 @@ static void test_i64_next_pow2(void) {
 
 /* i64 */
 
+void run_test_int(void);
 void run_test_int(void) {
     test_u8_leading_bits();
     test_u8_swaping_bits();

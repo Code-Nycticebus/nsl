@@ -104,6 +104,7 @@ static void test_nc_bytes_hash(void) {
     NC_ASSERT(nc_bytes_hash(b1) != nc_bytes_hash(b3) && "should not be equal");
 }
 
+void run_test_bytes(void);
 void run_test_bytes(void) {
     test_bytes();
     test_nc_bytes_str();

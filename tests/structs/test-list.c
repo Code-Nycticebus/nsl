@@ -58,7 +58,7 @@ static void test_map(void) {
 }
 
 static i32 compare(const void *a, const void *b) {
-    return *(const usize *)a - *(const usize *)b;
+    return (i32)(*(const usize *)a - *(const usize *)b);
 }
 
 static void test_sort(void) {
@@ -284,6 +284,7 @@ static void test_for_each(void) {
     nc_arena_free(&arena);
 }
 
+void run_test_list(void);
 void run_test_list(void) {
     test_vec();
     test_list_init();
