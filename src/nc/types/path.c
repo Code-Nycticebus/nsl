@@ -13,7 +13,7 @@ static bool _nc_path_separator(char c) {
     return c == '/' || c == '\\';
 }
 
-nc_Path nc_path_join(usize len, const nc_Path *parts, nc_Arena *arena) {
+NC_API nc_Path nc_path_join(usize len, const nc_Path *parts, nc_Arena *arena) {
     if (len == 0) {
         return NC_STR("");
     }
@@ -44,7 +44,7 @@ nc_Path nc_path_join(usize len, const nc_Path *parts, nc_Arena *arena) {
     return nc_str_from_parts(buffer.len-1, buffer.items);
 }
 
-nc_Path nc_path_normalize(nc_Path path, nc_Arena *arena) {
+NC_API nc_Path nc_path_normalize(nc_Path path, nc_Arena *arena) {
     nc_Arena scratch = {0};
     nc_List(nc_Path) parts = {0};
     nc_list_init(&parts, &scratch);
@@ -81,7 +81,7 @@ nc_Path nc_path_normalize(nc_Path path, nc_Arena *arena) {
     return result;
 }
 
-bool nc_path_eq(nc_Path p1, nc_Path p2) {
+NC_API bool nc_path_eq(nc_Path p1, nc_Path p2) {
     while (true) {
         nc_Path c1 = nc_str_chop_by_predicate(&p1, _nc_path_separator);
         nc_Path c2 = nc_str_chop_by_predicate(&p2, _nc_path_separator);
@@ -91,7 +91,7 @@ bool nc_path_eq(nc_Path p1, nc_Path p2) {
     return true;
 }
 
-bool nc_path_is_absolute(nc_Path path) {
+NC_API bool nc_path_is_absolute(nc_Path path) {
     if (path.len == 0)
         return false;
     if (path.data[0] == '/')
@@ -101,14 +101,14 @@ bool nc_path_is_absolute(nc_Path path) {
     return false;
 }
 
-nc_Str nc_path_name(nc_Path path) {
+NC_API nc_Str nc_path_name(nc_Path path) {
     if (nc_str_eq(path, NC_STR("."))) {
         return NC_STR("");
     }
     return nc_str_chop_right_by_predicate(&path, _nc_path_separator);
 }
 
-nc_Str nc_path_suffix(nc_Path path) {
+NC_API nc_Str nc_path_suffix(nc_Path path) {
     if (nc_str_eq(path, NC_STR("."))) {
         return NC_STR("");
     }
@@ -120,7 +120,7 @@ nc_Str nc_path_suffix(nc_Path path) {
     return nc_str_substring(name, idx, name.len);
 }
 
-nc_Str nc_path_stem(nc_Path path) {
+NC_API nc_Str nc_path_stem(nc_Path path) {
     nc_Str name = nc_str_chop_right_by_predicate(&path, _nc_path_separator);
     usize idx = nc_str_find_last(name, NC_STR("."));
     if (idx == NC_STR_NOT_FOUND) {
@@ -129,7 +129,7 @@ nc_Str nc_path_stem(nc_Path path) {
     return nc_str_substring(name, 0, idx);
 }
 
-nc_Path nc_path_parent(nc_Path path) {
+NC_API nc_Path nc_path_parent(nc_Path path) {
     if (path.len == 1 && _nc_path_separator(path.data[0])) return path;
     if (nc_str_endswith_predicate(path, _nc_path_separator)) path.len--;
     usize idx = nc_str_find_last_by_predicate(path, _nc_path_separator);

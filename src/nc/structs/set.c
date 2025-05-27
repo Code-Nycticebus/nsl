@@ -2,7 +2,7 @@
 
 #include "nc/types/int.h"
 
-void nc_set_init(nc_Set *set, nc_Arena *arena) {
+NC_API void nc_set_init(nc_Set *set, nc_Arena *arena) {
     NC_ASSERT(set && arena);
     NC_ASSERT(set->items == NULL && "The map was already initialized");
 
@@ -13,7 +13,7 @@ void nc_set_init(nc_Set *set, nc_Arena *arena) {
     set->items = NULL;
 }
 
-void nc_set_resize(nc_Set *set, usize size) {
+NC_API void nc_set_resize(nc_Set *set, usize size) {
     if (size < set->_cap) {
         return;
     }
@@ -33,13 +33,13 @@ void nc_set_resize(nc_Set *set, usize size) {
     nc_arena_free_chunk(set->arena, old_items);
 }
 
-void nc_set_reserve(nc_Set *map, usize size) {
+NC_API void nc_set_reserve(nc_Set *map, usize size) {
     usize target = map->len + size;
     if (target <= map->_cap) return;
     nc_set_resize(map, target);
 }
 
-bool nc_set_remove(nc_Set *set, u64 hash) {
+NC_API bool nc_set_remove(nc_Set *set, u64 hash) {
     if (set->len == 0) {
         return false;
     }
@@ -65,7 +65,7 @@ bool nc_set_remove(nc_Set *set, u64 hash) {
     return false;
 }
 
-bool nc_set_add(nc_Set *set, u64 hash) {
+NC_API bool nc_set_add(nc_Set *set, u64 hash) {
     if (set->_cap <= set->len + set->_del) {
         nc_set_resize(set, set->_cap * 2);
     }
@@ -105,7 +105,7 @@ bool nc_set_add(nc_Set *set, u64 hash) {
     NC_UNREACHABLE("nc_set_add");
 }
 
-bool nc_set_has(const nc_Set *map, u64 hash) {
+NC_API bool nc_set_has(const nc_Set *map, u64 hash) {
     if (map->len == 0) {
         return false;
     }
@@ -129,7 +129,7 @@ bool nc_set_has(const nc_Set *map, u64 hash) {
     return false;
 }
 
-void nc_set_update(nc_Set* map, const nc_Set* other) {
+NC_API void nc_set_update(nc_Set* map, const nc_Set* other) {
     nc_set_reserve(map, other->len);
     for (usize i = 0; i < other->_cap; ++i) {
         if (other->items[i] && other->items[i] != NC_SET_DELETED) {
@@ -138,14 +138,14 @@ void nc_set_update(nc_Set* map, const nc_Set* other) {
     }
 }
 
-void nc_set_extend(nc_Set* set, usize count, const u64* hashes) {
+NC_API void nc_set_extend(nc_Set* set, usize count, const u64* hashes) {
   nc_set_reserve(set, count);
   for (usize i = 0; i < count; i++) {
     nc_set_add(set, hashes[i]);
   }
 }
 
-bool nc_set_eq(const nc_Set *set, const nc_Set *other) {
+NC_API bool nc_set_eq(const nc_Set *set, const nc_Set *other) {
   if (other->len != set->len) {
     return false;
   }
@@ -165,7 +165,7 @@ bool nc_set_eq(const nc_Set *set, const nc_Set *other) {
   return true;
 }
 
-bool nc_set_subset(const nc_Set *set, const nc_Set *other) {
+NC_API bool nc_set_subset(const nc_Set *set, const nc_Set *other) {
   if (other->len < set->len) {
     return false;
   }
@@ -179,7 +179,7 @@ bool nc_set_subset(const nc_Set *set, const nc_Set *other) {
   return true;
 }
 
-bool nc_set_disjoint(const nc_Set *set, const nc_Set *other) {
+NC_API bool nc_set_disjoint(const nc_Set *set, const nc_Set *other) {
   if (other->len == 0 || set->len == 0) {
     return true;
   }
@@ -199,7 +199,7 @@ bool nc_set_disjoint(const nc_Set *set, const nc_Set *other) {
   return true;
 }
 
-void nc_set_intersection(const nc_Set *set, const nc_Set *other, nc_Set* out) {
+NC_API void nc_set_intersection(const nc_Set *set, const nc_Set *other, nc_Set* out) {
   if (other->_cap < set->_cap) {
     const nc_Set *temp = set;
     set = other;
@@ -216,7 +216,7 @@ void nc_set_intersection(const nc_Set *set, const nc_Set *other, nc_Set* out) {
   }
 }
 
-void nc_set_difference(const nc_Set *set, const nc_Set *other, nc_Set* out) {
+NC_API void nc_set_difference(const nc_Set *set, const nc_Set *other, nc_Set* out) {
   nc_set_reserve(out, set->len * 2);
   for (usize i = 0; i < set->_cap; i++) {
     if (set->items[i] && set->items[i] != NC_SET_DELETED) {
@@ -227,7 +227,7 @@ void nc_set_difference(const nc_Set *set, const nc_Set *other, nc_Set* out) {
   }
 }
 
-void nc_set_union(const nc_Set *set, const nc_Set *other, nc_Set* out) {
+NC_API void nc_set_union(const nc_Set *set, const nc_Set *other, nc_Set* out) {
   for (usize i = 0; i < set->_cap; i++) {
     if (set->items[i] && set->items[i] != NC_SET_DELETED) {
       if (!nc_set_has(other, set->items[i])) {

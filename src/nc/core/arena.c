@@ -65,7 +65,7 @@ NC_API usize nc_arena_real_size(nc_Arena *arena) {
     return size;
 }
 
-void *nc_arena_alloc(nc_Arena *arena, usize size) {
+NC_API void *nc_arena_alloc(nc_Arena *arena, usize size) {
     size = align(size);
     nc_Chunk *chunk = arena->begin;
     for (; chunk != NULL; chunk = chunk->next) {
@@ -89,13 +89,13 @@ void *nc_arena_alloc(nc_Arena *arena, usize size) {
     return ptr;
 }
 
-void *nc_arena_calloc(nc_Arena *arena, usize size) {
+NC_API void *nc_arena_calloc(nc_Arena *arena, usize size) {
     void *ptr = nc_arena_alloc(arena, size);
     memset(ptr, 0, size);
     return ptr;
 }
 
-void *nc_arena_alloc_chunk(nc_Arena *arena, usize size) {
+NC_API void *nc_arena_alloc_chunk(nc_Arena *arena, usize size) {
     nc_Chunk *chunk = chunk_allocate(size);
     chunk->cap = 0;
     chunk->allocated = size;
@@ -107,13 +107,13 @@ void *nc_arena_alloc_chunk(nc_Arena *arena, usize size) {
     return chunk->data;
 }
 
-void *nc_arena_calloc_chunk(nc_Arena *arena, usize size) {
+NC_API void *nc_arena_calloc_chunk(nc_Arena *arena, usize size) {
     void *data = nc_arena_alloc_chunk(arena, size);
     memset(data, 0, size);
     return data;
 }
 
-void *nc_arena_realloc_chunk(nc_Arena *arena, void *ptr, usize size) {
+NC_API void *nc_arena_realloc_chunk(nc_Arena *arena, void *ptr, usize size) {
     if (ptr == NULL) {
         return nc_arena_alloc_chunk(arena, size);
     }

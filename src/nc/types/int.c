@@ -5,7 +5,7 @@
 #define BITS(T) (sizeof(T) * 8)
 
 #define INTEGER_IMPL(T)                                                                            \
-    T nc_##T##_reverse_bits(T value) {                                                             \
+    NC_API T nc_##T##_reverse_bits(T value) {                                                      \
         T reversed = 0;                                                                            \
         for (usize i = 0; i < BITS(T); i++) {                                                      \
             reversed = (T)(reversed << 1);                                                         \
@@ -17,7 +17,7 @@
         return reversed;                                                                           \
     }                                                                                              \
                                                                                                    \
-    usize nc_##T##_leading_ones(T value) {                                                         \
+    NC_API usize nc_##T##_leading_ones(T value) {                                                  \
         usize count = 0;                                                                           \
         for (usize i = 0; i < BITS(T); i++) {                                                      \
             if (!(value >> (BITS(T) - i - 1) & (T)0x1)) {                                          \
@@ -28,7 +28,7 @@
         return count;                                                                              \
     }                                                                                              \
                                                                                                    \
-    usize nc_##T##_trailing_ones(T value) {                                                        \
+    NC_API usize nc_##T##_trailing_ones(T value) {                                                 \
         usize count = 0;                                                                           \
         for (usize i = 0; i < BITS(T); i++) {                                                      \
             if (!(value >> i & (T)0x1)) {                                                          \
@@ -39,7 +39,7 @@
         return count;                                                                              \
     }                                                                                              \
                                                                                                    \
-    usize nc_##T##_leading_zeros(T value) {                                                        \
+    NC_API usize nc_##T##_leading_zeros(T value) {                                                 \
         usize count = 0;                                                                           \
         for (usize i = 0; i < BITS(T); i++) {                                                      \
             if (value >> (BITS(T) - i - 1) & (T)0x1) {                                             \
@@ -50,7 +50,7 @@
         return count;                                                                              \
     }                                                                                              \
                                                                                                    \
-    usize nc_##T##_trailing_zeros(T value) {                                                       \
+    NC_API usize nc_##T##_trailing_zeros(T value) {                                                \
         usize count = 0;                                                                           \
         for (usize i = 0; i < BITS(T); i++) {                                                      \
             if (value >> i & (T)0x1) {                                                             \
@@ -61,7 +61,7 @@
         return count;                                                                              \
     }                                                                                              \
                                                                                                    \
-    usize nc_##T##_count_zeros(T value) {                                                          \
+    NC_API usize nc_##T##_count_zeros(T value) {                                                   \
         usize count = 0;                                                                           \
         for (usize i = 0; i < BITS(T); i++) {                                                      \
             if (!(value >> i & (T)0x1)) {                                                          \
@@ -71,7 +71,7 @@
         return count;                                                                              \
     }                                                                                              \
                                                                                                    \
-    usize nc_##T##_count_ones(T value) {                                                           \
+    NC_API usize nc_##T##_count_ones(T value) {                                                    \
         usize count = 0;                                                                           \
         for (usize i = 0; i < BITS(T); i++) {                                                      \
             if (value >> i & (T)0x1) {                                                             \
@@ -81,7 +81,7 @@
         return count;                                                                              \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_swap_bytes(T value) {                                                               \
+    NC_API T nc_##T##_swap_bytes(T value) {                                                        \
         if (1 < sizeof(T)) {                                                                       \
             u8 *bytes = (u8 *)&value;                                                              \
             for (usize i = 0; i < (sizeof(T) + 1) / 2; i++) {                                      \
@@ -93,21 +93,21 @@
         return value;                                                                              \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_to_be(T value) {                                                                    \
+    NC_API T nc_##T##_to_be(T value) {                                                             \
         if (NC_BYTE_ORDER == NC_ENDIAN_LITTLE) {                                                   \
             return nc_##T##_swap_bytes(value);                                                     \
         }                                                                                          \
         return value;                                                                              \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_from_be(T value) {                                                                  \
+    NC_API T nc_##T##_from_be(T value) {                                                           \
         if (NC_BYTE_ORDER == NC_ENDIAN_LITTLE) {                                                   \
             return nc_##T##_swap_bytes(value);                                                     \
         }                                                                                          \
         return value;                                                                              \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_from_be_bytes(nc_Bytes bytes) {                                                     \
+    NC_API T nc_##T##_from_be_bytes(nc_Bytes bytes) {                                              \
         NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
         if (NC_BYTE_ORDER == NC_ENDIAN_LITTLE) {                                                   \
             return nc_##T##_swap_bytes(*(const T *)bytes.data);                                    \
@@ -115,7 +115,7 @@
         return *(const T *)bytes.data;                                                             \
     }                                                                                              \
                                                                                                    \
-    nc_Bytes nc_##T##_to_be_bytes(T value, nc_Arena *arena) {                                      \
+    NC_API nc_Bytes nc_##T##_to_be_bytes(T value, nc_Arena *arena) {                               \
         u8 *buffer = nc_arena_alloc(arena, sizeof(value));                                         \
         u8 *bytes = (u8 *)&value;                                                                  \
         for (usize i = 0; i < sizeof(value); i++) {                                                \
@@ -128,21 +128,21 @@
         return nc_bytes_from_parts(sizeof(value), buffer);                                         \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_to_le(T value) {                                                                    \
+    NC_API T nc_##T##_to_le(T value) {                                                             \
         if (NC_BYTE_ORDER == NC_ENDIAN_BIG) {                                                      \
             return nc_##T##_swap_bytes(value);                                                     \
         }                                                                                          \
         return value;                                                                              \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_from_le(T value) {                                                                  \
+    NC_API T nc_##T##_from_le(T value) {                                                           \
         if (NC_BYTE_ORDER == NC_ENDIAN_BIG) {                                                      \
             return nc_##T##_swap_bytes(value);                                                     \
         }                                                                                          \
         return value;                                                                              \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_from_le_bytes(nc_Bytes bytes) {                                                     \
+    NC_API T nc_##T##_from_le_bytes(nc_Bytes bytes) {                                              \
         NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
         if (NC_BYTE_ORDER == NC_ENDIAN_BIG) {                                                      \
             return nc_##T##_swap_bytes(*(const T *)bytes.data);                                    \
@@ -150,7 +150,7 @@
         return *(const T *)bytes.data;                                                             \
     }                                                                                              \
                                                                                                    \
-    nc_Bytes nc_##T##_to_le_bytes(T value, nc_Arena *arena) {                                      \
+    NC_API nc_Bytes nc_##T##_to_le_bytes(T value, nc_Arena *arena) {                               \
         u8 *buffer = nc_arena_alloc(arena, sizeof(value));                                         \
         u8 *bytes = (u8 *)&value;                                                                  \
         for (usize i = 0; i < sizeof(value); i++) {                                                \
@@ -163,29 +163,29 @@
         return nc_bytes_from_parts(sizeof(value), buffer);                                         \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_from_ne_bytes(nc_Bytes bytes) {                                                     \
+    NC_API T nc_##T##_from_ne_bytes(nc_Bytes bytes) {                                              \
         NC_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                      \
         return *(const T *)bytes.data;                                                             \
     }                                                                                              \
                                                                                                    \
-    nc_Bytes nc_##T##_to_ne_bytes(T value, nc_Arena *arena) {                                      \
+    NC_API nc_Bytes nc_##T##_to_ne_bytes(T value, nc_Arena *arena) {                               \
         if (NC_BYTE_ORDER == NC_ENDIAN_BIG) {                                                      \
             return nc_##T##_to_be_bytes(value, arena);                                             \
         }                                                                                          \
         return nc_##T##_to_le_bytes(value, arena);                                                 \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_max(T a, T b) {                                                                     \
+    NC_API T nc_##T##_max(T a, T b) {                                                              \
         return a < b ? b : a;                                                                      \
     }                                                                                              \
-    T nc_##T##_min(T a, T b) {                                                                     \
+    NC_API T nc_##T##_min(T a, T b) {                                                              \
         return a > b ? b : a;                                                                      \
     }                                                                                              \
-    T nc_##T##_clamp(T min, T max, T value) {                                                      \
+    NC_API T nc_##T##_clamp(T min, T max, T value) {                                               \
         return value < min ? min : max < value ? max : value;                                      \
     }                                                                                              \
                                                                                                    \
-    u64 nc_##T##_hash(T value) {                                                                   \
+    NC_API u64 nc_##T##_hash(T value) {                                                            \
         u64 hash = ((u64)value) + 1;                                                               \
         hash = (((hash >> 16) ^ hash) % 0x3AA387A8B1) * 0x45d9f3b;                                 \
         hash = (((hash >> 16) ^ hash) % 0x3AA387A8B1) * 0x45d9f3b;                                 \
@@ -193,17 +193,19 @@
         return hash;                                                                               \
     }                                                                                              \
                                                                                                    \
-    void nc_##T##_swap(T *v1, T *v2) {                                                             \
+    NC_API void nc_##T##_swap(T *v1, T *v2) {                                                      \
         T temp = *v1;                                                                              \
         *v1 = *v2;                                                                                 \
         *v2 = temp;                                                                                \
     }                                                                                              \
                                                                                                    \
-    T nc_##T##_next_pow2(T n) {                                                                    \
+    NC_API T nc_##T##_next_pow2(T n) {                                                             \
         /* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */                 \
         if (n == 0) return 1;                                                                      \
         n--;                                                                                       \
-        for (size_t i = 1; i < sizeof(T) * 8; i <<= 1) { n |= n >> i; }                            \
+        for (size_t i = 1; i < sizeof(T) * 8; i <<= 1) {                                           \
+            n |= n >> i;                                                                           \
+        }                                                                                          \
         T max = (((T)-1) > 0) ? (T)-1 : (T)((1ULL << (sizeof(T) * 8 - 1)) - 1);                    \
         if (n >= max) return max;                                                                  \
         return n + 1;                                                                              \
