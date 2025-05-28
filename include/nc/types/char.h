@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _NC_CHAR_H_
+#define _NC_CHAR_H_
 
 #include "nc/defines.h"
 
@@ -24,3 +25,5 @@ NC_API NC_CONST_FN u8 nc_char_hex_to_u8(char c);
 NC_API NC_CONST_FN char nc_char_from_u8(u8 d);
 NC_API NC_CONST_FN char nc_char_hex_from_u8(u8 d);
 NC_API NC_CONST_FN char nc_char_HEX_from_u8(u8 d);
+
+#endif // _NC_CHAR_H_

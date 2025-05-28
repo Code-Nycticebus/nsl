@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _NC_LIST_H_
+#define _NC_LIST_H_
 
 #include "nc/core/arena.h"
 #include "nc/defines.h"
@@ -174,3 +175,5 @@
 
 #define nc_list_for_each(T, iter, da)                                                              \
     for (T iter = &nc_list_first(da); iter <= &nc_list_last(da); iter++)
+
+#endif // _NC_LIST_H_

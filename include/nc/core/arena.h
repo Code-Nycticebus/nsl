@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _NC_ARENA_H_
+#define _NC_ARENA_H_
 
 #include "nc/defines.h"
 
@@ -24,3 +25,5 @@ NC_API void *nc_arena_alloc_chunk(nc_Arena *arena, usize size);
 NC_API void *nc_arena_calloc_chunk(nc_Arena *arena, usize size);
 NC_API void *nc_arena_realloc_chunk(nc_Arena *arena, void *ptr, usize size);
 NC_API void nc_arena_free_chunk(nc_Arena *arena, void *ptr);
+
+#endif // _NC_ARENA_H_

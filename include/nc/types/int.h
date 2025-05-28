@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _NC_INT_H_
+#define _NC_INT_H_
 
 #include "nc/core/arena.h"
 #include "nc/defines.h"
@@ -47,3 +48,5 @@ INTEGER_DECL(i64)
 INTEGER_DECL(usize)
 
 #undef INTEGER_DECL
+
+#endif // _NC_INT_H_

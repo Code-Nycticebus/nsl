@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _NC_ERROR_H_
+#define _NC_ERROR_H_
 
 #include "nc/defines.h"
 
@@ -87,3 +88,5 @@ typedef struct {
     do {                                                                       \
         fprintf(stderr, NC_ERROR_FMT "\n", NC_ERROR_ARG(E));                   \
     } while (0)
+
+#endif // _NC_ERROR_H_

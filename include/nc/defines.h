@@ -1,5 +1,5 @@
-// defines useful types and macros
-#pragma once
+#ifndef _NC_DEFINES_H_
+#define _NC_DEFINES_H_
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -142,3 +142,5 @@ typedef nc_Str nc_Path;
 #else
 #    error "No Byte Order detected!"
 #endif
+
+#endif // _NC_DEFINES_H_
