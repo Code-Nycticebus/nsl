@@ -68,7 +68,7 @@ nc_DirEntry *nc_dir_next(nc_DirIter *it) {
 
         e->is_dir = S_ISDIR(entry_info.st_mode);
         e->size = (usize)entry_info.st_size;
-        e->mtime = (u64)entry_info.st_mtimensec;
+        e->mtime = (u64)entry_info.st_mtime;
 
         if (it->recursive && e->is_dir) {
             DIR *handle = opendir(e->path.data);

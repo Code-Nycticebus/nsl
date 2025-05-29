@@ -6,14 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef struct {
-    i64 code;            // 0 = no error
-    const char *file;    // __FILE__ where error occured
-    i32 line;            // __LINE__ where error occured
-    const char *func;    // __func__ where error occured
-    const char *message; // human-readable message
-} nc_Error;
-
 #define NC_ERROR_FMT "%s:%d (%s): %s"
 #define NC_ERROR_ARG(E) (E)->file, (E)->line, (E)->func, (E)->message
 

@@ -107,6 +107,71 @@ void write_compile_commands(void) {
     arena_free(&scratch);
 }
 
+void create_single_header(void) {
+    Arena arena = {0};
+
+    Path single_header_file = PATH("nc.h");
+    FILE* file = fs_file_open(single_header_file, "w", ErrPanic);
+
+    io_write_str(file, STR("#ifndef _NC_H_\n"), ErrPanic);
+    io_write_str(file, STR("#define _NC_H_\n\n"), ErrPanic);
+    // headers
+
+    Path defines = PATH("include/nc/defines.h");
+    Str content = fs_file_read_str(defines, &arena, ErrPanic);
+    for (Str line; str_try_chop_by_delim(&content, '\n', &line);) {
+        if (str_contains(line, STR("#include \""))) continue;
+        io_write_fmt(file, STR_FMT"\n", STR_ARG(line));
+    }
+    io_write_str(file, STR("\n"), ErrPanic);
+
+    {
+        FsIter it = fs_iter_begin(PATH("include/nc"), true);
+        while (fs_iter_next_suffix(&it, STR(".h"))) {
+            arena_reset(&arena);
+            if (str_eq(it.current.path, defines)) continue;
+            io_write_fmt(file, "// "STR_FMT"\n", STR_ARG(it.current.path));
+            Str content = fs_file_read_str(it.current.path, &arena, ErrPanic);
+            for (Str line; str_try_chop_by_delim(&content, '\n', &line);) {
+                if (str_contains(line, STR("#include \""))) continue;
+                io_write_fmt(file, STR_FMT"\n", STR_ARG(line));
+            }
+            io_write_str(file, STR("\n"), ErrPanic);
+        }
+        fs_iter_end(&it, ErrPanic);
+    }
+    io_write_str(file, STR("#endif // _NC_H_\n"), ErrPanic);
+
+    io_write_str(file, STR("#ifdef NC_IMPLEMENTATION\n"), ErrPanic);
+    // source
+    {
+        FsIter it = fs_iter_begin(PATH("src/nc"), true);
+        while (fs_iter_next_suffix(&it, STR(".c"))) {
+            arena_reset(&arena);
+            if (str_contains(it.current.path, STR("_windows"))) {
+                io_write_fmt(file, "#if defined(_WIN32)\n");
+            }
+            if (str_contains(it.current.path, STR("_posix"))) {
+                io_write_fmt(file, "#if !defined(_WIN32)\n");
+            }
+
+            io_write_fmt(file, "// "STR_FMT"\n", STR_ARG(it.current.path));
+            Str content = fs_file_read_str(it.current.path, &arena, ErrPanic);
+            for (Str line; str_try_chop_by_delim(&content, '\n', &line);) {
+                if (str_contains(line, STR("#include \""))) continue;
+                io_write_fmt(file, STR_FMT"\n", STR_ARG(line));
+            }
+
+            if (str_contains(it.current.path, STR("_windows")) || str_contains(it.current.path, STR("_posix"))) {
+                io_write_fmt(file, "#endif\n");
+            }
+            io_write_str(file, STR("\n"), ErrPanic);
+        }
+        fs_iter_end(&it, ErrPanic);
+    }
+    io_write_str(file, STR("#endif // NC_IMPLEMENTATION\n"), ErrPanic);
+}
+
 int main(void) {
     os_mkdir(PATH("build"));
     os_mkdir(PATH("build/lib"));
@@ -138,4 +203,6 @@ int main(void) {
     );
     collect_flags(&cmd);
     cmd_exec_da(ErrPanic, &cmd);
+
+    create_single_header();
 }

@@ -61,6 +61,20 @@ typedef struct {
 typedef nc_Str nc_Path;
 #define NC_PATH(cstr) ((nc_Path){.len = sizeof(cstr) - 1, .data = (cstr)})
 
+typedef struct nc_Chunk nc_Chunk;
+
+typedef struct {
+    nc_Chunk *begin, *end;
+} nc_Arena;
+
+typedef struct {
+    i64 code;            // 0 = no error
+    const char *file;    // __FILE__ where error occured
+    i32 line;            // __LINE__ where error occured
+    const char *func;    // __func__ where error occured
+    const char *message; // human-readable message
+} nc_Error;
+
 #define NC_UNUSED(v) (void)(v)
 #define NC_PASS ((void)(0))
 #define NC_UNREACHABLE(msg) do { fprintf(stderr, "Unreachable: %s:%d: %s", __FILE__, __LINE__, msg); abort(); } while(0)
