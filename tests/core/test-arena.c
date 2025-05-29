@@ -89,7 +89,7 @@ static void test_reset(void) { // NOLINT
     NC_ASSERT(big_buffer_after_reset && "Buffer was not allocated");
 
     TestChunk *chunk_after_reset =
-        (TestChunk *)((u8 *)chunk - sizeof(TestChunk));
+        (TestChunk *)((uintptr_t)chunk - sizeof(TestChunk));
     NC_ASSERT(chunk_after_reset->allocated == sizeof(int) && "");
 
     nc_arena_free(&arena);
