@@ -32,6 +32,12 @@ void collect_files(Cmd *cmd) {
         Path obj_path =
             str_format(&it.scratch, "build/obj/" STR_FMT ".o", STR_ARG(path_name(path)));
 
+#if defined(_WIN32)
+        if (str_contains(obj_path, STR("_posix"))) continue;
+#else
+        if (str_contains(obj_path, STR("_windows"))) continue;
+#endif
+
         os_mkdir(path_parent(obj_path));
 
         cmd_push(&cmd_obj, STR(CC), STR("-c"), STR("-o"), obj_path);
