@@ -170,6 +170,7 @@ void create_single_header(void) {
         fs_iter_end(&it, ErrPanic);
     }
     io_write_str(file, STR("#endif // NC_IMPLEMENTATION\n"), ErrPanic);
+    fs_file_close(file, ErrPanic);
 }
 
 int main(void) {
@@ -205,4 +206,14 @@ int main(void) {
     cmd_exec_da(ErrPanic, &cmd);
 
     create_single_header();
+    da_clear(&cmd);
+    cmd_push(&cmd, 
+             STR(CC),
+             STR("-o"),
+             STR("build/nc.o"),
+             STR("-DNC_IMPLEMENTATION"),
+             STR("nc.h"),
+    );
+    collect_flags(&cmd);
+    cmd_exec_da(ErrPanic, &cmd);
 }
