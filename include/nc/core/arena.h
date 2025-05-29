@@ -9,7 +9,6 @@ typedef struct {
     nc_Chunk *begin, *end;
 } nc_Arena;
 
-
 NC_API void nc_arena_free(nc_Arena *arena);
 
 NC_API void *nc_arena_alloc(nc_Arena *arena, usize size);
