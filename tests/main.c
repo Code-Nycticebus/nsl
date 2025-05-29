@@ -3,6 +3,8 @@
 #include "core/test-arena.c"
 #include "core/test-error.c"
 
+#include "os/test-dirent.c"
+
 #include "structs/test-list.c"
 #include "structs/test-map.c"
 #include "structs/test-set.c"
@@ -17,6 +19,9 @@ int main(void) {
     // core
     run_test_arena();
     run_test_error();
+
+    // os
+    run_test_dirent();
 
     // structs
     run_test_list();
