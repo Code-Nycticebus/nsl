@@ -19,6 +19,7 @@ NC_API bool nc_char_is_blank(char c) { return isblank(c); }
 NC_API bool nc_char_is_punct(char c) { return ispunct(c); }
 NC_API bool nc_char_is_digit(char c) { return isdigit(c); }
 NC_API bool nc_char_is_xdigit(char c) { return isxdigit(c); }
+NC_API NC_CONST_FN bool nc_char_is_path_delimiter(char c) { return c == '/' || c == '\\'; }
 
 ///////////////////////////////////////////////////////////////////////////////
 

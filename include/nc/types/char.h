@@ -15,6 +15,7 @@ NC_API NC_CONST_FN bool nc_char_is_blank(char c);
 NC_API NC_CONST_FN bool nc_char_is_punct(char c);
 NC_API NC_CONST_FN bool nc_char_is_digit(char c);
 NC_API NC_CONST_FN bool nc_char_is_xdigit(char c);
+NC_API NC_CONST_FN bool nc_char_is_path_delimiter(char c);
 
 NC_API NC_CONST_FN char nc_char_to_lower(char c);
 NC_API NC_CONST_FN char nc_char_to_upper(char c);
