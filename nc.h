@@ -1586,6 +1586,7 @@ NC_API nc_Path nc_path_join(usize len, const nc_Path *parts, nc_Arena *arena) {
     if (len == 1) {
         return nc_str_copy(parts[0], arena);
     }
+    nc_Arena scratch = {0};
     nc_List(char) buffer = {0};
     nc_list_init(&buffer, arena);
     for (usize i = 0; i < len; i++) {
@@ -1604,8 +1605,9 @@ NC_API nc_Path nc_path_join(usize len, const nc_Path *parts, nc_Arena *arena) {
             }
         }
     }
-    nc_list_push(&buffer, '\0');
-    return nc_str_from_parts(buffer.len-1, buffer.items);
+    nc_Str result = nc_str_copy(nc_str_from_parts(buffer.len-1, buffer.items), arena);
+    nc_arena_free(&scratch);
+    return result;
 }
 NC_API nc_Path nc_path_normalize(nc_Path path, nc_Arena *arena) {
     nc_Arena scratch = {0};
