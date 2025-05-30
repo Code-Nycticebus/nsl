@@ -80,9 +80,24 @@ typedef struct {
 
 #define NC_UNUSED(v) (void)(v)
 #define NC_PASS ((void)(0))
-#define NC_UNREACHABLE(msg) do { fprintf(stderr, "Unreachable: %s:%d: %s", __FILE__, __LINE__, msg); abort(); } while(0)
-#define NC_TODO(msg) do { fprintf(stderr, "TODO: %s:%d: %s", __FILE__, __LINE__, msg); abort(); } while(0)
-#define NC_NOT_IMPLEMENTED(msg) do { fprintf(stderr, "Not Implemented: %s:%d: %s", __FILE__, __LINE__, msg); abort(); } while(0)
+
+#define NC_UNREACHABLE(msg)                                                                        \
+    do {                                                                                           \
+        fprintf(stderr, "Unreachable: %s:%d: %s", __FILE__, __LINE__, msg);                        \
+        abort();                                                                                   \
+    } while (0)
+
+#define NC_TODO(msg)                                                                               \
+    do {                                                                                           \
+        fprintf(stderr, "TODO: %s:%d: %s", __FILE__, __LINE__, msg);                               \
+        abort();                                                                                   \
+    } while (0)
+
+#define NC_NOT_IMPLEMENTED(msg)                                                                    \
+    do {                                                                                           \
+        fprintf(stderr, "Not Implemented: %s:%d: %s", __FILE__, __LINE__, msg);                    \
+        abort();                                                                                   \
+    } while (0)
 
 
 #if defined(__clang__)
