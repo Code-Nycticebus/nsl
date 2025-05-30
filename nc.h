@@ -177,7 +177,7 @@ typedef struct {
 
 #endif // _NC_DEFINES_H_
 
-// include/nc/os/dirent.h
+// include/nc/os/fs.h
 #ifndef _NC_DIR_
 #define _NC_DIR_
 
@@ -187,19 +187,24 @@ typedef struct {
     bool is_dir;
     usize size;
     u64 mtime;
-} nc_DirEntry;
+} nc_FsEntry;
 
 typedef struct {
     nc_Arena scratch; // per file scratch buffer
     bool recursive;   // recursive
     nc_Error *error;  // Error
     void *_handle;    // platform specific handle
-} nc_DirIter;
+} nc_FsIter;
 
-nc_DirIter nc_dir_begin(nc_Path directory, bool recursive, nc_Error* error);
-void nc_dir_end(nc_DirIter *it);
+nc_FsIter nc_fs_begin(nc_Path directory, bool recursive, nc_Error* error);
+void nc_fs_end(nc_FsIter *it);
 
-nc_DirEntry* nc_dir_next(nc_DirIter *it);
+nc_FsEntry* nc_fs_next(nc_FsIter *it);
+
+FILE* nc_fs_open(nc_Path path, const char* mode, nc_Error* error);
+void nc_fs_close(FILE* file);
+
+void nc_fs_write(void);
 
 #endif // _NC_DIR_
 
@@ -828,7 +833,7 @@ NC_API nc_Bytes nc_bytes_from_hex(nc_Str s, nc_Arena *arena);
 #endif // _NC_H_
 #ifdef NC_IMPLEMENTATION
 #if !defined(_WIN32)
-// src/nc/os/dirent_posix.c
+// src/nc/os/fs_posix.c
 
 
 #include <dirent.h>
@@ -837,17 +842,17 @@ NC_API nc_Bytes nc_bytes_from_hex(nc_Str s, nc_Arena *arena);
 #include <unistd.h>
 #include <errno.h>
 
-typedef struct nc_DirNode {
-    struct nc_DirNode *next;
+typedef struct nc_FsNode {
+    struct nc_FsNode *next;
     DIR *handle;
     char name[];
-} nc_DirNode;
+} nc_FsNode;
 
-nc_DirIter nc_dir_begin(nc_Path directory, bool recursive, nc_Error* error) {
-    nc_DirIter it = {.recursive=recursive, .error=error};
+nc_FsIter nc_fs_begin(nc_Path directory, bool recursive, nc_Error* error) {
+    nc_FsIter it = {.recursive=recursive, .error=error};
 
-    const usize size = sizeof(nc_DirNode) + directory.len + 1;
-    nc_DirNode* node = nc_arena_calloc_chunk(&it.scratch, size);
+    const usize size = sizeof(nc_FsNode) + directory.len + 1;
+    nc_FsNode* node = nc_arena_calloc_chunk(&it.scratch, size);
     memcpy(node->name, directory.data, directory.len);
     it._handle = node;
 
@@ -859,20 +864,20 @@ nc_DirIter nc_dir_begin(nc_Path directory, bool recursive, nc_Error* error) {
     return it;
 }
 
-void nc_dir_end(nc_DirIter *it) {
+void nc_fs_end(nc_FsIter *it) {
     while (it->_handle != NULL) {
-        nc_DirNode* node = it->_handle;
+        nc_FsNode* node = it->_handle;
         if (node->handle) closedir(node->handle);
         it->_handle = node->next;
     }
     nc_arena_free(&it->scratch);
 }
 
-nc_DirEntry *nc_dir_next(nc_DirIter *it) {
+nc_FsEntry *nc_fs_next(nc_FsIter *it) {
     if (it->error && it->error->code) return NULL;
     while (it->_handle != NULL) {
         nc_arena_reset(&it->scratch);
-        nc_DirNode *current = it->_handle;
+        nc_FsNode *current = it->_handle;
 
         struct dirent *entry = readdir(current->handle);
         if (entry == NULL) {
@@ -884,7 +889,7 @@ nc_DirEntry *nc_dir_next(nc_DirIter *it) {
 
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
-        nc_DirEntry *e = nc_arena_alloc(&it->scratch, sizeof(nc_DirEntry));
+        nc_FsEntry *e = nc_arena_alloc(&it->scratch, sizeof(nc_FsEntry));
         nc_Path parts[] = {
             nc_str_from_cstr(current->name), nc_str_from_cstr(entry->d_name),
         };
@@ -900,8 +905,8 @@ nc_DirEntry *nc_dir_next(nc_DirIter *it) {
         if (it->recursive && e->is_dir) {
             DIR *handle = opendir(e->path.data);
             if (handle == NULL) continue;
-            const usize size = sizeof(nc_DirNode) + e->path.len + 1;
-            nc_DirNode *node = nc_arena_calloc_chunk(&it->scratch, size);
+            const usize size = sizeof(nc_FsNode) + e->path.len + 1;
+            nc_FsNode *node = nc_arena_calloc_chunk(&it->scratch, size);
             node->handle = handle;
             memcpy(node->name, e->path.data, e->path.len);
             node->next = it->_handle;
@@ -915,25 +920,31 @@ nc_DirEntry *nc_dir_next(nc_DirIter *it) {
 
 #endif
 
+// src/nc/os/fs.c
+
+
+// The filter stuff for dirent
+
+
 #if defined(_WIN32)
-// src/nc/os/dirent_windows.c
+// src/nc/os/fs_windows.c
 
 
 #include <io.h>
 #include <string.h>
 
-typedef struct nc_DirNode {
-    struct nc_DirNode *next;
+typedef struct nc_FsNode {
+    struct nc_FsNode *next;
     HANDLE handle;
     char name[];
-} nc_DirNode;
+} nc_FsNode;
 
-nc_DirIter nc_dir_begin(nc_Path directory, bool recursive, nc_Error *error) {
-    nc_DirIter it = {.recursive = recursive, .error = error};
+nc_FsIter nc_fs_begin(nc_Path directory, bool recursive, nc_Error *error) {
+    nc_FsIter it = {.recursive = recursive, .error = error};
 
     const usize len = directory.len + (sizeof("/*") - 1);
-    const usize size = sizeof(nc_DirNode) + len + 1;
-    nc_DirNode *node = nc_arena_calloc_chunk(&it.scratch, size);
+    const usize size = sizeof(nc_FsNode) + len + 1;
+    nc_FsNode *node = nc_arena_calloc_chunk(&it.scratch, size);
     memcpy(node->name, directory.data, directory.len);
     it._handle = node;
 
@@ -947,20 +958,20 @@ nc_DirIter nc_dir_begin(nc_Path directory, bool recursive, nc_Error *error) {
     return it;
 }
 
-void nc_dir_end(nc_DirIter *it) {
+void nc_fs_end(nc_FsIter *it) {
     while (it->_handle != NULL) {
-        nc_DirNode *current = it->_handle;
+        nc_FsNode *current = it->_handle;
         it->_handle = current->next;
         if (current->handle != INVALID_HANDLE_VALUE) FindClose(current->handle);
     }
     nc_arena_free(&it->scratch);
 }
 
-nc_DirEntry* nc_dir_next(nc_DirIter *it) {
+nc_FsEntry* nc_fs_next(nc_FsIter *it) {
     if (it->error && it->error->code) return NULL;
     while (it->_handle != NULL) {
         nc_arena_reset(&it->scratch);
-        nc_DirNode *current = it->_handle;
+        nc_FsNode *current = it->_handle;
 
         WIN32_FIND_DATA findFileData;
         if (!FindNextFile(current->handle, &findFileData)) {
@@ -975,7 +986,7 @@ nc_DirEntry* nc_dir_next(nc_DirIter *it) {
             continue;
         }
 
-        nc_DirEntry *e = nc_arena_alloc(&it->scratch, sizeof(nc_DirEntry));
+        nc_FsEntry *e = nc_arena_alloc(&it->scratch, sizeof(nc_FsEntry));
         nc_Path parts[] = {
             nc_str_from_cstr(current->name),
             nc_str_from_cstr(findFileData.cFileName),
@@ -993,8 +1004,8 @@ nc_DirEntry* nc_dir_next(nc_DirIter *it) {
                 continue;
             }
 
-            const usize size = sizeof(nc_DirNode) + e->path.len + 1;
-            nc_DirNode *node = nc_arena_calloc_chunk(&it->scratch, size);
+            const usize size = sizeof(nc_FsNode) + e->path.len + 1;
+            nc_FsNode *node = nc_arena_calloc_chunk(&it->scratch, size);
             memcpy(node->name, e->path.data, e->path.len);
 
             node->handle = handle;
@@ -1009,12 +1020,6 @@ nc_DirEntry* nc_dir_next(nc_DirIter *it) {
 }
 
 #endif
-
-// src/nc/os/dirent.c
-
-
-// The filter stuff for dirent
-
 
 // src/nc/core/arena.c
 
