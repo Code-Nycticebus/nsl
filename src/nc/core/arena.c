@@ -117,7 +117,7 @@ NC_API void *nc_arena_realloc_chunk(nc_Arena *arena, void *ptr, usize size) {
     if (ptr == NULL) {
         return nc_arena_alloc_chunk(arena, size);
     }
-    nc_Chunk *chunk = (nc_Chunk *)((uintptr_t)ptr - sizeof(nc_Chunk));
+    nc_Chunk *chunk = (nc_Chunk *)((usize)ptr - sizeof(nc_Chunk));
     if (size < chunk->allocated) {
         return chunk->data;
     }
@@ -138,7 +138,7 @@ NC_API void nc_arena_free_chunk(nc_Arena *arena, void *ptr) {
     if (ptr == NULL) {
         return;
     }
-    nc_Chunk *chunk = (nc_Chunk *)((uintptr_t)ptr - sizeof(nc_Chunk));
+    nc_Chunk *chunk = (nc_Chunk *)((usize)ptr - sizeof(nc_Chunk));
     if (chunk == arena->begin) {
         arena->begin = chunk->next;
     }
