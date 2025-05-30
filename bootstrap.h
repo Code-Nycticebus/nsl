@@ -4454,7 +4454,6 @@ Str io_read_line(FILE *file, usize size, char *buffer, Error *error) {
       error_emit(error, errno, "Could not read line: %s", strerror(errno));
       return (Str){0};
     }
-    error_emit(error, EOF, "EOF");
     return (Str){0};
   }
   return str_from_cstr(buffer);

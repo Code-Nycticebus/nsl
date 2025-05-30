@@ -107,6 +107,18 @@ void write_compile_commands(void) {
     arena_free(&scratch);
 }
 
+void _read_and_write_entire_file(FILE* output, Path file, Arena* arena) {
+    char buffer[200] = {0};
+    FILE* in_file = fs_file_open(file, "r", ErrPanic);
+    Str line = io_read_line(in_file, ARRAY_LEN(buffer), buffer, ErrPanic);
+    for (;line.len; line = io_read_line(in_file, ARRAY_LEN(buffer), buffer, ErrPanic)) {
+        if (str_contains(line, STR("#include \""))) continue;
+        io_write_fmt(output, STR_FMT, STR_ARG(line));
+    }
+    io_write_str(output, STR("\n"), ErrPanic);
+    fs_file_close(in_file, ErrPanic);
+}
+
 void create_single_header(void) {
     Arena arena = {0};
 
@@ -118,12 +130,7 @@ void create_single_header(void) {
     // headers
 
     Path defines = PATH("include/nc/defines.h");
-    Str content = fs_file_read_str(defines, &arena, ErrPanic);
-    for (Str line; str_try_chop_by_delim(&content, '\n', &line);) {
-        if (str_contains(line, STR("#include \""))) continue;
-        io_write_fmt(file, STR_FMT"\n", STR_ARG(line));
-    }
-    io_write_str(file, STR("\n"), ErrPanic);
+    _read_and_write_entire_file(file, defines, &arena);
 
     {
         FsIter it = fs_iter_begin(PATH("include/nc"), true);
@@ -131,12 +138,7 @@ void create_single_header(void) {
             arena_reset(&arena);
             if (str_eq(it.current.path, defines)) continue;
             io_write_fmt(file, "// "STR_FMT"\n", STR_ARG(it.current.path));
-            Str content = fs_file_read_str(it.current.path, &arena, ErrPanic);
-            for (Str line; str_try_chop_by_delim(&content, '\n', &line);) {
-                if (str_contains(line, STR("#include \""))) continue;
-                io_write_fmt(file, STR_FMT"\n", STR_ARG(line));
-            }
-            io_write_str(file, STR("\n"), ErrPanic);
+            _read_and_write_entire_file(file, it.current.path, &arena);
         }
         fs_iter_end(&it, ErrPanic);
     }
@@ -156,11 +158,7 @@ void create_single_header(void) {
             }
 
             io_write_fmt(file, "// "STR_FMT"\n", STR_ARG(it.current.path));
-            Str content = fs_file_read_str(it.current.path, &arena, ErrPanic);
-            for (Str line; str_try_chop_by_delim(&content, '\n', &line);) {
-                if (str_contains(line, STR("#include \""))) continue;
-                io_write_fmt(file, STR_FMT"\n", STR_ARG(line));
-            }
+            _read_and_write_entire_file(file, it.current.path, &arena);
 
             if (str_contains(it.current.path, STR("_windows")) || str_contains(it.current.path, STR("_posix"))) {
                 io_write_fmt(file, "#endif\n");
