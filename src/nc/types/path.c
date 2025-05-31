@@ -93,9 +93,17 @@ NC_API bool nc_path_eq(nc_Path p1, nc_Path p2) {
 NC_API bool nc_path_is_absolute(nc_Path path) {
     if (path.len == 0)
         return false;
-    if (path.data[0] == '/')
+    if (nc_char_is_path_delimiter(path.data[0]))
         return true;
     if (path.len >= 3 && path.data[1] == ':' && nc_char_is_path_delimiter(path.data[2]))
+        return true;
+    return false;
+}
+
+NC_API bool nc_path_is_root(nc_Path path) {
+    if (path.len == 1 && nc_char_is_path_delimiter(path.data[0]))
+        return true;
+    if (path.len == 3 && path.data[1] == ':' && nc_char_is_path_delimiter(path.data[2]))
         return true;
     return false;
 }
