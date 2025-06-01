@@ -75,6 +75,17 @@ typedef struct {
     const char *message; // human-readable message
 } nc_Error;
 
+#define nc_List(T)                                                                                 \
+    struct {                                                                                       \
+        usize cap;                                                                                 \
+        usize len;                                                                                 \
+        nc_Arena *arena;                                                                           \
+        T *items;                                                                                  \
+    }
+
+typedef nc_List(char) nc_StrBuilder;
+typedef nc_List(u8) nc_ByteBuffer;
+
 #define NC_UNUSED(v) (void)(v)
 #define NC_PASS ((void)(0))
 
