@@ -1,7 +1,6 @@
 #ifndef _NC_LIST_H_
 #define _NC_LIST_H_
 
-#include "nc/core/arena.h"
 #include "nc/defines.h"
 
 #include <stdlib.h>

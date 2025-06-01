@@ -1,5 +1,6 @@
 #include "nc/os/fs.h"
 
+#include "nc/core/error.h"
 #include "nc/structs/list.h"
 #include "nc/types/str.h"
 #include "nc/types/path.h"

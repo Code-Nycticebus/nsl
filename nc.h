@@ -210,12 +210,32 @@ typedef struct {
 nc_FsIter nc_fs_begin(nc_Path directory, bool recursive, nc_Error* error);
 void nc_fs_end(nc_FsIter *it);
 
-nc_FsEntry* nc_fs_next(nc_FsIter *it);
+nc_FsEntry *nc_fs_next(nc_FsIter *it);
 
-FILE* nc_fs_open(nc_Path path, const char* mode, nc_Error* error);
-void nc_fs_close(FILE* file);
+typedef struct {
+    u32 mode;       // set the directory mode (default = 0755)
+    bool exists_ok; // error when the directory exists
+    bool parents;   // create parent paths
+} nc_FsDirConfig;
+void nc_fs_mkdir(nc_Path path, nc_Error *error, nc_FsDirConfig config);
 
-void nc_fs_write(void);
+bool nc_fs_exists(nc_Path path);
+bool nc_fs_is_dir(nc_Path path);
+
+FILE *nc_fs_open(nc_Path path, const char *mode, nc_Error *error);
+void nc_fs_close(FILE *file);
+
+void nc_fs_check_error(FILE* file, nc_Error* error);
+
+usize nc_fs_size(FILE* file);
+
+nc_Str nc_fs_read_str(FILE* file, nc_StrBuilder* sb);
+nc_Str nc_fs_read_line(FILE* file, nc_StrBuilder* sb);
+
+nc_Bytes nc_fs_read_bytes(FILE* file, usize size, u8* buffer);
+
+void nc_fs_write_str(FILE* file, nc_Str content);
+void nc_fs_write_bytes(FILE* file, nc_Str content);
 
 #endif // _NC_DIR_
 
@@ -761,6 +781,7 @@ NC_API nc_Path nc_path_normalize(nc_Path path, nc_Arena* arena);
 
 NC_API bool nc_path_eq(nc_Path p1, nc_Path p2);
 NC_API bool nc_path_is_absolute(nc_Path path);
+NC_API bool nc_path_is_root(nc_Path path);
 
 NC_API nc_Str nc_path_name(nc_Path path);
 NC_API nc_Str nc_path_suffix(nc_Path path);
@@ -934,7 +955,72 @@ nc_FsEntry *nc_fs_next(nc_FsIter *it) {
 // src/nc/os/fs.c
 
 
-// The filter stuff for dirent
+#include <errno.h>
+#include <string.h>
+#include <sys/stat.h>
+
+#if defined(_WIN32)
+#    include <direct.h>
+#    define mkdir(path, mode) _mkdir(path)
+#    define stat _stat
+#    define access(path, mode) _access(path, mode)
+#else
+#    include <unistd.h>
+#endif
+
+void nc_fs_mkdir(nc_Path path, nc_Error *error, nc_FsDirConfig config) {
+    if (config.parents) {
+        if (nc_path_is_root(path)) return;
+        if (path.len == 1 && path.data[0] == '.') return;
+        config.exists_ok = true;
+        nc_fs_mkdir(nc_path_parent(path), error, config);
+    }
+    errno = 0;
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
+    if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
+        if (config.exists_ok && errno == EEXIST) {
+            struct stat info;
+            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return;
+        }
+        NC_ERROR_EMIT(error, errno, strerror(errno));
+    }
+}
+
+bool nc_fs_exists(nc_Path path) {
+  char filepath[FILENAME_MAX] = {0};
+  memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
+  return access(filepath, 0) == 0;
+}
+
+bool nc_fs_is_dir(nc_Path path) {
+  char filepath[FILENAME_MAX] = {0};
+  memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
+
+  struct stat info;
+  if (stat(filepath, &info) == -1) {
+    return false;
+  }
+
+  return S_ISDIR(info.st_mode);
+}
+
+#if 0
+FILE *nc_fs_open(nc_Path path, const char *mode, nc_Error *error);
+void nc_fs_close(FILE *file);
+
+void nc_fs_check_error(FILE* file, nc_Error* error);
+
+usize nc_fs_size(FILE* file);
+
+nc_Str nc_fs_read_str(FILE* file, nc_StrBuilder* sb);
+nc_Str nc_fs_read_line(FILE* file, nc_StrBuilder* sb);
+
+nc_Bytes nc_fs_read_bytes(FILE* file, usize size, u8* buffer);
+
+void nc_fs_write_str(FILE* file, nc_Str content);
+void nc_fs_write_bytes(FILE* file, nc_Str content);
+#endif
 
 
 #if defined(_WIN32)
@@ -1976,9 +2062,17 @@ NC_API bool nc_path_eq(nc_Path p1, nc_Path p2) {
 NC_API bool nc_path_is_absolute(nc_Path path) {
     if (path.len == 0)
         return false;
-    if (path.data[0] == '/')
+    if (nc_char_is_path_delimiter(path.data[0]))
         return true;
     if (path.len >= 3 && path.data[1] == ':' && nc_char_is_path_delimiter(path.data[2]))
+        return true;
+    return false;
+}
+
+NC_API bool nc_path_is_root(nc_Path path) {
+    if (path.len == 1 && nc_char_is_path_delimiter(path.data[0]))
+        return true;
+    if (path.len == 3 && path.data[1] == ':' && nc_char_is_path_delimiter(path.data[2]))
         return true;
     return false;
 }
