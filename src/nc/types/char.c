@@ -37,10 +37,10 @@ NC_API u8 nc_char_hex_to_u8(char c) {
     return nc_char_to_u8(c);
   }
   if ('a' <= c && c <= 'f') {
-    return DBASE + (u8)c - 'a';
+    return (u8)(DBASE + c - 'a');
   }
   if ('A' <= c && c <= 'F') {
-    return DBASE + (u8)c - 'A';
+    return (u8)(DBASE + c - 'A');
   }
   return 0;
 }
@@ -56,7 +56,7 @@ NC_API char nc_char_hex_from_u8(u8 d) {
     return nc_char_from_u8(d);
   }
   if (d < XBASE) {
-    return 'a' + ((i8)d - DBASE);
+    return (char)('a' + (d - DBASE));
   }
   return 0;
 }
@@ -67,7 +67,7 @@ NC_API char nc_char_HEX_from_u8(u8 d) {
     return nc_char_from_u8(d);
   }
   if (d < XBASE) {
-    return 'A' + ((i8)d - DBASE);
+    return (char)('A' + (d - DBASE));
   }
   return 0;
 }
