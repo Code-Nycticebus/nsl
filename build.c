@@ -26,11 +26,8 @@ void collect_files(Cmd *cmd) {
     Cmd cmd_obj = cmd_new(&it.scratch);
 
     while (fs_iter_next_suffix(&it, STR(".c"))) {
-        Path path = it.current.path;
-        (void)str_take(&path, 4);
-        (void)str_take_right(&path, 2);
-        Path obj_path =
-            str_format(&it.scratch, "build/obj/" STR_FMT ".o", STR_ARG(path_name(path)));
+        Path path = path_stem(it.current.path);
+        Path obj_path = str_format(&it.scratch, "build/obj/" STR_FMT ".o", STR_ARG(path));
 
 #if defined(_WIN32)
         if (str_contains(obj_path, STR("_posix"))) continue;
