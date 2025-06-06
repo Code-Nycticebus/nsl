@@ -37,36 +37,21 @@ void nc_fs_mkdir(nc_Path path, nc_Error *error, nc_FsDirConfig config) {
 }
 
 bool nc_fs_exists(nc_Path path) {
-  char filepath[FILENAME_MAX] = {0};
-  memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
-  return access(filepath, 0) == 0;
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
+    return access(filepath, 0) == 0;
 }
 
 bool nc_fs_is_dir(nc_Path path) {
-  char filepath[FILENAME_MAX] = {0};
-  memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
 
-  struct stat info;
-  if (stat(filepath, &info) == -1) {
-    return false;
-  }
+    struct stat info;
+    if (stat(filepath, &info) == -1) {
+        return false;
+    }
 
-  return S_ISDIR(info.st_mode);
+    return S_ISDIR(info.st_mode);
 }
 
-#if 0
-FILE *nc_fs_open(nc_Path path, const char *mode, nc_Error *error);
-void nc_fs_close(FILE *file);
 
-void nc_fs_check_error(FILE* file, nc_Error* error);
-
-usize nc_fs_size(FILE* file);
-
-nc_Str nc_fs_read_str(FILE* file, nc_StrBuilder* sb);
-nc_Str nc_fs_read_line(FILE* file, nc_StrBuilder* sb);
-
-nc_Bytes nc_fs_read_bytes(FILE* file, usize size, u8* buffer);
-
-void nc_fs_write_str(FILE* file, nc_Str content);
-void nc_fs_write_bytes(FILE* file, nc_Str content);
-#endif

@@ -1,5 +1,5 @@
-#ifndef _NC_DIR_
-#define _NC_DIR_
+#ifndef _NC_FS_H_
+#define _NC_FS_H_
 
 #include "nc/defines.h"
 
@@ -17,7 +17,7 @@ typedef struct {
     void *_handle;    // platform specific handle
 } nc_FsIter;
 
-nc_FsIter nc_fs_begin(nc_Path directory, bool recursive, nc_Error* error);
+nc_FsIter nc_fs_begin(nc_Path directory, bool recursive, nc_Error *error);
 void nc_fs_end(nc_FsIter *it);
 
 nc_FsEntry *nc_fs_next(nc_FsIter *it);
@@ -32,19 +32,4 @@ void nc_fs_mkdir(nc_Path path, nc_Error *error, nc_FsDirConfig config);
 bool nc_fs_exists(nc_Path path);
 bool nc_fs_is_dir(nc_Path path);
 
-FILE *nc_fs_open(nc_Path path, const char *mode, nc_Error *error);
-void nc_fs_close(FILE *file);
-
-void nc_fs_check_error(FILE* file, nc_Error* error);
-
-usize nc_fs_size(FILE* file);
-
-nc_Str nc_fs_read_str(FILE* file, nc_StrBuilder* sb);
-nc_Str nc_fs_read_line(FILE* file, nc_StrBuilder* sb);
-
-nc_Bytes nc_fs_read_bytes(FILE* file, usize size, u8* buffer);
-
-void nc_fs_write_str(FILE* file, nc_Str content);
-void nc_fs_write_bytes(FILE* file, nc_Str content);
-
-#endif // _NC_DIR_
+#endif // _NC_FS_H_

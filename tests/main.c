@@ -4,6 +4,7 @@
 #include "core/test-error.c"
 
 #include "os/test-fs.c"
+#include "os/test-file.c"
 
 #include "structs/test-list.c"
 #include "structs/test-map.c"
@@ -22,6 +23,7 @@ int main(void) {
 
     // os
     run_test_fs();
+    run_test_file();
 
     // structs
     run_test_list();
