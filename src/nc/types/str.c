@@ -28,6 +28,12 @@ NC_API nc_Str nc_str_from_cstr(const char *cstr) {
     return (nc_Str){.len = strlen(cstr), .data = cstr};
 }
 
+NC_API const char* nc_str_to_cstr(nc_Str str, nc_Arena* arena) {
+    char* cstr = nc_arena_calloc(arena, str.len + 1);
+    memcpy(cstr, str.data, str.len);
+    return cstr;
+}
+
 NC_API nc_Str nc_str_format(nc_Arena *arena, const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);

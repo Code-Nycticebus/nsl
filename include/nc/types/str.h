@@ -20,7 +20,8 @@ NC_API nc_Str nc_str_from_parts(usize size, const char *cstr);
 NC_API nc_Str nc_str_from_bytes(nc_Bytes bytes);
 NC_API nc_Bytes nc_str_to_bytes(nc_Str s);
 NC_API nc_Str nc_str_from_cstr(const char *cstr);
-NC_FMT(2) nc_Str nc_str_format(nc_Arena *arena, const char *fmt, ...);
+NC_API const char* nc_str_to_cstr(nc_Str str, nc_Arena* arena);
+NC_API NC_FMT(2) nc_Str nc_str_format(nc_Arena *arena, const char *fmt, ...);
 
 NC_API nc_Str nc_str_copy(nc_Str s, nc_Arena *arena);
 NC_API nc_Str nc_str_append(nc_Str s1, nc_Str suffix, nc_Arena *arena);
