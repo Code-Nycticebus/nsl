@@ -8,6 +8,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <stdarg.h>
 
 
 FILE *nc_file_open(nc_Path path, const char *mode, nc_Error *error) {

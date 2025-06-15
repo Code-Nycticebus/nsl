@@ -20,7 +20,10 @@ static void test_file_read_str(void) {
     FILE* file = nc_file_open(NC_PATH(__FILE__), "r", &error);
     NC_ASSERT(file && error.code == 0);
 
-    nc_Str content = nc_file_read_str(file, &arena);
+    nc_StrBuilder sb = {0};
+    nc_list_init(&sb, &arena);
+
+    nc_Str content = nc_file_read_sb(file, &sb);
     nc_Str line = nc_str_chop_by_delim(&content, '\n');
     NC_ASSERT(nc_str_eq(line, NC_STR("#include \"nc/os/file.h\"")));
 
@@ -122,4 +125,5 @@ void run_test_file(void) {
     test_file_read_line();
     test_file_read_bytes();
     test_file_write_str();
+    test_file_write_bytes();
 }

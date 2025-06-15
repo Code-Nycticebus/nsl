@@ -258,13 +258,15 @@ void nc_file_check_error(FILE* file, nc_Error* error);
 
 usize nc_file_size(FILE *file);
 
-nc_Str nc_file_read_str(FILE *file, nc_StrBuilder *sb);
+nc_Str nc_file_read_str(FILE *file, nc_Arena *arena);
+nc_Str nc_file_read_sb(FILE *file, nc_StrBuilder *sb);
 nc_Str nc_file_read_line(FILE *file, nc_StrBuilder *sb);
 
-nc_Bytes nc_fs_read_bytes(FILE *file, usize size, u8 *buffer);
+nc_Bytes nc_file_read_bytes(FILE *file, usize size, u8 *buffer);
 
-void nc_fs_write_str(FILE *file, nc_Str content);
-void nc_fs_write_bytes(FILE *file, nc_Bytes content);
+NC_FMT(2) void nc_file_write_fmt(FILE* file, const char* fmt, ...);
+void nc_file_write_str(FILE *file, nc_Str content);
+void nc_file_write_bytes(FILE *file, nc_Bytes content);
 
 #endif
 
@@ -1114,6 +1116,7 @@ void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
 
 #include <errno.h>
 #include <string.h>
+#include <stdarg.h>
 
 
 FILE *nc_file_open(nc_Path path, const char *mode, nc_Error *error) {
@@ -1142,7 +1145,7 @@ usize nc_file_size(FILE* file) {
     return size;
 }
 
-nc_Str nc_file_read_str(FILE* file, nc_StrBuilder* sb) {
+nc_Str nc_file_read_sb(FILE* file, nc_StrBuilder* sb) {
     usize size = nc_file_size(file);
     nc_list_reserve(sb, size);
     char* start = &nc_list_last(sb);
@@ -1162,17 +1165,23 @@ nc_Str nc_file_read_line(FILE* file, nc_StrBuilder* sb) {
     return nc_str_from_parts(sb->len - off, &sb->items[off]);
 }
 
-
-nc_Bytes nc_fs_read_bytes(FILE* file, usize size, u8* buffer) {
+nc_Bytes nc_file_read_bytes(FILE* file, usize size, u8* buffer) {
     size = fread(buffer, 1, size, file);
     return nc_bytes_from_parts(size, buffer);
 }
 
-void nc_fs_write_str(FILE* file, nc_Str content) {
+NC_FMT(2) void nc_file_write_fmt(FILE* file, const char* fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+    vfprintf(file, fmt, va);
+    va_end(va);
+}
+
+void nc_file_write_str(FILE* file, nc_Str content) {
     fwrite(content.data, 1, content.len, file);
 }
 
-void nc_fs_write_bytes(FILE* file, nc_Bytes content) {
+void nc_file_write_bytes(FILE* file, nc_Bytes content) {
     fwrite(content.data, 1, content.size, file);
 }
 
