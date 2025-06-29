@@ -66,8 +66,8 @@ nc_FsEntry* nc_fs_next(nc_FsIter *it) {
         e->path = nc_path_join(NC_ARRAY_LEN(parts), parts, &it->scratch);
 
         e->is_dir = (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-        e->size = ((uint64_t)findFileData.nFileSizeHigh << 32) | findFileData.nFileSizeLow;
-        e->mtime = findFileData.ftLastWriteTime;
+        e->size = ((u64)findFileData.nFileSizeHigh << 32) | findFileData.nFileSizeLow;
+        e->mtime = ((u64)findFileData.ftLastWriteTime.dwHighDateTime << 32) | findFileData.ftLastWriteTime.dwLowDateTime;
 
         if (e->is_dir && it->recursive) {
             nc_Path path = nc_path_join(2, (nc_Path[]){e->path, NC_STR("/*")}, &it->scratch);

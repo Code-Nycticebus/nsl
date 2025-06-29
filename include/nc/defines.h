@@ -178,7 +178,7 @@ typedef nc_List(u8) nc_ByteBuffer;
 #elif defined(_MSC_VER)
 #    define NC_ENDIAN_LITTLE 1234
 #    define NC_ENDIAN_BIG 4321
-#    define NC_BYTE_ORDER ENDIAN_LITTLE
+#    define NC_BYTE_ORDER NC_ENDIAN_LITTLE
 #else
 #    error "No Byte Order detected!"
 #endif

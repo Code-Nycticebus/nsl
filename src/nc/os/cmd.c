@@ -46,7 +46,7 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nc_StrBuilder *sb)
     }
 }
 
-void cmd_exec(Error *error, size_t argc, const char **argv) {
+void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
@@ -55,7 +55,7 @@ void cmd_exec(Error *error, size_t argc, const char **argv) {
 
     nc_Arena arena = {0};
 
-    nc_StringBuilder sb = {0};
+    nc_StrBuilder sb = {0};
     nc_list_init(&sb, &arena);
 
     _nc_cmd_win32_wrap(argc, argv, &sb);
@@ -79,7 +79,7 @@ void cmd_exec(Error *error, size_t argc, const char **argv) {
         goto defer;
     }
     if (exit_code != 0) {
-        NC_ERROR_EMIT(error, (i32)exit_code, "command failed", exit_code);
+        NC_ERROR_EMIT(error, (i32)exit_code, "command failed");
         goto defer;
     }
 
