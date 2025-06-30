@@ -907,94 +907,6 @@ NC_API nc_Bytes nc_bytes_from_hex(nc_Str s, nc_Arena *arena);
 
 #endif // _NC_H_
 #ifdef NC_IMPLEMENTATION
-#if !defined(_WIN32)
-// src/nc/os/fs_posix.c
-
-
-#include <dirent.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <errno.h>
-
-typedef struct nc_FsNode {
-    struct nc_FsNode *next;
-    DIR *handle;
-    char name[];
-} nc_FsNode;
-
-nc_FsIter nc_fs_begin(nc_Path directory, bool recursive, nc_Error* error) {
-    nc_FsIter it = {.recursive=recursive, .error=error};
-
-    const usize size = sizeof(nc_FsNode) + directory.len + 1;
-    nc_FsNode* node = nc_arena_calloc_chunk(&it.scratch, size);
-    memcpy(node->name, directory.data, directory.len);
-    it._handle = node;
-
-    node->handle = opendir(node->name);
-    if (node->handle == NULL) {
-        NC_ERROR_EMIT(it.error, errno, strerror(errno));
-    }
-
-    return it;
-}
-
-void nc_fs_end(nc_FsIter *it) {
-    while (it->_handle != NULL) {
-        nc_FsNode* node = it->_handle;
-        if (node->handle) closedir(node->handle);
-        it->_handle = node->next;
-    }
-    nc_arena_free(&it->scratch);
-}
-
-nc_FsEntry *nc_fs_next(nc_FsIter *it) {
-    if (it->error && it->error->code) return NULL;
-    while (it->_handle != NULL) {
-        nc_arena_reset(&it->scratch);
-        nc_FsNode *current = it->_handle;
-
-        struct dirent *entry = readdir(current->handle);
-        if (entry == NULL) {
-            closedir(current->handle);
-            it->_handle = current->next;
-            nc_arena_free_chunk(&it->scratch, current);
-            continue;
-        }
-
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-
-        nc_FsEntry *e = nc_arena_alloc(&it->scratch, sizeof(nc_FsEntry));
-        nc_Path parts[] = {
-            nc_str_from_cstr(current->name), nc_str_from_cstr(entry->d_name),
-        };
-        e->path = nc_path_join(NC_ARRAY_LEN(parts), parts, &it->scratch);
-
-        struct stat entry_info;
-        if (stat(e->path.data, &entry_info) == -1) continue;
-
-        e->is_dir = S_ISDIR(entry_info.st_mode);
-        e->size = (usize)entry_info.st_size;
-        e->mtime = (u64)entry_info.st_mtime;
-
-        if (it->recursive && e->is_dir) {
-            DIR *handle = opendir(e->path.data);
-            if (handle == NULL) continue;
-            const usize size = sizeof(nc_FsNode) + e->path.len + 1;
-            nc_FsNode *node = nc_arena_calloc_chunk(&it->scratch, size);
-            node->handle = handle;
-            memcpy(node->name, e->path.data, e->path.len);
-            node->next = it->_handle;
-            it->_handle = node;
-        }
-
-        return e;
-    }
-    return NULL;
-}
-
-#endif
-
 // src/nc/os/cmd.c
 
 
@@ -1123,66 +1035,6 @@ void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
 #endif
 
 
-#if !defined(_WIN32)
-// src/nc/os/os_posix.c
-
-
-#include <string.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <unistd.h>
-
-void nc_os_mkdir(nc_Path path, nc_Error *error, nc_OsDirConfig config) {
-    if (config.parents) {
-        if (nc_path_is_root(path)) return;
-        if (path.len == 1 && path.data[0] == '.') return;
-        config.exists_ok = true;
-        nc_os_mkdir(nc_path_parent(path), error, config);
-    }
-    errno = 0;
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
-    if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
-        if (config.exists_ok && errno == EEXIST) {
-            struct stat info;
-            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return;
-        }
-        NC_ERROR_EMIT(error, errno, strerror(errno));
-    }
-}
-
-void nc_os_chdir(nc_Path path, nc_Error* error) {
-    errno = 0;
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
-    if (chdir(filepath) != 0) {
-        NC_ERROR_EMIT(error, errno, strerror(errno));
-    }
-}
-
-nc_Path nc_os_cwd(nc_Arena *arena, nc_Error *error) {
-    errno = 0;
-    char *buf = nc_arena_alloc(arena, FILENAME_MAX);
-    char *ret = getcwd(buf, FILENAME_MAX - 1);
-    if (ret == NULL) {
-        NC_ERROR_EMIT(error, errno, strerror(errno));
-        return (nc_Str){0};
-    }
-    return nc_str_from_cstr(ret);
-}
-
-nc_Str nc_os_getenv(const char *env, nc_Error *error) {
-    const char *var = getenv(env);
-    if (var == NULL) {
-        NC_ERROR_EMIT(error, -1, env);
-        return (nc_Str){0};
-    }
-    return nc_str_from_cstr(var);
-}
-
-
-#endif
-
 // src/nc/os/file.c
 
 
@@ -1294,7 +1146,7 @@ bool nc_fs_is_dir(nc_Path path) {
 
 
 #if defined(_WIN32)
-// src/nc/os/fs_windows.c
+// src/nc/os/windows/fs.c
 
 
 #include <io.h>
@@ -1383,6 +1235,154 @@ nc_FsEntry* nc_fs_next(nc_FsIter *it) {
         return e;
     }
 
+    return NULL;
+}
+
+#endif
+
+#if !defined(_WIN32)
+// src/nc/os/posix/os.c
+
+
+#include <string.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <unistd.h>
+
+void nc_os_mkdir(nc_Path path, nc_Error *error, nc_OsDirConfig config) {
+    if (config.parents) {
+        if (nc_path_is_root(path)) return;
+        if (path.len == 1 && path.data[0] == '.') return;
+        config.exists_ok = true;
+        nc_os_mkdir(nc_path_parent(path), error, config);
+    }
+    errno = 0;
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
+    if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
+        if (config.exists_ok && errno == EEXIST) {
+            struct stat info;
+            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return;
+        }
+        NC_ERROR_EMIT(error, errno, strerror(errno));
+    }
+}
+
+void nc_os_chdir(nc_Path path, nc_Error* error) {
+    errno = 0;
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nc_usize_min(path.len, FILENAME_MAX - 1));
+    if (chdir(filepath) != 0) {
+        NC_ERROR_EMIT(error, errno, strerror(errno));
+    }
+}
+
+nc_Path nc_os_cwd(nc_Arena *arena, nc_Error *error) {
+    errno = 0;
+    char *buf = nc_arena_alloc(arena, FILENAME_MAX);
+    char *ret = getcwd(buf, FILENAME_MAX - 1);
+    if (ret == NULL) {
+        NC_ERROR_EMIT(error, errno, strerror(errno));
+        return (nc_Str){0};
+    }
+    return nc_str_from_cstr(ret);
+}
+
+nc_Str nc_os_getenv(const char *env, nc_Error *error) {
+    const char *var = getenv(env);
+    if (var == NULL) {
+        NC_ERROR_EMIT(error, -1, env);
+        return (nc_Str){0};
+    }
+    return nc_str_from_cstr(var);
+}
+
+
+#endif
+
+#if !defined(_WIN32)
+// src/nc/os/posix/fs.c
+
+
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+
+typedef struct nc_FsNode {
+    struct nc_FsNode *next;
+    DIR *handle;
+    char name[];
+} nc_FsNode;
+
+nc_FsIter nc_fs_begin(nc_Path directory, bool recursive, nc_Error* error) {
+    nc_FsIter it = {.recursive=recursive, .error=error};
+
+    const usize size = sizeof(nc_FsNode) + directory.len + 1;
+    nc_FsNode* node = nc_arena_calloc_chunk(&it.scratch, size);
+    memcpy(node->name, directory.data, directory.len);
+    it._handle = node;
+
+    node->handle = opendir(node->name);
+    if (node->handle == NULL) {
+        NC_ERROR_EMIT(it.error, errno, strerror(errno));
+    }
+
+    return it;
+}
+
+void nc_fs_end(nc_FsIter *it) {
+    while (it->_handle != NULL) {
+        nc_FsNode* node = it->_handle;
+        if (node->handle) closedir(node->handle);
+        it->_handle = node->next;
+    }
+    nc_arena_free(&it->scratch);
+}
+
+nc_FsEntry *nc_fs_next(nc_FsIter *it) {
+    if (it->error && it->error->code) return NULL;
+    while (it->_handle != NULL) {
+        nc_arena_reset(&it->scratch);
+        nc_FsNode *current = it->_handle;
+
+        struct dirent *entry = readdir(current->handle);
+        if (entry == NULL) {
+            closedir(current->handle);
+            it->_handle = current->next;
+            nc_arena_free_chunk(&it->scratch, current);
+            continue;
+        }
+
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+
+        nc_FsEntry *e = nc_arena_alloc(&it->scratch, sizeof(nc_FsEntry));
+        nc_Path parts[] = {
+            nc_str_from_cstr(current->name), nc_str_from_cstr(entry->d_name),
+        };
+        e->path = nc_path_join(NC_ARRAY_LEN(parts), parts, &it->scratch);
+
+        struct stat entry_info;
+        if (stat(e->path.data, &entry_info) == -1) continue;
+
+        e->is_dir = S_ISDIR(entry_info.st_mode);
+        e->size = (usize)entry_info.st_size;
+        e->mtime = (u64)entry_info.st_mtime;
+
+        if (it->recursive && e->is_dir) {
+            DIR *handle = opendir(e->path.data);
+            if (handle == NULL) continue;
+            const usize size = sizeof(nc_FsNode) + e->path.len + 1;
+            nc_FsNode *node = nc_arena_calloc_chunk(&it->scratch, size);
+            node->handle = handle;
+            memcpy(node->name, e->path.data, e->path.len);
+            node->next = it->_handle;
+            it->_handle = node;
+        }
+
+        return e;
+    }
     return NULL;
 }
 

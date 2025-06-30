@@ -26,14 +26,14 @@ void collect_files(Cmd *cmd) {
     Cmd cmd_obj = cmd_new(&it.scratch);
 
     while (fs_iter_next_suffix(&it, STR(".c"))) {
+#if defined(_WIN32)
+        if (str_contains(it.current.path, STR("posix"))) continue;
+#else
+        if (str_contains(it.current.path, STR("windows"))) continue;
+#endif
+
         Path path = path_stem(it.current.path);
         Path obj_path = str_format(&it.scratch, "build/obj/" STR_FMT ".o", STR_ARG(path));
-
-#if defined(_WIN32)
-        if (str_contains(obj_path, STR("_posix"))) continue;
-#else
-        if (str_contains(obj_path, STR("_windows"))) continue;
-#endif
 
         os_mkdir(path_parent(obj_path));
 
@@ -147,17 +147,17 @@ void create_single_header(void) {
         FsIter it = fs_iter_begin(PATH("src/nc"), true);
         while (fs_iter_next_suffix(&it, STR(".c"))) {
             arena_reset(&arena);
-            if (str_contains(it.current.path, STR("_windows"))) {
+            if (str_contains(it.current.path, STR("windows"))) {
                 io_write_fmt(file, "#if defined(_WIN32)\n");
             }
-            if (str_contains(it.current.path, STR("_posix"))) {
+            if (str_contains(it.current.path, STR("posix"))) {
                 io_write_fmt(file, "#if !defined(_WIN32)\n");
             }
 
             io_write_fmt(file, "// "STR_FMT"\n", STR_ARG(it.current.path));
             _read_and_write_entire_file(file, it.current.path, &arena);
 
-            if (str_contains(it.current.path, STR("_windows")) || str_contains(it.current.path, STR("_posix"))) {
+            if (str_contains(it.current.path, STR("windows")) || str_contains(it.current.path, STR("posix"))) {
                 io_write_fmt(file, "#endif\n");
             }
             io_write_str(file, STR("\n"), ErrPanic);
