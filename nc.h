@@ -2872,25 +2872,18 @@ NC_API nc_Str nc_str_trim_by_predicate(nc_Str s, bool (*predicate)(char)) {
 }
 
 NC_API bool nc_str_try_chop_by_delim(nc_Str *s, char delim, nc_Str *chunk) {
-    if (s->len == 0) {
-        return false;
-    }
     usize i = 0;
     while (i < s->len && s->data[i] != delim) {
         ++i;
     }
 
     if (s->len && i <= s->len) {
-        if (chunk) {
-            *chunk = nc_str_from_parts(i, s->data);
-        }
+        if (chunk) *chunk = nc_str_from_parts(i, s->data);
         const usize new_len = nc_usize_min(s->len, i + 1);
         s->data += new_len;
         s->len -= new_len;
-        *s = nc_str_trim_left_by_delim(*s, delim);
         return true;
     }
-
     return false;
 }
 
@@ -2905,10 +2898,8 @@ NC_API nc_Str nc_str_chop_by_delim(nc_Str *s, char delim) {
         const usize new_len = nc_usize_min(s->len, i + 1);
         s->data += new_len;
         s->len -= new_len;
-        *s = nc_str_trim_left_by_delim(*s, delim);
         return chunk;
     }
-
     return *s;
 }
 
@@ -2919,13 +2910,10 @@ NC_API bool nc_str_try_chop_by_predicate(nc_Str *s, bool (*predicate)(char), nc_
     }
 
     if (s->len && i <= s->len) {
-        if (chunk) {
-            *chunk = nc_str_from_parts(i, s->data);
-        }
+        if (chunk) *chunk = nc_str_from_parts(i, s->data);
         const usize new_len = nc_usize_min(s->len, i + 1);
         s->data += new_len;
         s->len -= new_len;
-        *s = nc_str_trim_left_by_predicate(*s, predicate);
         return true;
     }
     return false;
@@ -2942,7 +2930,6 @@ NC_API nc_Str nc_str_chop_by_predicate(nc_Str *s, bool (*predicate)(char)) {
         const usize new_len = nc_usize_min(s->len, i + 1);
         s->data += new_len;
         s->len -= new_len;
-        *s = nc_str_trim_left_by_predicate(*s, predicate);
         return chunk;
     }
     return *s;
@@ -2957,7 +2944,6 @@ NC_API nc_Str nc_str_chop_right_by_delim(nc_Str *s, char delim) {
     if (s->len && i <= s->len) {
         nc_Str chunk = nc_str_from_parts(i, &s->data[s->len - i]);
         s->len -= nc_usize_min(s->len, i + 1);
-        *s = nc_str_trim_right_by_delim(*s, delim);
         return chunk;
     }
     return *s;
@@ -2972,7 +2958,6 @@ NC_API nc_Str nc_str_chop_right_by_predicate(nc_Str *s, bool (*predicate)(char))
     if (s->len && i <= s->len) {
         nc_Str chunk = nc_str_from_parts(i, &s->data[s->len - i]);
         s->len -= nc_usize_min(s->len, i + 1);
-        *s = nc_str_trim_right_by_predicate(*s, predicate);
         return chunk;
     }
     return *s;

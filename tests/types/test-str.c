@@ -87,7 +87,12 @@ static void test_str_chop(void) {
     NC_ASSERT(nc_str_eq(rest, NC_STR("This")));
     rest = nc_str_chop_by_predicate(&text, nc_char_is_space);
     nc_Str test = NC_STR("is");
+
     NC_ASSERT(nc_str_eq(rest, test));
+
+    rest = nc_str_chop_by_predicate(&text, nc_char_is_space);
+    NC_ASSERT(nc_str_eq(rest, NC_STR("")));
+
     rest = nc_str_chop_by_predicate(&text, nc_char_is_space);
     NC_ASSERT(nc_str_eq(rest, NC_STR("text")));
 }
@@ -100,13 +105,17 @@ static void test_str_try_chop(void) {
     NC_ASSERT(nc_str_eq(h, NC_STR("Hello")));
 
     nc_Str rest = {0};
-    bool t2 = nc_str_try_chop_by_predicate(&text, nc_char_is_space, &rest);
+    bool t2 = nc_str_try_chop_by_delim(&text, '\n', &rest);
     NC_ASSERT(t2 == true);
     NC_ASSERT(nc_str_eq(rest, NC_STR("This")));
 
     t2 = nc_str_try_chop_by_predicate(&text, nc_char_is_space, &rest);
     NC_ASSERT(t2 == true);
     NC_ASSERT(nc_str_eq(rest, NC_STR("is")));
+
+    t2 = nc_str_try_chop_by_predicate(&text, nc_char_is_space, &rest);
+    NC_ASSERT(t2 == true);
+    NC_ASSERT(nc_str_eq(rest, NC_STR("")));
 
     t2 = nc_str_try_chop_by_predicate(&text, nc_char_is_space, &rest);
     NC_ASSERT(t2 == true);
@@ -117,16 +126,19 @@ static void test_str_try_chop(void) {
 }
 
 static void test_str_chop_right(void) {
-    nc_Str text = NC_STR("Hello\nThis is  text");
-    nc_Str t = nc_str_chop_right_by_predicate(&text, nc_char_is_space);
-    nc_Str rest = nc_str_chop_right_by_delim(&text, '\n');
-    nc_Str rest2 = nc_str_chop_right_by_delim(&text, '\n');
-    nc_Str rest3 = nc_str_chop_right_by_delim(&text, '\n');
+    nc_Str text = NC_STR("Hello\n\nThis is  text");
+    nc_Str rest[] = {
+        nc_str_chop_right_by_delim(&text, '\n'),
+        nc_str_chop_right_by_delim(&text, '\n'),
+        nc_str_chop_right_by_delim(&text, '\n'),
+        nc_str_chop_right_by_delim(&text, '\n'),
+        nc_str_chop_right_by_delim(&text, '\n'),
+    };
 
-    NC_ASSERT(nc_str_eq(t, NC_STR("text")));
-    NC_ASSERT(nc_str_eq(rest, NC_STR("This is")));
-    NC_ASSERT(nc_str_eq(rest2, NC_STR("Hello")));
-    NC_ASSERT(nc_str_eq(rest3, NC_STR("")));
+    NC_ASSERT(nc_str_eq(rest[0], NC_STR("This is  text")));
+    NC_ASSERT(nc_str_eq(rest[1], NC_STR("")));
+    NC_ASSERT(nc_str_eq(rest[2], NC_STR("Hello")));
+    NC_ASSERT(nc_str_eq(rest[3], NC_STR("")));
 }
 
 static void test_str_number_converting(void) {
