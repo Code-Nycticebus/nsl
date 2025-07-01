@@ -959,7 +959,6 @@ nc_Str nc_file_read_sb(FILE* file, nc_StrBuilder* sb) {
 }
 
 nc_Str nc_file_read_line(FILE* file, nc_StrBuilder* sb) {
-    nc_list_reserve(sb, 128);
     usize off = sb->len;
     i32 c = 0;
     while (!feof(file) && c != '\n') {
