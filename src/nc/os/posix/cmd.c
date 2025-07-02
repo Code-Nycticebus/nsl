@@ -9,11 +9,13 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
+nc_CmdError nc_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NC_CMD_NOT_FOUND;
+
     errno = 0;
     pid_t pid = fork();
     if (pid == -1) {
-        NC_ERROR_EMIT(error, CMD_FORK, strerror(errno));
+        NC_PANIC("fork failed");
     } else if (pid == 0) {
         nc_Arena arena = {0};
 
@@ -25,17 +27,15 @@ void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
         execvp(args.items[0], (char *const *)(void *)args.items);
 
         nc_arena_free(&arena);
-        exit(CMD_NOT_FOUND);
+        exit(127);
     }
 
     int status = 0;
     waitpid(pid, &status, 0);
     if (WIFEXITED(status)) {
-        int exit_code = WEXITSTATUS(status);
-        if (exit_code == CMD_NOT_FOUND) {
-            NC_ERROR_EMIT(error, CMD_NOT_FOUND, "command not found");
-        } else if (exit_code != 0) {
-            NC_ERROR_EMIT(error, exit_code, "command failed");
-        }
+        nc_CmdError exit_code = WEXITSTATUS(status);
+        return exit_code == 127 ? NC_CMD_NOT_FOUND : exit_code;
     }
+
+    return NC_CMD_OK;
 }

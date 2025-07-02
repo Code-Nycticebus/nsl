@@ -6,9 +6,9 @@
 #include "nc/structs/list.h"
 
 typedef enum {
-  CMD_OK,
-  CMD_FORK,
-  CMD_NOT_FOUND = 127,
+    NC_CMD_OK = 0,
+    // the command return code 1-255
+    NC_CMD_NOT_FOUND = 256,
 } nc_CmdError;
 
 typedef nc_List(const char*) nc_Cmd;
@@ -16,7 +16,7 @@ typedef nc_List(const char*) nc_Cmd;
 #define nc_cmd_push(cmd, ...)                                                                      \
     nc_list_extend(cmd, NC_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
 
-void nc_cmd_exec(nc_Error* error, usize argc, const char** argv);
-void nc_cmd_exec_list(nc_Error* error, const nc_Cmd* args);
+nc_CmdError nc_cmd_exec(usize argc, const char** argv);
+nc_CmdError nc_cmd_exec_list(const nc_Cmd* args);
 
 #endif // _NC_CMD_H_

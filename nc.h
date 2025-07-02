@@ -92,21 +92,27 @@ typedef nc_List(u8) nc_ByteBuffer;
 #define NC_UNUSED(v) (void)(v)
 #define NC_PASS ((void)(0))
 
+#define NC_PANIC(msg)                                                                              \
+    do {                                                                                           \
+        fprintf(stderr, "Panic: %s:%d: %s\n", __FILE__, __LINE__, msg);                            \
+        abort();                                                                                   \
+    } while (0)
+
 #define NC_UNREACHABLE(msg)                                                                        \
     do {                                                                                           \
-        fprintf(stderr, "Unreachable: %s:%d: %s", __FILE__, __LINE__, msg);                        \
+        fprintf(stderr, "Unreachable: %s:%d: %s\n", __FILE__, __LINE__, msg);                      \
         abort();                                                                                   \
     } while (0)
 
 #define NC_TODO(msg)                                                                               \
     do {                                                                                           \
-        fprintf(stderr, "TODO: %s:%d: %s", __FILE__, __LINE__, msg);                               \
+        fprintf(stderr, "TODO: %s:%d: %s\n", __FILE__, __LINE__, msg);                             \
         abort();                                                                                   \
     } while (0)
 
 #define NC_NOT_IMPLEMENTED(msg)                                                                    \
     do {                                                                                           \
-        fprintf(stderr, "Not Implemented: %s:%d: %s", __FILE__, __LINE__, msg);                    \
+        fprintf(stderr, "Not Implemented: %s:%d: %s\n", __FILE__, __LINE__, msg);                  \
         abort();                                                                                   \
     } while (0)
 
@@ -242,9 +248,9 @@ nc_Str nc_os_getenv(const char *env, nc_Error *error);
 
 
 typedef enum {
-  CMD_OK,
-  CMD_FORK,
-  CMD_NOT_FOUND = 127,
+    NC_CMD_OK = 0,
+    // the command return code 1-255
+    NC_CMD_NOT_FOUND = 256,
 } nc_CmdError;
 
 typedef nc_List(const char*) nc_Cmd;
@@ -252,8 +258,8 @@ typedef nc_List(const char*) nc_Cmd;
 #define nc_cmd_push(cmd, ...)                                                                      \
     nc_list_extend(cmd, NC_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
 
-void nc_cmd_exec(nc_Error* error, usize argc, const char** argv);
-void nc_cmd_exec_list(nc_Error* error, const nc_Cmd* args);
+nc_CmdError nc_cmd_exec(usize argc, const char** argv);
+nc_CmdError nc_cmd_exec_list(const nc_Cmd* args);
 
 #endif // _NC_CMD_H_
 
@@ -909,8 +915,8 @@ NC_API nc_Bytes nc_bytes_from_hex(nc_Str s, nc_Arena *arena);
 #ifdef NC_IMPLEMENTATION
 // src/nc/os/cmd.c
 
-void nc_cmd_exec_list(nc_Error *error, const nc_Cmd *cmd) {
-    nc_cmd_exec(error, cmd->len, cmd->items);
+nc_CmdError nc_cmd_exec_list(const nc_Cmd *cmd) {
+    return nc_cmd_exec(cmd->len, cmd->items);
 }
 
 
@@ -1061,12 +1067,14 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nc_StrBuilder *sb)
     }
 }
 
-void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
+nc_CmdError nc_cmd_exec(size_t argc, const char **argv) {
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
+
+    DWORD exit_code = 0;
 
     nc_Arena arena = {0};
 
@@ -1078,30 +1086,38 @@ void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
 
     if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
         DWORD ec = GetLastError();
-        if (ec == 0x2) {
-            NC_ERROR_EMIT(error, CMD_NOT_FOUND, "command not found");
-        } else {
-            NC_ERROR_EMIT(error, (i32)ec, "command creation failed");
+        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) {
+            exit_code = NC_CMD_NOT_FOUND;
+            goto defer;
         }
-        goto defer;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            buffer, (DWORD)sizeof(msg), NULL
+        );
+        NC_PANIC(msg);
     }
+
     WaitForSingleObject(pi.hProcess, INFINITE);
-
-    DWORD exit_code = 0;
     if (!GetExitCodeProcess(pi.hProcess, &exit_code)) {
-        DWORD ec = GetLastError();
-        NC_ERROR_EMIT(error, (i32)ec, "Could not get exit code of process");
-        goto defer;
-    }
-    if (exit_code != 0) {
-        NC_ERROR_EMIT(error, (i32)exit_code, "command failed");
-        goto defer;
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            buffer, (DWORD)sizeof(msg), NULL
+        );
+        NC_PANIC(msg);
     }
 
-defer:
-    nc_arena_free(&arena);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
+defer:
+    nc_arena_free(&arena);
+    return (nc_CmdError)exit_code;
 }
 
 
@@ -1218,11 +1234,12 @@ nc_FsEntry* nc_fs_next(nc_FsIter *it) {
 #include <sys/wait.h>
 #include <unistd.h>
 
-void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
+nc_CmdError nc_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NC_CMD_NOT_FOUND;
     errno = 0;
     pid_t pid = fork();
     if (pid == -1) {
-        NC_ERROR_EMIT(error, CMD_FORK, strerror(errno));
+        NC_PANIC("fork failed");
     } else if (pid == 0) {
         nc_Arena arena = {0};
 
@@ -1234,19 +1251,17 @@ void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
         execvp(args.items[0], (char *const *)(void *)args.items);
 
         nc_arena_free(&arena);
-        exit(CMD_NOT_FOUND);
+        exit(127);
     }
 
     int status = 0;
     waitpid(pid, &status, 0);
     if (WIFEXITED(status)) {
-        int exit_code = WEXITSTATUS(status);
-        if (exit_code == CMD_NOT_FOUND) {
-            NC_ERROR_EMIT(error, CMD_NOT_FOUND, "command not found");
-        } else if (exit_code != 0) {
-            NC_ERROR_EMIT(error, exit_code, "command failed");
-        }
+        nc_CmdError exit_code = WEXITSTATUS(status);
+        return exit_code == 127 ? NC_CMD_NOT_FOUND : exit_code;
     }
+
+    return NC_CMD_OK;
 }
 
 #endif

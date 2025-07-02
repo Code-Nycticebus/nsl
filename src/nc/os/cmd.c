@@ -1,6 +1,6 @@
 #include "nc/os/cmd.h"
 
-void nc_cmd_exec_list(nc_Error *error, const nc_Cmd *cmd) {
-    nc_cmd_exec(error, cmd->len, cmd->items);
+nc_CmdError nc_cmd_exec_list(const nc_Cmd *cmd) {
+    return nc_cmd_exec(cmd->len, cmd->items);
 }
 

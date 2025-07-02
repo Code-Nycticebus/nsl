@@ -36,12 +36,16 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nc_StrBuilder *sb)
     }
 }
 
-void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
+nc_CmdError nc_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NC_CMD_NOT_FOUND;
+
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
+
+    DWORD exit_code = 0;
 
     nc_Arena arena = {0};
 
@@ -53,30 +57,38 @@ void nc_cmd_exec(nc_Error *error, size_t argc, const char **argv) {
 
     if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
         DWORD ec = GetLastError();
-        if (ec == 0x2) {
-            NC_ERROR_EMIT(error, CMD_NOT_FOUND, "command not found");
-        } else {
-            NC_ERROR_EMIT(error, (i32)ec, "command creation failed");
+        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) {
+            exit_code = NC_CMD_NOT_FOUND;
+            goto defer;
         }
-        goto defer;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            buffer, (DWORD)sizeof(msg), NULL
+        );
+        NC_PANIC(msg);
     }
+
     WaitForSingleObject(pi.hProcess, INFINITE);
-
-    DWORD exit_code = 0;
     if (!GetExitCodeProcess(pi.hProcess, &exit_code)) {
-        DWORD ec = GetLastError();
-        NC_ERROR_EMIT(error, (i32)ec, "Could not get exit code of process");
-        goto defer;
-    }
-    if (exit_code != 0) {
-        NC_ERROR_EMIT(error, (i32)exit_code, "command failed");
-        goto defer;
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            buffer, (DWORD)sizeof(msg), NULL
+        );
+        NC_PANIC(msg);
     }
 
-defer:
-    nc_arena_free(&arena);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
+defer:
+    nc_arena_free(&arena);
+    return (nc_CmdError)exit_code;
 }
 
 
