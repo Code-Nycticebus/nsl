@@ -89,21 +89,27 @@ typedef nc_List(u8) nc_ByteBuffer;
 #define NC_UNUSED(v) (void)(v)
 #define NC_PASS ((void)(0))
 
+#define NC_PANIC(msg)                                                                              \
+    do {                                                                                           \
+        fprintf(stderr, "Panic: %s:%d: %s\n", __FILE__, __LINE__, msg);                            \
+        abort();                                                                                   \
+    } while (0)
+
 #define NC_UNREACHABLE(msg)                                                                        \
     do {                                                                                           \
-        fprintf(stderr, "Unreachable: %s:%d: %s", __FILE__, __LINE__, msg);                        \
+        fprintf(stderr, "Unreachable: %s:%d: %s\n", __FILE__, __LINE__, msg);                      \
         abort();                                                                                   \
     } while (0)
 
 #define NC_TODO(msg)                                                                               \
     do {                                                                                           \
-        fprintf(stderr, "TODO: %s:%d: %s", __FILE__, __LINE__, msg);                               \
+        fprintf(stderr, "TODO: %s:%d: %s\n", __FILE__, __LINE__, msg);                             \
         abort();                                                                                   \
     } while (0)
 
 #define NC_NOT_IMPLEMENTED(msg)                                                                    \
     do {                                                                                           \
-        fprintf(stderr, "Not Implemented: %s:%d: %s", __FILE__, __LINE__, msg);                    \
+        fprintf(stderr, "Not Implemented: %s:%d: %s\n", __FILE__, __LINE__, msg);                  \
         abort();                                                                                   \
     } while (0)
 
