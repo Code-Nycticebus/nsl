@@ -26,16 +26,18 @@ void collect_files(Cmd *cmd) {
     Cmd cmd_obj = cmd_new(&it.scratch);
 
     while (fs_iter_next_suffix(&it, STR(".c"))) {
+
+        const char* parent = "";
 #if defined(_WIN32)
         if (str_contains(it.current.path, STR("posix"))) continue;
+        if (str_contains(it.current.path, STR("windows"))) parent = "windows/";
 #else
         if (str_contains(it.current.path, STR("windows"))) continue;
+        if (str_contains(it.current.path, STR("posix"))) parent = "posix/";
 #endif
 
         Path path = path_stem(it.current.path);
-        Path obj_path = str_format(&it.scratch, "build/obj/" STR_FMT ".o", STR_ARG(path));
-
-        os_mkdir(path_parent(obj_path));
+        Path obj_path = str_format(&it.scratch, "build/obj/%s" STR_FMT ".o", parent, STR_ARG(path));
 
         cmd_push(&cmd_obj, STR(CC), STR("-c"), STR("-o"), obj_path);
         collect_flags(&cmd_obj);
@@ -172,6 +174,8 @@ int main(void) {
     os_mkdir(PATH("build"));
     os_mkdir(PATH("build/lib"));
     os_mkdir(PATH("build/obj"));
+    os_mkdir(PATH("build/obj/posix"));
+    os_mkdir(PATH("build/obj/windows"));
 
     fs_file_write_str(PATH("build/.gitignore"), STR("*"), ErrPanic);
 
