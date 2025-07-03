@@ -947,6 +947,13 @@ usize nc_file_size(FILE* file) {
     return size;
 }
 
+nc_Str nc_file_read_str(FILE* file, nc_Arena* arena) {
+    usize size = nc_file_size(file);
+    char* data = nc_arena_calloc(arena, size+1);
+    size = fread(data, 1, size, file);
+    return nc_str_from_parts(size, data);
+}
+
 nc_Str nc_file_read_sb(FILE* file, nc_StrBuilder* sb) {
     usize size = nc_file_size(file);
     nc_list_reserve(sb, size);
