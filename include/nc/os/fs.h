@@ -24,5 +24,6 @@ nc_FsEntry *nc_fs_next(nc_FsIter *it);
 
 bool nc_fs_exists(nc_Path path);
 bool nc_fs_is_dir(nc_Path path);
+bool nc_fs_remove(nc_Path path);
 
 #endif // _NC_FS_H_
