@@ -1,19 +1,12 @@
 #ifndef _NC_LIST_H_
 #define _NC_LIST_H_
 
+#include "nc/core/arena.h"
 #include "nc/defines.h"
 
 #include <stdlib.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-
-#define nc_List(T)                                                                                 \
-    struct {                                                                                       \
-        usize cap;                                                                                 \
-        usize len;                                                                                 \
-        nc_Arena *arena;                                                                           \
-        T *items;                                                                                  \
-    }
 
 #define nc_list_first(list) (list)->items[0]
 #define nc_list_last(list) (list)->items[(list)->len - 1]
@@ -173,6 +166,6 @@
     } while (0)
 
 #define nc_list_for_each(T, iter, da)                                                              \
-    for (T iter = &nc_list_first(da); iter <= &nc_list_last(da); iter++)
+    if ((da)->len) for (T iter = &nc_list_first(da); iter <= &nc_list_last(da); iter++)
 
 #endif // _NC_LIST_H_

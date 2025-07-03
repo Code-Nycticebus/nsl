@@ -404,14 +404,6 @@ NC_API void nc_arena_free_chunk(nc_Arena *arena, void *ptr);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define nc_List(T)                                                                                 \
-    struct {                                                                                       \
-        usize cap;                                                                                 \
-        usize len;                                                                                 \
-        nc_Arena *arena;                                                                           \
-        T *items;                                                                                  \
-    }
-
 #define nc_list_first(list) (list)->items[0]
 #define nc_list_last(list) (list)->items[(list)->len - 1]
 #define nc_list_pop(list) (list)->items[--(list)->len]
@@ -570,7 +562,7 @@ NC_API void nc_arena_free_chunk(nc_Arena *arena, void *ptr);
     } while (0)
 
 #define nc_list_for_each(T, iter, da)                                                              \
-    for (T iter = &nc_list_first(da); iter <= &nc_list_last(da); iter++)
+    if ((da)->len) for (T iter = &nc_list_first(da); iter <= &nc_list_last(da); iter++)
 
 #endif // _NC_LIST_H_
 
