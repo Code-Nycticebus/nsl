@@ -1060,6 +1060,8 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nc_StrBuilder *sb)
 }
 
 nc_CmdError nc_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NC_CMD_NOT_FOUND;
+
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
@@ -1228,6 +1230,7 @@ nc_FsEntry* nc_fs_next(nc_FsIter *it) {
 
 nc_CmdError nc_cmd_exec(size_t argc, const char **argv) {
     if (argc == 0) return NC_CMD_NOT_FOUND;
+
     errno = 0;
     pid_t pid = fork();
     if (pid == -1) {
