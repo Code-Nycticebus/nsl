@@ -144,6 +144,7 @@ static bool build_header_file(void) {
     nsl_list_sort(&headers, path_compare);
 
     nsl_file_write_fmt(nsl, "#ifndef _NSL_H_\n");
+    nsl_file_write_fmt(nsl, "#define _NSL_H_\n\n");
     write_to_file(nsl, &headers);
     nsl_file_write_fmt(nsl, "#endif // _NSL_H_\n\n");
 
@@ -162,7 +163,7 @@ static bool build_header_file(void) {
     nsl_Cmd cmd = {0};
     nsl_list_init(&cmd, &arena);
 
-    nsl_cmd_push(&cmd, CC, "-c", "-o", "build/nsl.o", "-DNC_IMPLEMENTATION", "nsl.h");
+    nsl_cmd_push(&cmd, CC, "-c", "-o", "build/nsl.o", "-DNSL_IMPLEMENTATION", "nsl.h");
     collect_flags(&cmd);
     if (nsl_cmd_exec_list(&cmd) != 0) return false;
 

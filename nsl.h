@@ -1,6 +1,8 @@
 /* nycticebus standard library */
 
 #ifndef _NSL_H_
+#define _NSL_H_
+
 // include/nsl/defines.h
 
 #include <stdbool.h>
