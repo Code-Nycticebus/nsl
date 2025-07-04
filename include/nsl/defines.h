@@ -27,8 +27,8 @@
 #    define NSL_ASSERT assert
 #endif
 
-#define BOOL_FMT "%s"
-#define BOOL_ARG(b) (b ? "true" : "false")
+#define NSL_BOOL_FMT "%s"
+#define NSL_BOOL_ARG(b) (b ? "true" : "false")
 
 #define NSL_ARRAY_LEN(...) (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
 
