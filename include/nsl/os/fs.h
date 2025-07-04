@@ -1,0 +1,29 @@
+#ifndef _NSL_FS_H_
+#define _NSL_FS_H_
+
+#include "nsl/defines.h"
+
+typedef struct {
+    nsl_Path path;
+    bool is_dir;
+    usize size;
+    u64 mtime;
+} nsl_FsEntry;
+
+typedef struct {
+    nsl_Arena scratch; // per file scratch buffer
+    bool recursive;   // recursive
+    nsl_Error *error;  // Error
+    void *_handle;    // platform specific handle
+} nsl_FsIter;
+
+nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error);
+void nsl_fs_end(nsl_FsIter *it);
+
+nsl_FsEntry *nsl_fs_next(nsl_FsIter *it);
+
+bool nsl_fs_exists(nsl_Path path);
+bool nsl_fs_is_dir(nsl_Path path);
+bool nsl_fs_remove(nsl_Path path);
+
+#endif // _NSL_FS_H_

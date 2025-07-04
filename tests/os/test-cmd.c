@@ -1,28 +1,28 @@
-#include "nc/os/cmd.h"
+#include "nsl/os/cmd.h"
 
-#include "nc/core/arena.h"
-#include "nc/core/error.h"
+#include "nsl/core/arena.h"
+#include "nsl/core/error.h"
 
 void run_test_cmd(void);
 void run_test_cmd(void) {
-    nc_Arena arena = {0};
-    nc_Cmd cmd = {0};
-    nc_list_init(&cmd, &arena);
+    nsl_Arena arena = {0};
+    nsl_Cmd cmd = {0};
+    nsl_list_init(&cmd, &arena);
 
 #if defined(_WIN32)
-    nc_cmd_push(&cmd, "cmd.exe", "/c", "exit", "0");
+    nsl_cmd_push(&cmd, "cmd.exe", "/c", "exit", "0");
 #else
-    nc_cmd_push(&cmd, "true");
+    nsl_cmd_push(&cmd, "true");
 #endif
-    NC_ASSERT(nc_cmd_exec_list(&cmd) == NC_CMD_OK);
-    nc_list_clear(&cmd);
+    NSL_ASSERT(nsl_cmd_exec_list(&cmd) == NSL_CMD_OK);
+    nsl_list_clear(&cmd);
 
-    nc_cmd_push(&cmd, "not_existing_command");
-    NC_ASSERT(nc_cmd_exec_list(&cmd) == NC_CMD_NOT_FOUND);
-    nc_list_clear(&cmd);
+    nsl_cmd_push(&cmd, "not_existing_command");
+    NSL_ASSERT(nsl_cmd_exec_list(&cmd) == NSL_CMD_NOT_FOUND);
+    nsl_list_clear(&cmd);
 
-    NC_ASSERT(nc_cmd_exec_list(&cmd) == NC_CMD_NOT_FOUND);
-    nc_list_clear(&cmd);
+    NSL_ASSERT(nsl_cmd_exec_list(&cmd) == NSL_CMD_NOT_FOUND);
+    nsl_list_clear(&cmd);
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }

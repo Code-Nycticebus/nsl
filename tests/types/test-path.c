@@ -1,114 +1,114 @@
-#include "nc/types/path.h"
+#include "nsl/types/path.h"
 
-#include "nc/types/str.h"
+#include "nsl/types/str.h"
 #include <stdio.h>
 
 static void test_nc_path_eq(void) {
-    NC_ASSERT(nc_path_eq(NC_PATH("test/test.txt"), NC_PATH("test/test.txt")) == true);
-    NC_ASSERT(nc_path_eq(NC_PATH("test"), NC_PATH("test/test.txt")) == false);
+    NSL_ASSERT(nsl_path_eq(NSL_PATH("test/test.txt"), NSL_PATH("test/test.txt")) == true);
+    NSL_ASSERT(nsl_path_eq(NSL_PATH("test"), NSL_PATH("test/test.txt")) == false);
 }
 
 static void test_path_join(void) {
-    nc_Arena arena = {0};
+    nsl_Arena arena = {0};
 
     // Basic join
     {
-        nc_Path parts[] = { NC_PATH("foo"), NC_PATH("bar") };
-        nc_Path result = nc_path_join(2, parts, &arena);
-        NC_ASSERT(nc_str_eq(result, NC_PATH("foo/bar")));
+        nsl_Path parts[] = { NSL_PATH("foo"), NSL_PATH("bar") };
+        nsl_Path result = nsl_path_join(2, parts, &arena);
+        NSL_ASSERT(nsl_str_eq(result, NSL_PATH("foo/bar")));
     }
 
     // Trailing and leading slashes removed
     {
-        nc_Path parts[] = { NC_PATH("foo/"), NC_PATH("/bar/") };
-        nc_Path result = nc_path_join(2, parts, &arena);
-        NC_ASSERT(nc_str_eq(result, NC_PATH("foo/bar/")));
+        nsl_Path parts[] = { NSL_PATH("foo/"), NSL_PATH("/bar/") };
+        nsl_Path result = nsl_path_join(2, parts, &arena);
+        NSL_ASSERT(nsl_str_eq(result, NSL_PATH("foo/bar/")));
     }
 
     // Leading slash in first part is preserved
     {
-        nc_Path parts[] = { NC_PATH("/foo/"), NC_PATH("/bar/") };
-        nc_Path result = nc_path_join(2, parts, &arena);
-        NC_ASSERT(nc_str_eq(result, NC_PATH("/foo/bar/")));
+        nsl_Path parts[] = { NSL_PATH("/foo/"), NSL_PATH("/bar/") };
+        nsl_Path result = nsl_path_join(2, parts, &arena);
+        NSL_ASSERT(nsl_str_eq(result, NSL_PATH("/foo/bar/")));
     }
 
     // Empty parts skipped
     {
-        nc_Path parts[] = { NC_PATH(""), NC_PATH("foo"), NC_PATH(""), NC_PATH("bar") };
-        nc_Path result = nc_path_join(4, parts, &arena);
-        NC_ASSERT(nc_str_eq(result, NC_PATH("foo/bar")));
+        nsl_Path parts[] = { NSL_PATH(""), NSL_PATH("foo"), NSL_PATH(""), NSL_PATH("bar") };
+        nsl_Path result = nsl_path_join(4, parts, &arena);
+        NSL_ASSERT(nsl_str_eq(result, NSL_PATH("foo/bar")));
     }
 
     // Single part
     {
-        nc_Path parts[] = { NC_PATH("foo/") };
-        nc_Path result = nc_path_join(1, parts, &arena);
-        NC_ASSERT(nc_str_eq(result, NC_PATH("foo/")));
+        nsl_Path parts[] = { NSL_PATH("foo/") };
+        nsl_Path result = nsl_path_join(1, parts, &arena);
+        NSL_ASSERT(nsl_str_eq(result, NSL_PATH("foo/")));
     }
 
     // windows
     {
-        nc_Path parts[] = { NC_PATH("c:/") };
-        nc_Path result = nc_path_join(1, parts, &arena);
-        NC_ASSERT(nc_str_eq(result, NC_PATH("c:/")));
+        nsl_Path parts[] = { NSL_PATH("c:/") };
+        nsl_Path result = nsl_path_join(1, parts, &arena);
+        NSL_ASSERT(nsl_str_eq(result, NSL_PATH("c:/")));
     }
 
 
     {
-        nc_Path parts[] = { NC_PATH("/"), NC_PATH("foo/"), NC_PATH("//bar") };
-        nc_Path result = nc_path_join(3, parts, &arena);
-        NC_ASSERT(nc_str_eq(result, NC_PATH("/foo/bar")));
+        nsl_Path parts[] = { NSL_PATH("/"), NSL_PATH("foo/"), NSL_PATH("//bar") };
+        nsl_Path result = nsl_path_join(3, parts, &arena);
+        NSL_ASSERT(nsl_str_eq(result, NSL_PATH("/foo/bar")));
     }
 
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_nc_path_normalize(void) {
-    nc_Arena arena = {0};
+    nsl_Arena arena = {0};
 
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("/usr/../test.txt"), &arena), NC_PATH("/test.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("/../../text.txt"), &arena), NC_PATH("/text.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("../text.txt"), &arena), NC_PATH("../text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("/usr/../test.txt"), &arena), NSL_PATH("/test.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("/../../text.txt"), &arena), NSL_PATH("/text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("../text.txt"), &arena), NSL_PATH("../text.txt")));
 
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("c:\\..\\text.txt"), &arena), NC_PATH("c:/text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("c:\\..\\text.txt"), &arena), NSL_PATH("c:/text.txt")));
 
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:/test/../file.txt"), &arena), NC_PATH("C:/file.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:/test/./file.txt"), &arena), NC_PATH("C:/test/file.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:/test/.."), &arena), NC_PATH("C:/")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:/test/../"), &arena), NC_PATH("C:/")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("./text.txt"), &arena), NC_PATH("text.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("../text.txt"), &arena), NC_PATH("../text.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("test/../text.txt"), &arena), NC_PATH("text.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("test//text.txt"), &arena), NC_PATH("test/text.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("/test//text.txt"), &arena), NC_PATH("/test/text.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:\\user\\docs\\..\\..\\text.txt"), &arena), NC_PATH("C:/text.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:\\user\\..\\docs\\file.txt"), &arena), NC_PATH("C:/docs/file.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:\\a\\b\\c\\..\\..\\..\\file.txt"), &arena), NC_PATH("C:/file.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:\\a\\b\\c\\..\\..\\..\\..\\file.txt"), &arena), NC_PATH("C:/file.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:/a/b/c/../../../file.txt"), &arena), NC_PATH("C:/file.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:/a/b/c/../../../../file.txt"), &arena), NC_PATH("C:/file.txt")));
-    NC_ASSERT(nc_str_eq(nc_path_normalize(NC_PATH("C:/a/./b/./c/./file.txt"), &arena), NC_PATH("C:/a/b/c/file.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:/test/../file.txt"), &arena), NSL_PATH("C:/file.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:/test/./file.txt"), &arena), NSL_PATH("C:/test/file.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:/test/.."), &arena), NSL_PATH("C:/")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:/test/../"), &arena), NSL_PATH("C:/")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("./text.txt"), &arena), NSL_PATH("text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("../text.txt"), &arena), NSL_PATH("../text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("test/../text.txt"), &arena), NSL_PATH("text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("test//text.txt"), &arena), NSL_PATH("test/text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("/test//text.txt"), &arena), NSL_PATH("/test/text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:\\user\\docs\\..\\..\\text.txt"), &arena), NSL_PATH("C:/text.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:\\user\\..\\docs\\file.txt"), &arena), NSL_PATH("C:/docs/file.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:\\a\\b\\c\\..\\..\\..\\file.txt"), &arena), NSL_PATH("C:/file.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:\\a\\b\\c\\..\\..\\..\\..\\file.txt"), &arena), NSL_PATH("C:/file.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:/a/b/c/../../../file.txt"), &arena), NSL_PATH("C:/file.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:/a/b/c/../../../../file.txt"), &arena), NSL_PATH("C:/file.txt")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_normalize(NSL_PATH("C:/a/./b/./c/./file.txt"), &arena), NSL_PATH("C:/a/b/c/file.txt")));
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_nc_path_parent(void) {
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("C:\\test.txt")), NC_STR("C:\\")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("C:\\test.txt")), NSL_STR("C:\\")));
 
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("/usr/bin")), NC_PATH("/usr/")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("/usr/bin")), NSL_PATH("/usr/")));
 
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("/usr/bin/")), NC_PATH("/usr/")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("/usr/bin/")), NSL_PATH("/usr/")));
 
 
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("/usr")), NC_PATH("/")));
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("/")), NC_PATH("/")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("/usr")), NSL_PATH("/")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("/")), NSL_PATH("/")));
 
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("foo/bar")), NC_PATH("foo/")));
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("foo/bar/")), NC_PATH("foo/")));
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("foo")), NC_PATH(".")));
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH(".")), NC_PATH(".")));
-    NC_ASSERT(nc_str_eq(nc_path_parent(NC_PATH("")), NC_PATH(".")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("foo/bar")), NSL_PATH("foo/")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("foo/bar/")), NSL_PATH("foo/")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("foo")), NSL_PATH(".")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH(".")), NSL_PATH(".")));
+    NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("")), NSL_PATH(".")));
 }
 
 void run_test_path(void);

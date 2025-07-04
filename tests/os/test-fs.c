@@ -1,24 +1,24 @@
-#include "nc/os/fs.h"
+#include "nsl/os/fs.h"
 
-#include "nc/core/arena.h"
-#include "nc/core/error.h"
+#include "nsl/core/arena.h"
+#include "nsl/core/error.h"
 
-#include "nc/types/str.h"
+#include "nsl/types/str.h"
 
-#include "nc/structs/list.h"
+#include "nsl/structs/list.h"
 
 static void test_fs_iteration(void) {
     bool is_empty = true;
 
-    nc_Error error = {0};
-    nc_FsIter it = nc_fs_begin(NC_PATH("tests/"), true, &error);
-    for (nc_FsEntry *e; (e = nc_fs_next(&it));) {
+    nsl_Error error = {0};
+    nsl_FsIter it = nsl_fs_begin(NSL_PATH("tests/"), true, &error);
+    for (nsl_FsEntry *e; (e = nsl_fs_next(&it));) {
         is_empty = false;
         break;
     }
-    nc_fs_end(&it);
-    NC_ERROR_HANDLE(&error, NC_ASSERT(false && "Should not throw an error"));
-    NC_ASSERT(is_empty == false && "the directory should not be empty");
+    nsl_fs_end(&it);
+    NSL_ERROR_HANDLE(&error, NSL_ASSERT(false && "Should not throw an error"));
+    NSL_ASSERT(is_empty == false && "the directory should not be empty");
 }
 
 

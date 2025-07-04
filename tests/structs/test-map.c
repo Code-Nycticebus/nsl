@@ -1,188 +1,188 @@
-#include "nc/structs/map.h"
+#include "nsl/structs/map.h"
 
-#include "nc/types/str.h"
+#include "nsl/types/str.h"
 
 static void test_init(void) {
-    nc_Arena arena = {0};
-    nc_Map map = {0};
-    nc_map_init(&map, NC_MAP_U64, &arena);
+    nsl_Arena arena = {0};
+    nsl_Map map = {0};
+    nsl_map_init(&map, NSL_MAP_U64, &arena);
 
-    NC_ASSERT(map.type == NC_MAP_U64);
-    NC_ASSERT(map.cap == 0);
-    NC_ASSERT(map.del == 0);
-    NC_ASSERT(map.len == 0);
-    NC_ASSERT(map.items == NULL);
+    NSL_ASSERT(map.type == NSL_MAP_U64);
+    NSL_ASSERT(map.cap == 0);
+    NSL_ASSERT(map.del == 0);
+    NSL_ASSERT(map.len == 0);
+    NSL_ASSERT(map.items == NULL);
 
-    nc_map_insert_u64(&map, 1, 420);
-    nc_map_insert_u64(&map, 2, 42);
-    nc_map_insert_u64(&map, 3, 69);
+    nsl_map_insert_u64(&map, 1, 420);
+    nsl_map_insert_u64(&map, 2, 42);
+    nsl_map_insert_u64(&map, 3, 69);
 
-    NC_ASSERT(map.cap == 8);
-    NC_ASSERT(map.del == 0);
-    NC_ASSERT(map.len == 3);
-    NC_ASSERT(map.items);
+    NSL_ASSERT(map.cap == 8);
+    NSL_ASSERT(map.del == 0);
+    NSL_ASSERT(map.len == 3);
+    NSL_ASSERT(map.items);
 
-    nc_map_remove(&map, 2);
-    NC_ASSERT(map.cap == 8);
-    NC_ASSERT(map.del == 1);
-    NC_ASSERT(map.len == 2);
-    NC_ASSERT(map.items);
+    nsl_map_remove(&map, 2);
+    NSL_ASSERT(map.cap == 8);
+    NSL_ASSERT(map.del == 1);
+    NSL_ASSERT(map.len == 2);
+    NSL_ASSERT(map.items);
 
-    nc_map_resize(&map, 10);
-    NC_ASSERT(map.cap == 16);
-    NC_ASSERT(map.del == 0);
-    NC_ASSERT(map.len == 2);
+    nsl_map_resize(&map, 10);
+    NSL_ASSERT(map.cap == 16);
+    NSL_ASSERT(map.del == 0);
+    NSL_ASSERT(map.len == 2);
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_access(void) {
-    nc_Arena arena = {0};
-    nc_Map map = {0};
-    nc_map_init(&map, NC_MAP_DYNAMIC, &arena);
+    nsl_Arena arena = {0};
+    nsl_Map map = {0};
+    nsl_map_init(&map, NSL_MAP_DYNAMIC, &arena);
 
-    nc_map_insert_i64(&map, 1, -64);
-    nc_map_insert_u64(&map, 2, 64);
-    nc_map_insert_f64(&map, 3, 3.141);
-    nc_map_insert_ptr(&map, 4, &map);
+    nsl_map_insert_i64(&map, 1, -64);
+    nsl_map_insert_u64(&map, 2, 64);
+    nsl_map_insert_f64(&map, 3, 3.141);
+    nsl_map_insert_ptr(&map, 4, &map);
 
-    i64 *i = nc_map_get_i64(&map, 1);
-    NC_ASSERT(i);
-    NC_ASSERT(*i == -64);
+    i64 *i = nsl_map_get_i64(&map, 1);
+    NSL_ASSERT(i);
+    NSL_ASSERT(*i == -64);
 
-    u64 *u = nc_map_get_u64(&map, 2);
-    NC_ASSERT(u);
-    NC_ASSERT(*u == 64);
+    u64 *u = nsl_map_get_u64(&map, 2);
+    NSL_ASSERT(u);
+    NSL_ASSERT(*u == 64);
 
-    f64 *f = nc_map_get_f64(&map, 3);
-    NC_ASSERT(f);
-    NC_ASSERT(3.140 < *f && *f < 3.142);
+    f64 *f = nsl_map_get_f64(&map, 3);
+    NSL_ASSERT(f);
+    NSL_ASSERT(3.140 < *f && *f < 3.142);
 
-    void* ptr = nc_map_get_ptr(&map, 4);
-    NC_ASSERT(ptr);
-    NC_ASSERT(ptr == &map);
+    void* ptr = nsl_map_get_ptr(&map, 4);
+    NSL_ASSERT(ptr);
+    NSL_ASSERT(ptr == &map);
 
-    void* n = nc_map_get_ptr(&map, 5);
-    NC_ASSERT(n == NULL);
+    void* n = nsl_map_get_ptr(&map, 5);
+    NSL_ASSERT(n == NULL);
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_update(void) {
-    nc_Arena arena = {0};
-    nc_Map map1 = {0};
-    nc_map_init(&map1, NC_MAP_DYNAMIC, &arena);
+    nsl_Arena arena = {0};
+    nsl_Map map1 = {0};
+    nsl_map_init(&map1, NSL_MAP_DYNAMIC, &arena);
 
-    nc_map_insert_i64(&map1, 1, -64);
-    nc_map_insert_u64(&map1, 2, 64);
-    nc_map_insert_f64(&map1, 3, 3.141);
-    nc_map_insert_ptr(&map1, 4, &map1);
+    nsl_map_insert_i64(&map1, 1, -64);
+    nsl_map_insert_u64(&map1, 2, 64);
+    nsl_map_insert_f64(&map1, 3, 3.141);
+    nsl_map_insert_ptr(&map1, 4, &map1);
 
-    nc_Map map2 = {0};
-    nc_map_init(&map2, NC_MAP_DYNAMIC, &arena);
+    nsl_Map map2 = {0};
+    nsl_map_init(&map2, NSL_MAP_DYNAMIC, &arena);
 
-    nc_map_update(&map2, &map1);
+    nsl_map_update(&map2, &map1);
 
-    i64 *i = nc_map_get_i64(&map2, 1);
-    NC_ASSERT(i);
-    NC_ASSERT(*i == -64);
+    i64 *i = nsl_map_get_i64(&map2, 1);
+    NSL_ASSERT(i);
+    NSL_ASSERT(*i == -64);
 
-    u64 *u = nc_map_get_u64(&map2, 2);
-    NC_ASSERT(u);
-    NC_ASSERT(*u == 64);
+    u64 *u = nsl_map_get_u64(&map2, 2);
+    NSL_ASSERT(u);
+    NSL_ASSERT(*u == 64);
 
-    f64 *f = nc_map_get_f64(&map2, 3);
-    NC_ASSERT(f);
-    NC_ASSERT(3.140 < *f && *f < 3.142);
+    f64 *f = nsl_map_get_f64(&map2, 3);
+    NSL_ASSERT(f);
+    NSL_ASSERT(3.140 < *f && *f < 3.142);
 
-    void* ptr = nc_map_get_ptr(&map2, 4);
-    NC_ASSERT(ptr);
-    NC_ASSERT(ptr == &map1);
+    void* ptr = nsl_map_get_ptr(&map2, 4);
+    NSL_ASSERT(ptr);
+    NSL_ASSERT(ptr == &map1);
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_remove_entries(void) {
-    nc_Arena arena = {0};
-    nc_Map map = {0};
-    nc_map_init(&map, NC_MAP_DYNAMIC, &arena);
+    nsl_Arena arena = {0};
+    nsl_Map map = {0};
+    nsl_map_init(&map, NSL_MAP_DYNAMIC, &arena);
 
-    nc_map_insert_u64(&map, 1, 420);
+    nsl_map_insert_u64(&map, 1, 420);
 
-    NC_ASSERT(nc_map_remove(&map, 1) == true);
-    NC_ASSERT(nc_map_remove(&map, 1) == false);
+    NSL_ASSERT(nsl_map_remove(&map, 1) == true);
+    NSL_ASSERT(nsl_map_remove(&map, 1) == false);
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_overwriting(void) {
-    nc_Arena arena = {0};
-    nc_Map map = {0};
-    nc_map_init(&map, NC_MAP_DYNAMIC, &arena);
+    nsl_Arena arena = {0};
+    nsl_Map map = {0};
+    nsl_map_init(&map, NSL_MAP_DYNAMIC, &arena);
 
-    nc_map_insert_u64(&map, 1, 420);
-    nc_map_insert_u64(&map, 1, 69);
+    nsl_map_insert_u64(&map, 1, 420);
+    nsl_map_insert_u64(&map, 1, 69);
 
-    u64* u = nc_map_get_u64(&map, 1);
-    NC_ASSERT(u);
-    NC_ASSERT(*u == 69);
+    u64* u = nsl_map_get_u64(&map, 1);
+    NSL_ASSERT(u);
+    NSL_ASSERT(*u == 69);
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_clear(void) {
-    nc_Arena arena = {0};
-    nc_Map map = {0};
-    nc_map_init(&map, NC_MAP_DYNAMIC, &arena);
+    nsl_Arena arena = {0};
+    nsl_Map map = {0};
+    nsl_map_init(&map, NSL_MAP_DYNAMIC, &arena);
 
-    nc_map_insert_u64(&map, 1, 69);
+    nsl_map_insert_u64(&map, 1, 69);
 
-    nc_map_clear(&map);
-    NC_ASSERT(map.len == 0);
-    NC_ASSERT(map.del == 0);
+    nsl_map_clear(&map);
+    NSL_ASSERT(map.len == 0);
+    NSL_ASSERT(map.del == 0);
 
-    u64* u = nc_map_get_ptr(&map, 1);
-    NC_ASSERT(u == NULL);
+    u64* u = nsl_map_get_ptr(&map, 1);
+    NSL_ASSERT(u == NULL);
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_stress(void) {
-    nc_Arena arena = {0};
-    nc_Map map = {0};
-    nc_map_init(&map, NC_MAP_U64, &arena);
+    nsl_Arena arena = {0};
+    nsl_Map map = {0};
+    nsl_map_init(&map, NSL_MAP_U64, &arena);
 
     const usize num_entries = 1000000; 
 
     for (usize i = 0; i < num_entries; ++i) {
-        nc_map_insert_u64(&map, i, i * 2);
+        nsl_map_insert_u64(&map, i, i * 2);
     }
 
-    NC_ASSERT(map.len == num_entries);
+    NSL_ASSERT(map.len == num_entries);
 
     for (usize i = 0; i < num_entries; ++i) {
-        u64 *val = nc_map_get_u64(&map, i);
-        NC_ASSERT(val && *val == i * 2);
+        u64 *val = nsl_map_get_u64(&map, i);
+        NSL_ASSERT(val && *val == i * 2);
     }
 
     for (usize i = 0; i < num_entries; i += 2) {
-        bool removed = nc_map_remove(&map, i);
-        NC_ASSERT(removed);
+        bool removed = nsl_map_remove(&map, i);
+        NSL_ASSERT(removed);
     }
 
-    NC_ASSERT(map.len == num_entries / 2);
+    NSL_ASSERT(map.len == num_entries / 2);
 
     for (usize i = 0; i < num_entries; ++i) {
-        u64 *val = nc_map_get_u64(&map, i);
+        u64 *val = nsl_map_get_u64(&map, i);
         if (i % 2 == 0) {
-            NC_ASSERT(val == NULL);
+            NSL_ASSERT(val == NULL);
         } else {
-            NC_ASSERT(val && *val == i * 2);
+            NSL_ASSERT(val && *val == i * 2);
         }
     }
 
 
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 void run_test_map(void);

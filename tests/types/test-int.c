@@ -1,560 +1,560 @@
-#include "nc/types/int.h"
+#include "nsl/types/int.h"
 
-#include "nc/types/byte.h"
+#include "nsl/types/byte.h"
 
 /* u8 */
 static void test_u8_leading_bits(void) {
-    NC_ASSERT(nc_u8_leading_ones(0xe0) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u8_leading_zeros(0x1f) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u8_trailing_ones(0x07) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u8_trailing_zeros(0x08) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u8_leading_ones(0xe0) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u8_leading_zeros(0x1f) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u8_trailing_ones(0x07) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u8_trailing_zeros(0x08) == 3 && "Did not count correctly");
 }
 
 static void test_u8_swaping_bits(void) {
-    NC_ASSERT(nc_u8_reverse_bits(0x12) == 0x48 && "Did not reverse correctly");
-    NC_ASSERT(nc_u8_swap_bytes(0x12) == 0x12 && "Did not swap correctly");
+    NSL_ASSERT(nsl_u8_reverse_bits(0x12) == 0x48 && "Did not reverse correctly");
+    NSL_ASSERT(nsl_u8_swap_bytes(0x12) == 0x12 && "Did not swap correctly");
 }
 
 static void test_u8_endian(void) {
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_u8_to_le(0x12) == 0x12 && "Bytes are somehow different");
-    NC_ASSERT(nc_u8_to_be(0x12) == 0x12 && "Bytes are somehow different");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_u8_to_le(0x12) == 0x12 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u8_to_be(0x12) == 0x12 && "Bytes are somehow different");
 #else
-    NC_ASSERT(nc_u8_to_le(0x12) == 0x12 && "Bytes are somehow different");
-    NC_ASSERT(nc_u8_to_be(0x12) == 0x12 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u8_to_le(0x12) == 0x12 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u8_to_be(0x12) == 0x12 && "Bytes are somehow different");
 #endif
 }
 
 static void test_u8_count_bits(void) {
-    NC_ASSERT(nc_u8_count_ones(0x12) == 2 && "Did count correctly");
-    NC_ASSERT(nc_u8_count_zeros(0x12) == 6 && "Did count correctly");
+    NSL_ASSERT(nsl_u8_count_ones(0x12) == 2 && "Did count correctly");
+    NSL_ASSERT(nsl_u8_count_zeros(0x12) == 6 && "Did count correctly");
 }
 
 static void test_u8_from_bytes(void) {
-    NC_ASSERT(nc_u8_from_be_bytes(NC_BYTES(0x12)) == 0x12 && "Conversion not correct");
-    NC_ASSERT(nc_u8_from_le_bytes(NC_BYTES(0x12)) == 0x12 && "Conversion not correct");
-    NC_ASSERT(nc_u8_from_ne_bytes(NC_BYTES(0x12)) == 0x12 && "Conversion not correct");
+    NSL_ASSERT(nsl_u8_from_be_bytes(NSL_BYTES(0x12)) == 0x12 && "Conversion not correct");
+    NSL_ASSERT(nsl_u8_from_le_bytes(NSL_BYTES(0x12)) == 0x12 && "Conversion not correct");
+    NSL_ASSERT(nsl_u8_from_ne_bytes(NSL_BYTES(0x12)) == 0x12 && "Conversion not correct");
 }
 
 static void test_u8_to_bytes(void) {
-    nc_Arena arena = {0};
-    NC_ASSERT(nc_bytes_eq(nc_u8_to_be_bytes(0x12, &arena), NC_BYTES(0x12)) &&
+    nsl_Arena arena = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_be_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
            "Not converted correctly");
-    NC_ASSERT(nc_bytes_eq(nc_u8_to_le_bytes(0x12, &arena), NC_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_le_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
            "Not converted correctly");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_bytes_eq(nc_u8_to_ne_bytes(0x12, &arena), NC_BYTES(0x12)) &&
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_ne_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #else
-    NC_ASSERT(nc_bytes_eq(nc_u8_to_ne_bytes(0x12, &arena), NC_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_ne_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #endif
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_u8_hash(void) {
-    NC_ASSERT(nc_u8_hash(0) == 0x130f353e031ba7);
-    NC_ASSERT(nc_u8_hash(69) == 0x53620494cc400a2);
-    NC_ASSERT(nc_u8_hash(42) == 0x333883cd70fb570);
+    NSL_ASSERT(nsl_u8_hash(0) == 0x130f353e031ba7);
+    NSL_ASSERT(nsl_u8_hash(69) == 0x53620494cc400a2);
+    NSL_ASSERT(nsl_u8_hash(42) == 0x333883cd70fb570);
 }
 
 static void test_u8_next_pow2(void) {
-    NC_ASSERT(nc_u8_next_pow2(0) == 1);
-    NC_ASSERT(nc_u8_next_pow2(1) == 1);
-    NC_ASSERT(nc_u8_next_pow2(5) == 8);
-    NC_ASSERT(nc_u8_next_pow2(255) == 255); // clamped
+    NSL_ASSERT(nsl_u8_next_pow2(0) == 1);
+    NSL_ASSERT(nsl_u8_next_pow2(1) == 1);
+    NSL_ASSERT(nsl_u8_next_pow2(5) == 8);
+    NSL_ASSERT(nsl_u8_next_pow2(255) == 255); // clamped
 }
 
 /* u8 */
 
 /* i8 */
 static void test_i8_leading_bits(void) {
-    NC_ASSERT(nc_i8_leading_ones((i8)0xe0) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i8_leading_zeros((i8)0x1f) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i8_trailing_ones((i8)0x07) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i8_trailing_zeros((i8)0x08) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i8_leading_ones((i8)0xe0) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i8_leading_zeros((i8)0x1f) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i8_trailing_ones((i8)0x07) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i8_trailing_zeros((i8)0x08) == 3 && "Did not count correctly");
 }
 
 static void test_i8_swaping_bits(void) {
-    NC_ASSERT(nc_i8_reverse_bits((i8)0x12) == 0x48 && "Did not reverse correctly");
-    NC_ASSERT(nc_i8_swap_bytes((i8)0x12) == 0x12 && "Did not swap correctly");
+    NSL_ASSERT(nsl_i8_reverse_bits((i8)0x12) == 0x48 && "Did not reverse correctly");
+    NSL_ASSERT(nsl_i8_swap_bytes((i8)0x12) == 0x12 && "Did not swap correctly");
 }
 
 static void test_i8_endian(void) {
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_i8_to_le((i8)0x1a) == 0x1a && "Bytes are somehow different");
-    NC_ASSERT(nc_i8_to_be((i8)0x1a) == 0x1a && "Bytes are somehow different");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_i8_to_le((i8)0x1a) == 0x1a && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i8_to_be((i8)0x1a) == 0x1a && "Bytes are somehow different");
 #else
-    NC_ASSERT(nc_i8_to_le((i8)0x1a) == 0x1a && "Bytes are somehow different");
-    NC_ASSERT(nc_i8_to_be((i8)0x1a) == 0x1a && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i8_to_le((i8)0x1a) == 0x1a && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i8_to_be((i8)0x1a) == 0x1a && "Bytes are somehow different");
 #endif
 }
 
 static void test_i8_count_bits(void) {
-    NC_ASSERT(nc_i8_count_ones((i8)0x12) == 2 && "Did count correctly");
-    NC_ASSERT(nc_i8_count_zeros((i8)0x12) == 6 && "Did count correctly");
+    NSL_ASSERT(nsl_i8_count_ones((i8)0x12) == 2 && "Did count correctly");
+    NSL_ASSERT(nsl_i8_count_zeros((i8)0x12) == 6 && "Did count correctly");
 }
 
 static void test_i8_from_bytes(void) {
-    NC_ASSERT(nc_i8_from_be_bytes(NC_BYTES(0x12)) == 0x12 && "Conversion not correct");
-    NC_ASSERT(nc_i8_from_le_bytes(NC_BYTES(0x12)) == 0x12 && "Conversion not correct");
-    NC_ASSERT(nc_i8_from_ne_bytes(NC_BYTES(0x12)) == 0x12 && "Conversion not correct");
+    NSL_ASSERT(nsl_i8_from_be_bytes(NSL_BYTES(0x12)) == 0x12 && "Conversion not correct");
+    NSL_ASSERT(nsl_i8_from_le_bytes(NSL_BYTES(0x12)) == 0x12 && "Conversion not correct");
+    NSL_ASSERT(nsl_i8_from_ne_bytes(NSL_BYTES(0x12)) == 0x12 && "Conversion not correct");
 }
 
 static void test_i8_to_bytes(void) {
-    nc_Arena arena = {0};
-    NC_ASSERT(nc_bytes_eq(nc_i8_to_be_bytes((i8)0x12, &arena), NC_BYTES(0x12)) &&
+    nsl_Arena arena = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_be_bytes((i8)0x12, &arena), NSL_BYTES(0x12)) &&
            "Not converted correctly");
-    NC_ASSERT(nc_bytes_eq(nc_i8_to_le_bytes((i8)0x12, &arena), NC_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_le_bytes((i8)0x12, &arena), NSL_BYTES(0x12)) &&
            "Not converted correctly");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_bytes_eq(nc_i8_to_ne_bytes(0x12, &arena), NC_BYTES(0x12)) &&
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_ne_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #else
-    NC_ASSERT(nc_bytes_eq(nc_i8_to_ne_bytes((i8)0x12, &arena), NC_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_ne_bytes((i8)0x12, &arena), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #endif
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_i8_hash(void) {
-    NC_ASSERT(nc_i8_hash(0) == 0x130f353e031ba7);
-    NC_ASSERT(nc_i8_hash(69) == 0x53620494cc400a2);
-    NC_ASSERT(nc_i8_hash(-69) == 0xe8a748836a8337d1);
-    NC_ASSERT(nc_i8_hash(42) == 0x333883cd70fb570);
+    NSL_ASSERT(nsl_i8_hash(0) == 0x130f353e031ba7);
+    NSL_ASSERT(nsl_i8_hash(69) == 0x53620494cc400a2);
+    NSL_ASSERT(nsl_i8_hash(-69) == 0xe8a748836a8337d1);
+    NSL_ASSERT(nsl_i8_hash(42) == 0x333883cd70fb570);
 }
 
 static void test_i8_next_pow2(void) {
-    NC_ASSERT(nc_i8_next_pow2(0) == 1);
-    NC_ASSERT(nc_i8_next_pow2(1) == 1);
-    NC_ASSERT(nc_i8_next_pow2(5) == 8);
-    NC_ASSERT(nc_i8_next_pow2(127) == 127); // clamped
+    NSL_ASSERT(nsl_i8_next_pow2(0) == 1);
+    NSL_ASSERT(nsl_i8_next_pow2(1) == 1);
+    NSL_ASSERT(nsl_i8_next_pow2(5) == 8);
+    NSL_ASSERT(nsl_i8_next_pow2(127) == 127); // clamped
 }
 
 /* i8 */
 
 /* u16 */
 static void test_u16_leading_bits(void) {
-    NC_ASSERT(nc_u16_leading_ones(0xe001) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u16_leading_zeros(0x1f00) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u16_trailing_ones(0x1007) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u16_trailing_zeros(0x1008) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u16_leading_ones(0xe001) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u16_leading_zeros(0x1f00) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u16_trailing_ones(0x1007) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u16_trailing_zeros(0x1008) == 3 && "Did not count correctly");
 }
 
 static void test_u16_swaping_bits(void) {
-    NC_ASSERT(nc_u16_reverse_bits(0x1234) == 0x2c48 && "Did not reverse correctly");
-    NC_ASSERT(nc_u16_swap_bytes(0x1234) == 0x3412 && "Did not swap correctly");
+    NSL_ASSERT(nsl_u16_reverse_bits(0x1234) == 0x2c48 && "Did not reverse correctly");
+    NSL_ASSERT(nsl_u16_swap_bytes(0x1234) == 0x3412 && "Did not swap correctly");
 }
 
 static void test_u16_endian(void) {
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_u16_to_le(0x1234) == 0x3412 && "Bytes are somehow different");
-    NC_ASSERT(nc_u16_to_be(0x1234) == 0x1234 && "Bytes are somehow different");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_u16_to_le(0x1234) == 0x3412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u16_to_be(0x1234) == 0x1234 && "Bytes are somehow different");
 #else
-    NC_ASSERT(nc_u16_to_le(0x1234) == 0x1234 && "Bytes are somehow different");
-    NC_ASSERT(nc_u16_to_be(0x1234) == 0x3412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u16_to_le(0x1234) == 0x1234 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u16_to_be(0x1234) == 0x3412 && "Bytes are somehow different");
 #endif
 }
 
 static void test_u16_count_bits(void) {
-    NC_ASSERT(nc_u16_count_ones(0x1234) == 5 && "Did count correctly");
-    NC_ASSERT(nc_u16_count_zeros(0x1234) == 11 && "Did count correctly");
+    NSL_ASSERT(nsl_u16_count_ones(0x1234) == 5 && "Did count correctly");
+    NSL_ASSERT(nsl_u16_count_zeros(0x1234) == 11 && "Did count correctly");
 }
 
 static void test_u16_from_bytes(void) {
-    NC_ASSERT(nc_u16_from_be_bytes(NC_BYTES(0x12, 0x34)) == 0x1234 && "Conversion not correct");
-    NC_ASSERT(nc_u16_from_le_bytes(NC_BYTES(0x34, 0x12)) == 0x1234 && "Conversion not correct");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_u16_from_ne_bytes(NC_BYTES(0x12, 0x34)) == 0x1234 && "Not converted correctly");
+    NSL_ASSERT(nsl_u16_from_be_bytes(NSL_BYTES(0x12, 0x34)) == 0x1234 && "Conversion not correct");
+    NSL_ASSERT(nsl_u16_from_le_bytes(NSL_BYTES(0x34, 0x12)) == 0x1234 && "Conversion not correct");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_u16_from_ne_bytes(NSL_BYTES(0x12, 0x34)) == 0x1234 && "Not converted correctly");
 #else
-    NC_ASSERT(nc_u16_from_ne_bytes(NC_BYTES(0x34, 0x12)) == 0x1234 && "Not converted correctly");
+    NSL_ASSERT(nsl_u16_from_ne_bytes(NSL_BYTES(0x34, 0x12)) == 0x1234 && "Not converted correctly");
 #endif
 }
 
 static void test_u16_to_bytes(void) {
-    nc_Arena arena = {0};
-    NC_ASSERT(nc_bytes_eq(nc_u16_to_be_bytes(0x1234, &arena), NC_BYTES(0x12, 0x34)) &&
+    nsl_Arena arena = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_be_bytes(0x1234, &arena), NSL_BYTES(0x12, 0x34)) &&
            "Not converted correctly");
-    NC_ASSERT(nc_bytes_eq(nc_u16_to_le_bytes(0x1234, &arena), NC_BYTES(0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_le_bytes(0x1234, &arena), NSL_BYTES(0x34, 0x12)) &&
            "Not converted correctly");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_bytes_eq(nc_u16_to_ne_bytes(0x1234, &arena), NC_BYTES(0x12, 0x34)) &&
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_ne_bytes(0x1234, &arena), NSL_BYTES(0x12, 0x34)) &&
            "Not converted correctly");
 #else
-    NC_ASSERT(nc_bytes_eq(nc_u16_to_ne_bytes(0x1234, &arena), NC_BYTES(0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_ne_bytes(0x1234, &arena), NSL_BYTES(0x34, 0x12)) &&
            "Not converted correctly");
 #endif
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_u16_hash(void) {
-    NC_ASSERT(nc_u16_hash(0) == 0x130f353e031ba7);
-    NC_ASSERT(nc_u16_hash(69) == 0x53620494cc400a2);
-    NC_ASSERT(nc_u16_hash(42) == 0x333883cd70fb570);
+    NSL_ASSERT(nsl_u16_hash(0) == 0x130f353e031ba7);
+    NSL_ASSERT(nsl_u16_hash(69) == 0x53620494cc400a2);
+    NSL_ASSERT(nsl_u16_hash(42) == 0x333883cd70fb570);
 }
 
 static void test_u16_next_pow2(void) {
-    NC_ASSERT(nc_u16_next_pow2(0) == 1);
-    NC_ASSERT(nc_u16_next_pow2(300) == 512);
-    NC_ASSERT(nc_u16_next_pow2(65535) == 65535); // clamped
+    NSL_ASSERT(nsl_u16_next_pow2(0) == 1);
+    NSL_ASSERT(nsl_u16_next_pow2(300) == 512);
+    NSL_ASSERT(nsl_u16_next_pow2(65535) == 65535); // clamped
 }
 
 /* u16 */
 
 /* i16 */
 static void test_i16_leading_bits(void) {
-    NC_ASSERT(nc_i16_leading_ones((i16)0xe001) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i16_leading_zeros((i16)0x1f00) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i16_trailing_ones((i16)0x1007) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i16_trailing_zeros((i16)0x1008) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i16_leading_ones((i16)0xe001) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i16_leading_zeros((i16)0x1f00) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i16_trailing_ones((i16)0x1007) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i16_trailing_zeros((i16)0x1008) == 3 && "Did not count correctly");
 }
 
 static void test_i16_swaping_bits(void) {
-    NC_ASSERT(nc_i16_reverse_bits(0x1234) == 0x2c48 && "Did not reverse correctly");
-    NC_ASSERT(nc_i16_swap_bytes(0x1234) == 0x3412 && "Did not swap correctly");
+    NSL_ASSERT(nsl_i16_reverse_bits(0x1234) == 0x2c48 && "Did not reverse correctly");
+    NSL_ASSERT(nsl_i16_swap_bytes(0x1234) == 0x3412 && "Did not swap correctly");
 }
 
 static void test_i16_endian(void) {
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_i16_to_le(0x1234) == 0x3412 && "Bytes are somehow different");
-    NC_ASSERT(nc_i16_to_be(0x1234) == 0x1234 && "Bytes are somehow different");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_i16_to_le(0x1234) == 0x3412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i16_to_be(0x1234) == 0x1234 && "Bytes are somehow different");
 #else
-    NC_ASSERT(nc_i16_to_le(0x1234) == 0x1234 && "Bytes are somehow different");
-    NC_ASSERT(nc_i16_to_be(0x1234) == 0x3412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i16_to_le(0x1234) == 0x1234 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i16_to_be(0x1234) == 0x3412 && "Bytes are somehow different");
 #endif
 }
 
 static void test_i16_count_bits(void) {
-    NC_ASSERT(nc_i16_count_ones(0x1234) == 5 && "Did count correctly");
-    NC_ASSERT(nc_i16_count_zeros(0x1234) == 11 && "Did count correctly");
+    NSL_ASSERT(nsl_i16_count_ones(0x1234) == 5 && "Did count correctly");
+    NSL_ASSERT(nsl_i16_count_zeros(0x1234) == 11 && "Did count correctly");
 }
 
 static void test_i16_from_bytes(void) {
-    NC_ASSERT(nc_i16_from_be_bytes(NC_BYTES(0x12, 0x34)) == 0x1234 && "Conversion not correct");
-    NC_ASSERT(nc_i16_from_le_bytes(NC_BYTES(0x34, 0x12)) == 0x1234 && "Conversion not correct");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_i16_from_ne_bytes(NC_BYTES(0x12, 0x34)) == 0x1234 && "Not converted correctly");
+    NSL_ASSERT(nsl_i16_from_be_bytes(NSL_BYTES(0x12, 0x34)) == 0x1234 && "Conversion not correct");
+    NSL_ASSERT(nsl_i16_from_le_bytes(NSL_BYTES(0x34, 0x12)) == 0x1234 && "Conversion not correct");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_i16_from_ne_bytes(NSL_BYTES(0x12, 0x34)) == 0x1234 && "Not converted correctly");
 #else
-    NC_ASSERT(nc_i16_from_ne_bytes(NC_BYTES(0x34, 0x12)) == 0x1234 && "Not converted correctly");
+    NSL_ASSERT(nsl_i16_from_ne_bytes(NSL_BYTES(0x34, 0x12)) == 0x1234 && "Not converted correctly");
 #endif
 }
 
 static void test_i16_to_bytes(void) {
-    nc_Arena arena = {0};
-    NC_ASSERT(nc_bytes_eq(nc_i16_to_be_bytes(0x1234, &arena), NC_BYTES(0x12, 0x34)) &&
+    nsl_Arena arena = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_be_bytes(0x1234, &arena), NSL_BYTES(0x12, 0x34)) &&
            "Not converted correctly");
-    NC_ASSERT(nc_bytes_eq(nc_i16_to_le_bytes(0x1234, &arena), NC_BYTES(0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_le_bytes(0x1234, &arena), NSL_BYTES(0x34, 0x12)) &&
            "Not converted correctly");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_bytes_eq(nc_i16_to_ne_bytes(0x1234, &arena), NC_BYTES(0x12, 0x34)) &&
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_ne_bytes(0x1234, &arena), NSL_BYTES(0x12, 0x34)) &&
            "Not converted correctly");
 #else
-    NC_ASSERT(nc_bytes_eq(nc_i16_to_ne_bytes(0x1234, &arena), NC_BYTES(0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_ne_bytes(0x1234, &arena), NSL_BYTES(0x34, 0x12)) &&
            "Not converted correctly");
 #endif
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_i16_hash(void) {
-    NC_ASSERT(nc_i16_hash(0) == 0x130f353e031ba7);
-    NC_ASSERT(nc_i16_hash(69) == 0x53620494cc400a2);
-    NC_ASSERT(nc_i16_hash(42) == 0x333883cd70fb570);
+    NSL_ASSERT(nsl_i16_hash(0) == 0x130f353e031ba7);
+    NSL_ASSERT(nsl_i16_hash(69) == 0x53620494cc400a2);
+    NSL_ASSERT(nsl_i16_hash(42) == 0x333883cd70fb570);
 }
 
 static void test_i16_next_pow2(void) {
-    NC_ASSERT(nc_i16_next_pow2(0) == 1);
-    NC_ASSERT(nc_i16_next_pow2(300) == 512);
-    NC_ASSERT(nc_i16_next_pow2(32767) == 32767); // clamped
+    NSL_ASSERT(nsl_i16_next_pow2(0) == 1);
+    NSL_ASSERT(nsl_i16_next_pow2(300) == 512);
+    NSL_ASSERT(nsl_i16_next_pow2(32767) == 32767); // clamped
 }
 
 /* i16 */
 
 /* u32 */
 static void test_u32_leading_bits(void) {
-    NC_ASSERT(nc_u32_leading_ones(0xe0000001) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u32_leading_zeros(0x1f000000) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u32_trailing_ones(0x80000007) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u32_trailing_zeros(0x80000008) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u32_leading_ones(0xe0000001) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u32_leading_zeros(0x1f000000) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u32_trailing_ones(0x80000007) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u32_trailing_zeros(0x80000008) == 3 && "Did not count correctly");
 }
 
 static void test_u32_swaping_bits(void) {
-    NC_ASSERT(nc_u32_reverse_bits(0x12345678) == 0x1e6a2c48 && "Did not reverse correctly");
-    NC_ASSERT(nc_u32_swap_bytes(0x12345678) == 0x78563412 && "Did not swap correctly");
+    NSL_ASSERT(nsl_u32_reverse_bits(0x12345678) == 0x1e6a2c48 && "Did not reverse correctly");
+    NSL_ASSERT(nsl_u32_swap_bytes(0x12345678) == 0x78563412 && "Did not swap correctly");
 }
 
 static void test_u32_endian(void) {
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_u32_to_le(0x12345678) == 0x78563412 && "Bytes are somehow different");
-    NC_ASSERT(nc_u32_to_be(0x12345678) == 0x12345678 && "Bytes are somehow different");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_u32_to_le(0x12345678) == 0x78563412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u32_to_be(0x12345678) == 0x12345678 && "Bytes are somehow different");
 #else
-    NC_ASSERT(nc_u32_to_le(0x12345678) == 0x12345678 && "Bytes are somehow different");
-    NC_ASSERT(nc_u32_to_be(0x12345678) == 0x78563412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u32_to_le(0x12345678) == 0x12345678 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u32_to_be(0x12345678) == 0x78563412 && "Bytes are somehow different");
 #endif
 }
 
 static void test_u32_count_bits(void) {
-    NC_ASSERT(nc_u32_count_ones(0x12345678) == 13 && "Did count correctly");
-    NC_ASSERT(nc_u32_count_zeros(0x12345678) == 19 && "Did count correctly");
+    NSL_ASSERT(nsl_u32_count_ones(0x12345678) == 13 && "Did count correctly");
+    NSL_ASSERT(nsl_u32_count_zeros(0x12345678) == 19 && "Did count correctly");
 }
 
 static void test_u32_from_bytes(void) {
-    NC_ASSERT(nc_u32_from_be_bytes(NC_BYTES(0x12, 0x34, 0x56, 0x78)) == 0x12345678 &&
+    NSL_ASSERT(nsl_u32_from_be_bytes(NSL_BYTES(0x12, 0x34, 0x56, 0x78)) == 0x12345678 &&
            "Conversion not correct");
-    NC_ASSERT(nc_u32_from_le_bytes(NC_BYTES(0x78, 0x56, 0x34, 0x12)) == 0x12345678 &&
+    NSL_ASSERT(nsl_u32_from_le_bytes(NSL_BYTES(0x78, 0x56, 0x34, 0x12)) == 0x12345678 &&
            "Conversion not correct");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_u32_from_ne_bytes(NC_BYTES(0x12, 0x34, 0x56, 0x78)) == 0x12345678 &&
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_u32_from_ne_bytes(NSL_BYTES(0x12, 0x34, 0x56, 0x78)) == 0x12345678 &&
            "Not converted correctly");
 #else
-    NC_ASSERT(nc_u32_from_ne_bytes(NC_BYTES(0x78, 0x56, 0x34, 0x12)) == 0x12345678 &&
+    NSL_ASSERT(nsl_u32_from_ne_bytes(NSL_BYTES(0x78, 0x56, 0x34, 0x12)) == 0x12345678 &&
            "Not converted correctly");
 #endif
 }
 
 static void test_u32_to_bytes(void) {
-    nc_Arena arena = {0};
-    NC_ASSERT(nc_bytes_eq(nc_u32_to_be_bytes(0x12345678, &arena), NC_BYTES(0x12, 0x34, 0x56, 0x78)) &&
+    nsl_Arena arena = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_be_bytes(0x12345678, &arena), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
            "Not converted correctly");
-    NC_ASSERT(nc_bytes_eq(nc_u32_to_le_bytes(0x12345678, &arena), NC_BYTES(0x78, 0x56, 0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_le_bytes(0x12345678, &arena), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
            "Not converted correctly");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_bytes_eq(nc_u32_to_ne_bytes(0x12345678, &arena), NC_BYTES(0x12, 0x34, 0x56, 0x78)) &&
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_ne_bytes(0x12345678, &arena), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
            "Not converted correctly");
 #else
-    NC_ASSERT(nc_bytes_eq(nc_u32_to_ne_bytes(0x12345678, &arena), NC_BYTES(0x78, 0x56, 0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_ne_bytes(0x12345678, &arena), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
            "Not converted correctly");
 #endif
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_u32_hash(void) {
-    NC_ASSERT(nc_u32_hash(0) == 0x130f353e031ba7);
-    NC_ASSERT(nc_u32_hash(69) == 0x53620494cc400a2);
-    NC_ASSERT(nc_u32_hash(42) == 0x333883cd70fb570);
+    NSL_ASSERT(nsl_u32_hash(0) == 0x130f353e031ba7);
+    NSL_ASSERT(nsl_u32_hash(69) == 0x53620494cc400a2);
+    NSL_ASSERT(nsl_u32_hash(42) == 0x333883cd70fb570);
 }
 
 static void test_u32_next_pow2(void) {
-    NC_ASSERT(nc_u32_next_pow2(0) == 1);
-    NC_ASSERT(nc_u32_next_pow2(50000) == 65536);
-    NC_ASSERT(nc_u32_next_pow2(4294967295U) == 4294967295U); // clamped
+    NSL_ASSERT(nsl_u32_next_pow2(0) == 1);
+    NSL_ASSERT(nsl_u32_next_pow2(50000) == 65536);
+    NSL_ASSERT(nsl_u32_next_pow2(4294967295U) == 4294967295U); // clamped
 }
 
 /* u32 */
 
 /* i32 */
 static void test_i32_leading_bits(void) {
-    NC_ASSERT(nc_i32_leading_ones((i32)0xe0000001) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i32_leading_zeros((i32)0x1f000000) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i32_trailing_ones((i32)0x80000007) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i32_trailing_zeros((i32)0x80000008) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i32_leading_ones((i32)0xe0000001) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i32_leading_zeros((i32)0x1f000000) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i32_trailing_ones((i32)0x80000007) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i32_trailing_zeros((i32)0x80000008) == 3 && "Did not count correctly");
 }
 
 static void test_i32_swaping_bits(void) {
-    NC_ASSERT(nc_i32_reverse_bits(0x12345678) == 0x1e6a2c48 && "Did not reverse correctly");
-    NC_ASSERT(nc_i32_swap_bytes(0x12345678) == 0x78563412 && "Did not swap correctly");
+    NSL_ASSERT(nsl_i32_reverse_bits(0x12345678) == 0x1e6a2c48 && "Did not reverse correctly");
+    NSL_ASSERT(nsl_i32_swap_bytes(0x12345678) == 0x78563412 && "Did not swap correctly");
 }
 
 static void test_i32_endian(void) {
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_i32_to_le(0x12345678) == 0x78563412 && "Bytes are somehow different");
-    NC_ASSERT(nc_i32_to_be(0x12345678) == 0x12345678 && "Bytes are somehow different");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_i32_to_le(0x12345678) == 0x78563412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i32_to_be(0x12345678) == 0x12345678 && "Bytes are somehow different");
 #else
-    NC_ASSERT(nc_i32_to_le(0x12345678) == 0x12345678 && "Bytes are somehow different");
-    NC_ASSERT(nc_i32_to_be(0x12345678) == 0x78563412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i32_to_le(0x12345678) == 0x12345678 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i32_to_be(0x12345678) == 0x78563412 && "Bytes are somehow different");
 #endif
 }
 
 static void test_i32_count_bits(void) {
-    NC_ASSERT(nc_i32_count_ones(0x12345678) == 13 && "Did count correctly");
-    NC_ASSERT(nc_i32_count_zeros(0x12345678) == 19 && "Did count correctly");
+    NSL_ASSERT(nsl_i32_count_ones(0x12345678) == 13 && "Did count correctly");
+    NSL_ASSERT(nsl_i32_count_zeros(0x12345678) == 19 && "Did count correctly");
 }
 
 static void test_i32_from_bytes(void) {
-    NC_ASSERT(nc_i32_from_be_bytes(NC_BYTES(0x12, 0x34, 0x56, 0x78)) == 0x12345678 &&
+    NSL_ASSERT(nsl_i32_from_be_bytes(NSL_BYTES(0x12, 0x34, 0x56, 0x78)) == 0x12345678 &&
            "Conversion not correct");
-    NC_ASSERT(nc_i32_from_le_bytes(NC_BYTES(0x78, 0x56, 0x34, 0x12)) == 0x12345678 &&
+    NSL_ASSERT(nsl_i32_from_le_bytes(NSL_BYTES(0x78, 0x56, 0x34, 0x12)) == 0x12345678 &&
            "Conversion not correct");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_i32_from_ne_bytes(NC_BYTES(0x12, 0x34, 0x56, 0x78)) == 0x12345678 &&
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_i32_from_ne_bytes(NSL_BYTES(0x12, 0x34, 0x56, 0x78)) == 0x12345678 &&
            "Not converted correctly");
 #else
-    NC_ASSERT(nc_i32_from_ne_bytes(NC_BYTES(0x78, 0x56, 0x34, 0x12)) == 0x12345678 &&
+    NSL_ASSERT(nsl_i32_from_ne_bytes(NSL_BYTES(0x78, 0x56, 0x34, 0x12)) == 0x12345678 &&
            "Not converted correctly");
 #endif
 }
 
 static void test_i32_to_bytes(void) {
-    nc_Arena arena = {0};
-    NC_ASSERT(nc_bytes_eq(nc_i32_to_be_bytes(0x12345678, &arena), NC_BYTES(0x12, 0x34, 0x56, 0x78)) &&
+    nsl_Arena arena = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_be_bytes(0x12345678, &arena), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
            "Not converted correctly");
-    NC_ASSERT(nc_bytes_eq(nc_i32_to_le_bytes(0x12345678, &arena), NC_BYTES(0x78, 0x56, 0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_le_bytes(0x12345678, &arena), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
            "Not converted correctly");
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_bytes_eq(nc_i32_to_ne_bytes(0x12345678, &arena), NC_BYTES(0x12, 0x34, 0x56, 0x78)) &&
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_ne_bytes(0x12345678, &arena), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
            "Not converted correctly");
 #else
-    NC_ASSERT(nc_bytes_eq(nc_i32_to_ne_bytes(0x12345678, &arena), NC_BYTES(0x78, 0x56, 0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_ne_bytes(0x12345678, &arena), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
            "Not converted correctly");
 #endif
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_i32_hash(void) {
-    NC_ASSERT(nc_i32_hash(0) == 0x130f353e031ba7);
-    NC_ASSERT(nc_i32_hash(69) == 0x53620494cc400a2);
-    NC_ASSERT(nc_i32_hash(42) == 0x333883cd70fb570);
+    NSL_ASSERT(nsl_i32_hash(0) == 0x130f353e031ba7);
+    NSL_ASSERT(nsl_i32_hash(69) == 0x53620494cc400a2);
+    NSL_ASSERT(nsl_i32_hash(42) == 0x333883cd70fb570);
 }
 
 static void test_i32_next_pow2(void) {
-    NC_ASSERT(nc_i32_next_pow2(0) == 1);
-    NC_ASSERT(nc_i32_next_pow2(50000) == 65536);
-    NC_ASSERT(nc_i32_next_pow2(2147483647) == 2147483647); // clamped
+    NSL_ASSERT(nsl_i32_next_pow2(0) == 1);
+    NSL_ASSERT(nsl_i32_next_pow2(50000) == 65536);
+    NSL_ASSERT(nsl_i32_next_pow2(2147483647) == 2147483647); // clamped
 }
 
 /* i32 */
 
 /* u64 */
 static void test_u64_leading_bits(void) {
-    NC_ASSERT(nc_u64_leading_ones(0xe000000000000001ULL) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u64_leading_zeros(0x1f00000000000000) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u64_trailing_ones(0x8000000000000007) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_u64_trailing_zeros(0x8000000000000008) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u64_leading_ones(0xe000000000000001ULL) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u64_leading_zeros(0x1f00000000000000) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u64_trailing_ones(0x8000000000000007) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_u64_trailing_zeros(0x8000000000000008) == 3 && "Did not count correctly");
 }
 
 static void test_u64_swaping_bits(void) {
-    NC_ASSERT(nc_u64_reverse_bits(0x1234567812345678) == 0x1e6a2c481e6a2c48 &&
+    NSL_ASSERT(nsl_u64_reverse_bits(0x1234567812345678) == 0x1e6a2c481e6a2c48 &&
            "Did not reverse correctly");
-    NC_ASSERT(nc_u64_swap_bytes(0x1234567812345678) == 0x7856341278563412 && "Did not swap correctly");
+    NSL_ASSERT(nsl_u64_swap_bytes(0x1234567812345678) == 0x7856341278563412 && "Did not swap correctly");
 }
 
 static void test_u64_endian(void) {
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_u64_to_le(0x1234567812345678) == 0x7856341278563412 && "Bytes are somehow different");
-    NC_ASSERT(nc_u64_to_be(0x1234567812345678) == 0x1234567812345678 && "Bytes are somehow different");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_u64_to_le(0x1234567812345678) == 0x7856341278563412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u64_to_be(0x1234567812345678) == 0x1234567812345678 && "Bytes are somehow different");
 #else
-    NC_ASSERT(nc_u64_to_le(0x1234567812345678) == 0x1234567812345678 && "Bytes are somehow different");
-    NC_ASSERT(nc_u64_to_be(0x1234567812345678) == 0x7856341278563412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u64_to_le(0x1234567812345678) == 0x1234567812345678 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_u64_to_be(0x1234567812345678) == 0x7856341278563412 && "Bytes are somehow different");
 #endif
 }
 
 static void test_u64_count_bits(void) {
-    NC_ASSERT(nc_u64_count_ones(0x1234567812345678) == 26 && "Did count correctly");
-    NC_ASSERT(nc_u64_count_zeros(0x1234567812345678) == 38 && "Did count correctly");
+    NSL_ASSERT(nsl_u64_count_ones(0x1234567812345678) == 26 && "Did count correctly");
+    NSL_ASSERT(nsl_u64_count_zeros(0x1234567812345678) == 38 && "Did count correctly");
 }
 
 static void test_u64_from_bytes(void) {
-    NC_ASSERT(nc_u64_from_be_bytes(NC_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)) ==
+    NSL_ASSERT(nsl_u64_from_be_bytes(NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)) ==
            0x1234567812345678);
-    NC_ASSERT(nc_u64_from_le_bytes(NC_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)) ==
+    NSL_ASSERT(nsl_u64_from_le_bytes(NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)) ==
            0x1234567812345678);
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_u64_from_ne_bytes(NC_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)) ==
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_u64_from_ne_bytes(NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)) ==
            0x1234567812345678);
 #else
-    NC_ASSERT(nc_u64_from_ne_bytes(NC_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)) ==
+    NSL_ASSERT(nsl_u64_from_ne_bytes(NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)) ==
            0x1234567812345678);
 #endif
 }
 
 static void test_u64_to_bytes(void) {
-    nc_Arena arena = {0};
-    NC_ASSERT(nc_bytes_eq(nc_u64_to_be_bytes(0x1234567812345678, &arena),
-                       NC_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
-    NC_ASSERT(nc_bytes_eq(nc_u64_to_le_bytes(0x1234567812345678, &arena),
-                       NC_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_bytes_eq(nc_u64_to_ne_bytes(0x1234567812345678, &arena),
-                       NC_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
+    nsl_Arena arena = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_be_bytes(0x1234567812345678, &arena),
+                       NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
+    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_le_bytes(0x1234567812345678, &arena),
+                       NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_ne_bytes(0x1234567812345678, &arena),
+                       NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
 #else
-    NC_ASSERT(nc_bytes_eq(nc_u64_to_ne_bytes(0x1234567812345678, &arena),
-                       NC_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
+    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_ne_bytes(0x1234567812345678, &arena),
+                       NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
 #endif
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_u64_hash(void) {
-    NC_ASSERT(nc_u64_hash(0) == 0x130f353e031ba7);
-    NC_ASSERT(nc_u64_hash(69) == 0x53620494cc400a2);
-    NC_ASSERT(nc_u64_hash(42) == 0x333883cd70fb570);
+    NSL_ASSERT(nsl_u64_hash(0) == 0x130f353e031ba7);
+    NSL_ASSERT(nsl_u64_hash(69) == 0x53620494cc400a2);
+    NSL_ASSERT(nsl_u64_hash(42) == 0x333883cd70fb570);
 }
 
 static void test_u64_next_pow2(void) {
-    NC_ASSERT(nc_u64_next_pow2(0) == 1);
-    NC_ASSERT(nc_u64_next_pow2(10000000000ULL) == 17179869184ULL);
-    NC_ASSERT(nc_u64_next_pow2(18446744073709551615ULL) == 18446744073709551615ULL); // clamped
+    NSL_ASSERT(nsl_u64_next_pow2(0) == 1);
+    NSL_ASSERT(nsl_u64_next_pow2(10000000000ULL) == 17179869184ULL);
+    NSL_ASSERT(nsl_u64_next_pow2(18446744073709551615ULL) == 18446744073709551615ULL); // clamped
 }
 
 /* u64 */
 
 /* i64 */
 static void test_i64_leading_bits(void) {
-    NC_ASSERT(nc_i64_leading_ones((i64)0xe000000000000001LL) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i64_leading_zeros((i64)0x1f00000000000000) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i64_trailing_ones((i64)0x8000000000000007) == 3 && "Did not count correctly");
-    NC_ASSERT(nc_i64_trailing_zeros((i64)0x8000000000000008) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i64_leading_ones((i64)0xe000000000000001LL) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i64_leading_zeros((i64)0x1f00000000000000) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i64_trailing_ones((i64)0x8000000000000007) == 3 && "Did not count correctly");
+    NSL_ASSERT(nsl_i64_trailing_zeros((i64)0x8000000000000008) == 3 && "Did not count correctly");
 }
 
 static void test_i64_swaping_bits(void) {
-    NC_ASSERT(nc_i64_reverse_bits(0x1234567812345678) == 0x1e6a2c481e6a2c48 &&
+    NSL_ASSERT(nsl_i64_reverse_bits(0x1234567812345678) == 0x1e6a2c481e6a2c48 &&
            "Did not reverse correctly");
-    NC_ASSERT(nc_i64_swap_bytes(0x1234567812345678) == 0x7856341278563412 && "Did not swap correctly");
+    NSL_ASSERT(nsl_i64_swap_bytes(0x1234567812345678) == 0x7856341278563412 && "Did not swap correctly");
 }
 
 static void test_i64_endian(void) {
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_i64_to_le(0x1234567812345678) == 0x7856341278563412 && "Bytes are somehow different");
-    NC_ASSERT(nc_i64_to_be(0x1234567812345678) == 0x1234567812345678 && "Bytes are somehow different");
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_i64_to_le(0x1234567812345678) == 0x7856341278563412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i64_to_be(0x1234567812345678) == 0x1234567812345678 && "Bytes are somehow different");
 #else
-    NC_ASSERT(nc_i64_to_le(0x1234567812345678) == 0x1234567812345678 && "Bytes are somehow different");
-    NC_ASSERT(nc_i64_to_be(0x1234567812345678) == 0x7856341278563412 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i64_to_le(0x1234567812345678) == 0x1234567812345678 && "Bytes are somehow different");
+    NSL_ASSERT(nsl_i64_to_be(0x1234567812345678) == 0x7856341278563412 && "Bytes are somehow different");
 #endif
 }
 
 static void test_i64_count_bits(void) {
-    NC_ASSERT(nc_i64_count_ones(0x1234567812345678) == 26 && "Did count correctly");
-    NC_ASSERT(nc_i64_count_zeros(0x1234567812345678) == 38 && "Did count correctly");
+    NSL_ASSERT(nsl_i64_count_ones(0x1234567812345678) == 26 && "Did count correctly");
+    NSL_ASSERT(nsl_i64_count_zeros(0x1234567812345678) == 38 && "Did count correctly");
 }
 
 static void test_i64_from_bytes(void) {
-    NC_ASSERT(nc_i64_from_be_bytes(NC_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)) ==
+    NSL_ASSERT(nsl_i64_from_be_bytes(NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)) ==
            0x1234567812345678);
-    NC_ASSERT(nc_i64_from_le_bytes(NC_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)) ==
+    NSL_ASSERT(nsl_i64_from_le_bytes(NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)) ==
            0x1234567812345678);
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_i64_from_ne_bytes(NC_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)) ==
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_i64_from_ne_bytes(NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)) ==
            0x1234567812345678);
 #else
-    NC_ASSERT(nc_i64_from_ne_bytes(NC_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)) ==
+    NSL_ASSERT(nsl_i64_from_ne_bytes(NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)) ==
            0x1234567812345678);
 #endif
 }
 
 static void test_i64_to_bytes(void) {
-    nc_Arena arena = {0};
-    NC_ASSERT(nc_bytes_eq(nc_i64_to_be_bytes(0x1234567812345678, &arena),
-                       NC_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
-    NC_ASSERT(nc_bytes_eq(nc_i64_to_le_bytes(0x1234567812345678, &arena),
-                       NC_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
-#if NC_BYTE_ORDER == NC_ENDIAN_BIG
-    NC_ASSERT(nc_bytes_eq(nc_i64_to_ne_bytes(0x1234567812345678, &arena),
-                       NC_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
+    nsl_Arena arena = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_be_bytes(0x1234567812345678, &arena),
+                       NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
+    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_le_bytes(0x1234567812345678, &arena),
+                       NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
+#if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
+    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_ne_bytes(0x1234567812345678, &arena),
+                       NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
 #else
-    NC_ASSERT(nc_bytes_eq(nc_i64_to_ne_bytes(0x1234567812345678, &arena),
-                       NC_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
+    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_ne_bytes(0x1234567812345678, &arena),
+                       NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
 #endif
-    nc_arena_free(&arena);
+    nsl_arena_free(&arena);
 }
 
 static void test_i64_hash(void) {
-    NC_ASSERT(nc_i64_hash(0) == 0x130f353e031ba7);
-    NC_ASSERT(nc_i64_hash(69) == 0x53620494cc400a2);
-    NC_ASSERT(nc_i64_hash(42) == 0x333883cd70fb570);
+    NSL_ASSERT(nsl_i64_hash(0) == 0x130f353e031ba7);
+    NSL_ASSERT(nsl_i64_hash(69) == 0x53620494cc400a2);
+    NSL_ASSERT(nsl_i64_hash(42) == 0x333883cd70fb570);
 }
 
 static void test_i64_next_pow2(void) {
-    NC_ASSERT(nc_i64_next_pow2(0) == 1);
-    NC_ASSERT(nc_i64_next_pow2(10000000000LL) == 17179869184LL);
-    NC_ASSERT(nc_i64_next_pow2(9223372036854775807LL) == 9223372036854775807LL); // clamped
+    NSL_ASSERT(nsl_i64_next_pow2(0) == 1);
+    NSL_ASSERT(nsl_i64_next_pow2(10000000000LL) == 17179869184LL);
+    NSL_ASSERT(nsl_i64_next_pow2(9223372036854775807LL) == 9223372036854775807LL); // clamped
 }
 
 /* i64 */
