@@ -37,7 +37,7 @@ typedef struct nc_Map {
 #define NC_MAP_DEFAULT_SIZE 8
 #define NC_MAP_DELETED ((u64)0xdeaddeaddeaddead)
 
-NC_API void nc_map_init(nc_Map *map, nc_Arena *arena);
+NC_API void nc_map_init(nc_Map *map, nc_MapType type, nc_Arena *arena);
 
 NC_API void nc_map_update(nc_Map *map, nc_Map *other);
 NC_API void nc_map_extend(nc_Map *map, usize count, nc_MapItem *items);

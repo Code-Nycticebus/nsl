@@ -5,9 +5,9 @@
 static void test_init(void) {
     nc_Arena arena = {0};
     nc_Map map = {0};
-    nc_map_init(&map, &arena);
+    nc_map_init(&map, NC_MAP_U64, &arena);
 
-    map.type = NC_MAP_U64;
+    NC_ASSERT(map.type == NC_MAP_U64);
     NC_ASSERT(map.cap == 0);
     NC_ASSERT(map.del == 0);
     NC_ASSERT(map.len == 0);
@@ -39,7 +39,7 @@ static void test_init(void) {
 static void test_access(void) {
     nc_Arena arena = {0};
     nc_Map map = {0};
-    nc_map_init(&map, &arena);
+    nc_map_init(&map, NC_MAP_DYNAMIC, &arena);
 
     nc_map_insert_i64(&map, 1, -64);
     nc_map_insert_u64(&map, 2, 64);
@@ -71,7 +71,7 @@ static void test_access(void) {
 static void test_update(void) {
     nc_Arena arena = {0};
     nc_Map map1 = {0};
-    nc_map_init(&map1, &arena);
+    nc_map_init(&map1, NC_MAP_DYNAMIC, &arena);
 
     nc_map_insert_i64(&map1, 1, -64);
     nc_map_insert_u64(&map1, 2, 64);
@@ -79,7 +79,7 @@ static void test_update(void) {
     nc_map_insert_ptr(&map1, 4, &map1);
 
     nc_Map map2 = {0};
-    nc_map_init(&map2, &arena);
+    nc_map_init(&map2, NC_MAP_DYNAMIC, &arena);
 
     nc_map_update(&map2, &map1);
 
@@ -105,7 +105,7 @@ static void test_update(void) {
 static void test_remove_entries(void) {
     nc_Arena arena = {0};
     nc_Map map = {0};
-    nc_map_init(&map, &arena);
+    nc_map_init(&map, NC_MAP_DYNAMIC, &arena);
 
     nc_map_insert_u64(&map, 1, 420);
 
@@ -118,7 +118,7 @@ static void test_remove_entries(void) {
 static void test_overwriting(void) {
     nc_Arena arena = {0};
     nc_Map map = {0};
-    nc_map_init(&map, &arena);
+    nc_map_init(&map, NC_MAP_DYNAMIC, &arena);
 
     nc_map_insert_u64(&map, 1, 420);
     nc_map_insert_u64(&map, 1, 69);
@@ -133,7 +133,7 @@ static void test_overwriting(void) {
 static void test_clear(void) {
     nc_Arena arena = {0};
     nc_Map map = {0};
-    nc_map_init(&map, &arena);
+    nc_map_init(&map, NC_MAP_DYNAMIC, &arena);
 
     nc_map_insert_u64(&map, 1, 69);
 
@@ -150,8 +150,7 @@ static void test_clear(void) {
 static void test_stress(void) {
     nc_Arena arena = {0};
     nc_Map map = {0};
-    nc_map_init(&map, &arena);
-    map.type = NC_MAP_U64;
+    nc_map_init(&map, NC_MAP_U64, &arena);
 
     const usize num_entries = 1000000; 
 

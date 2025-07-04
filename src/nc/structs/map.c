@@ -69,10 +69,10 @@ static nc_MapValue *nc_map_get(const nc_Map *map, u64 hash) {
     return NULL;
 }
 
-NC_API void nc_map_init(nc_Map *map, nc_Arena *arena) {
+NC_API void nc_map_init(nc_Map *map, nc_MapType type, nc_Arena *arena) {
     NC_ASSERT(map->items == NULL && "The map was already initialized");
 
-    map->type = 0;
+    map->type = type;
     map->len = 0;
     map->cap = 0;
     map->del = 0;
