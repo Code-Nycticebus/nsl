@@ -187,7 +187,7 @@ static bool build_tests(void) {
 int main(int argc, const char** argv) {
     if (!compile_commands()) return 1;
 
-    if (argc < 2 || strcmp("build", argv[1]) == 0 || strcmp("test", argv[1])) {
+    if (argc < 2 || strcmp("build", argv[1]) == 0 || strcmp("test", argv[1]) == 0) {
         if (!build_header_file()) return 2;
     }
 
