@@ -20,4 +20,4 @@ NC_FMT(2) void nc_file_write_fmt(FILE* file, const char* fmt, ...);
 void nc_file_write_str(FILE *file, nc_Str content);
 void nc_file_write_bytes(FILE *file, nc_Bytes content);
 
-#endif
+#endif // _NC_FILE_H_
