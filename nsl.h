@@ -1,14 +1,31 @@
 /*
 # Nycticebus Standard Library
-nsl is a single-header standard library for C, heavily inspired by [nob.h](https://github.com/tsoding/nob.h). 
+nsl is a single-header standard library for C, heavily inspired by [nob.h](https://github.com/tsoding/nob.h).
 
+## Example
 
-## Getting Started
-Just drop the [nsl.h](https://github.com/Code-Nycticebus/nsl/blob/main/nsl.h) into one file and define `NSL_IMPLEMENTATION`
 ```c
+// build.c
 #define NSL_IMPLEMENTATION
 #include "nsl.h"
+
+#define CC NSL_COMPILER_NAME
+
+int main(int argc, const char** argv) {
+    nsl_Arena arena {0};
+
+    nsl_Cmd cmd = {0};
+    nsl_list_init(&cmd, &arena);
+
+    nsl_cmd_push(&cmd, CC, "-o", "main", "main.c")
+
+    if (nsl_cmd_exec_list(&cmd) != 0) return 1;
+
+    nsl_arena_free(&arena);
+    return 0;
+}
 ```
+
 */
 
 #ifndef _NSL_H_
