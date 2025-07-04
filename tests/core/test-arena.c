@@ -1,4 +1,4 @@
-#include "nsl/core/arena.h"
+#include "nsl.h"
 
 typedef struct TestChunk {
     struct TestChunk *next, *prev;

@@ -1,10 +1,10 @@
-#include "nsl/os/file.h"
+#include "nsl.h"
 
-#include "nsl/core/error.h"
-#include "nsl/core/arena.h"
-#include "nsl/structs/list.h"
-#include "nsl/types/str.h"
-#include "nsl/types/byte.h"
+#include "nsl.h"
+#include "nsl.h"
+#include "nsl.h"
+#include "nsl.h"
+#include "nsl.h"
 
 static void test_file_open(void) {
     nsl_Error error = {0};

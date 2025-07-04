@@ -1,11 +1,11 @@
-#include "nsl/os/fs.h"
+#include "nsl.h"
 
-#include "nsl/core/arena.h"
-#include "nsl/core/error.h"
+#include "nsl.h"
+#include "nsl.h"
 
-#include "nsl/types/str.h"
+#include "nsl.h"
 
-#include "nsl/structs/list.h"
+#include "nsl.h"
 
 static void test_fs_iteration(void) {
     bool is_empty = true;

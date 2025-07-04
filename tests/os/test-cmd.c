@@ -1,7 +1,7 @@
-#include "nsl/os/cmd.h"
+#include "nsl.h"
 
-#include "nsl/core/arena.h"
-#include "nsl/core/error.h"
+#include "nsl.h"
+#include "nsl.h"
 
 void run_test_cmd(void);
 void run_test_cmd(void) {

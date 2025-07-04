@@ -1,6 +1,6 @@
-#include "nsl/structs/map.h"
+#include "nsl.h"
 
-#include "nsl/types/str.h"
+#include "nsl.h"
 
 static void test_init(void) {
     nsl_Arena arena = {0};

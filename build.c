@@ -171,6 +171,19 @@ static bool build_header_file(void) {
     return true;
 }
 
+static bool build_tests(void) {
+    nsl_Arena arena = {0};
+    nsl_Cmd cmd = {0};
+    nsl_list_init(&cmd, &arena);
+
+    nsl_cmd_push(&cmd, CC, "-o", "build/test", "-I.", "tests/main.c");
+
+    nsl_cmd_exec_list(&cmd);
+
+    nsl_arena_free(&arena);
+    return true;
+}
+
 int main(int argc, const char** argv) {
     if (!compile_commands()) return 1;
 
@@ -179,7 +192,7 @@ int main(int argc, const char** argv) {
     }
 
     if (argc >= 2 && strcmp("test", argv[1]) == 0) {
-        NSL_NOT_IMPLEMENTED("tests");
+        if (!build_tests()) return 3;
     }
 
     return 0;

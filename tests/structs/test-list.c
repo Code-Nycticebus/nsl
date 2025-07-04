@@ -1,4 +1,4 @@
-#include "nsl/structs/list.h"
+#include "nsl.h"
 
 #include <stdio.h>
 

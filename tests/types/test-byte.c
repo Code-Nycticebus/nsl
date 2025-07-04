@@ -1,6 +1,6 @@
-#include "nsl/types/byte.h"
+#include "nsl.h"
 
-#include "nsl/types/str.h"
+#include "nsl.h"
 
 static void test_bytes(void) {
     nsl_Arena arena = {0};

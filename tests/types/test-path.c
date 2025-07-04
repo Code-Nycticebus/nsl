@@ -1,6 +1,6 @@
-#include "nsl/types/path.h"
+#include "nsl.h"
 
-#include "nsl/types/str.h"
+#include "nsl.h"
 #include <stdio.h>
 
 static void test_nc_path_eq(void) {

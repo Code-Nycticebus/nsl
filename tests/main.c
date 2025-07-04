@@ -1,5 +1,9 @@
 // tests
 
+#define NSL_IMPLEMENTATION
+#include "nsl.h"
+#undef NSL_IMPLEMENTATION
+
 #include "core/test-arena.c"
 #include "core/test-error.c"
 

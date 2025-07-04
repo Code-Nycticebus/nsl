@@ -1,4 +1,4 @@
-#include "nsl/core/error.h"
+#include "nsl.h"
 
 typedef enum {
     TEST_ERROR = 1,

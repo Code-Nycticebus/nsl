@@ -1,4 +1,4 @@
-#include "nsl/types/char.h"
+#include "nsl.h"
 
 static void test_char_test(void) {
     NSL_ASSERT(nsl_char_is_alnum('a') == true && "Did not test correctly");

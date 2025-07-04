@@ -1,4 +1,4 @@
-#include "nsl/structs/set.h"
+#include "nsl.h"
 
 #include <assert.h>
 

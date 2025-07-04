@@ -1,6 +1,6 @@
-#include "nsl/types/int.h"
+#include "nsl.h"
 
-#include "nsl/types/byte.h"
+#include "nsl.h"
 
 /* u8 */
 static void test_u8_leading_bits(void) {
