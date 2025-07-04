@@ -3,7 +3,7 @@ nsl is a single-header standard library for C, heavily inspired by [nob.h](https
 
 
 ## Getting Started
-Just drop the [nsl.h] into one file and define `NSL_IMPLEMENTATION`
+Just drop the [nsl.h](https://github.com/Code-Nycticebus/nsl/blob/main/nsl.h) into one file and define `NSL_IMPLEMENTATION`
 ```c
 #define NSL_IMPLEMENTATION
 #include "nsl.h"
