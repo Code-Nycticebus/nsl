@@ -1,218 +1,185 @@
-#define CEBUS_IMPLEMENTATION
-#include "bootstrap.h"
+#define NC_IMPLEMENTATION
+#include "nc.h"
 
-#define CC "gcc"
+#define CC NC_COMPILER_NAME
+typedef nc_List(nc_Path) Files;
 
-void collect_flags(Cmd *cmd) {
-    cmd_push(cmd, STR("-Wall"), STR("-Werror"), STR("-Wextra"), STR("-Wpedantic"));
-    cmd_push(cmd, STR("-Wmissing-prototypes"), STR("-Wmissing-declarations"));
-    cmd_push(cmd, STR("-Wconversion"), STR("-Wsign-conversion"));
-    cmd_push(cmd, STR("-Wshadow"), STR("-Wpointer-arith"), STR("-Wstrict-prototypes"));
-    cmd_push(cmd, STR("-Wcast-qual"), STR("-Wcast-align"), STR("-Wwrite-strings"));
-    cmd_push(cmd, STR("-Wundef"), STR("-Wswitch-enum"), STR("-Wdouble-promotion"));
-    cmd_push(cmd, STR("-Wbad-function-cast"), STR("-Wuninitialized"));
-    cmd_push(cmd, STR("-Wredundant-decls"), STR("-Wvla"), STR("-Wnested-externs"));
-    cmd_push(cmd, STR("-Wstrict-aliasing=2"), STR("-Wno-unused-parameter"));
-    cmd_push(cmd, STR("-std=c99"));
-    cmd_push(cmd, STR("-Iinclude"));
-    cmd_push(cmd, STR("-g"));
-    cmd_push(cmd, STR("-O0"));
-    cmd_push(cmd, STR("-fsanitize=address,undefined"));
-    cmd_push(cmd, STR("-fPIE"));
+static void collect_flags(nc_Cmd *cmd) {
+    nc_cmd_push(cmd, "-Wall", "-Werror", "-Wextra", "-Wpedantic");
+    nc_cmd_push(cmd, "-Wmissing-prototypes", "-Wmissing-declarations");
+    nc_cmd_push(cmd, "-Wconversion", "-Wsign-conversion");
+    nc_cmd_push(cmd, "-Wshadow", "-Wpointer-arith", "-Wstrict-prototypes");
+    nc_cmd_push(cmd, "-Wcast-qual", "-Wcast-align", "-Wwrite-strings");
+    nc_cmd_push(cmd, "-Wundef", "-Wswitch-enum", "-Wdouble-promotion");
+    nc_cmd_push(cmd, "-Wbad-function-cast", "-Wuninitialized");
+    nc_cmd_push(cmd, "-Wredundant-decls", "-Wvla", "-Wnested-externs");
+    nc_cmd_push(cmd, "-Wstrict-aliasing=2", "-Wno-unused-parameter");
+    nc_cmd_push(cmd, "-std=c99");
+    nc_cmd_push(cmd, "-Iinclude");
+    nc_cmd_push(cmd, "-g");
+    nc_cmd_push(cmd, "-O0");
+    nc_cmd_push(cmd, "-fsanitize=address,undefined");
+    nc_cmd_push(cmd, "-fPIE");
+    nc_cmd_push(cmd, "-DFUCK");
 }
 
-void collect_files(Cmd *cmd) {
-    FsIter it = fs_iter_begin(STR("src"), true);
-    Cmd cmd_obj = cmd_new(&it.scratch);
-
-    while (fs_iter_next_suffix(&it, STR(".c"))) {
-
-        const char* parent = "";
-#if defined(_WIN32)
-        if (str_contains(it.current.path, STR("posix"))) continue;
-        if (str_contains(it.current.path, STR("windows"))) parent = "windows/";
-#else
-        if (str_contains(it.current.path, STR("windows"))) continue;
-        if (str_contains(it.current.path, STR("posix"))) parent = "posix/";
-#endif
-
-        Path path = path_stem(it.current.path);
-        Path obj_path = str_format(&it.scratch, "build/obj/%s" STR_FMT ".o", parent, STR_ARG(path));
-
-        cmd_push(&cmd_obj, STR(CC), STR("-c"), STR("-o"), obj_path);
-        collect_flags(&cmd_obj);
-        cmd_push(&cmd_obj, it.current.path);
-
-        cmd_exec_da(ErrPanic, &cmd_obj);
-
-        da_push(cmd, str_copy(obj_path, cmd->arena));
-        da_clear(&cmd_obj);
+static void collect_files(Files* files, nc_Path path, nc_Error* error) {
+    nc_FsIter it = nc_fs_begin(path, true, error);
+    for (nc_FsEntry* file = NULL; (file = nc_fs_next(&it));) {
+        if (file->is_dir) continue;
+        nc_list_push(files, nc_str_copy(file->path, files->arena));
     }
-
-    fs_iter_end(&it, ErrPanic);
+    nc_fs_end(&it);
 }
 
-void write_compile_commands(void) {
-    Arena scratch = {0};
-    Cmd cmd = cmd_new(&scratch);
-    cmd_push(&cmd, STR(CC), STR("-c"));
-#if defined(WINDOWS)
-    cmd_push(&cmd, STR("-target"), STR("x86_64-pc-windows-gnu"));
-#endif
-    collect_flags(&cmd);
+static bool compile_commands(void) {
+    nc_os_mkdir(NC_PATH("build"), NULL, (nc_OsDirConfig){.exists_ok=true});
 
-    usize cmd_len = cmd.len;
-
-    Path cwd = os_getcwd(&scratch);
-#if defined(WINDOWS)
-    cwd = str_replace(cwd, STR("\\"), STR("\\\\"), &scratch);
-#endif
-
-    FILE *compile_commands = fs_file_open(STR("build/compile_commands.json"), "w", ErrPanic);
-
-    io_write_str(compile_commands, STR("["), ErrPanic);
-
-    FsIter it = fs_iter_begin(STR("src"), true);
+    bool result = true;
     bool first = true;
-    while (fs_iter_next_suffix(&it, STR(".c"))) {
-        if (first) {
-            first = false;
+    FILE* bc = nc_file_open(NC_PATH("build/compile_commands.json"), "w", NULL);
+    nc_Arena arena = {0};
+    nc_Cmd cmd = {0};
+    nc_list_init(&cmd, &arena);
+
+    nc_Path cwd = nc_os_cwd(&arena, NULL);
+
+    nc_file_write_fmt(bc, "[");
+    nc_FsIter it = nc_fs_begin(NC_PATH("src/"), true, NULL);
+    for (nc_FsEntry* file = NULL; (file = nc_fs_next(&it));) {
+        if (file->is_dir) continue;
+        #if defined(_WIN32)
+        if (nc_str_contains(file->path, NC_STR("posix"))) continue;
+        #else
+        if (nc_str_contains(file->path, NC_STR("windows"))) continue;
+        #endif
+
+        nc_cmd_push(&cmd, CC, "-c", "-o", "test.o", file->path.data);
+        collect_flags(&cmd);
+
+        if (nc_cmd_exec_list(&cmd) == 0) {
+            if (!first) nc_file_write_fmt(bc, ", ");
+            nc_file_write_fmt(bc, "{");
+            nc_file_write_fmt(bc, "\"file\": \""NC_STR_FMT"\", ", NC_STR_ARG(file->path));
+            nc_file_write_fmt(bc, "\"directory\": \""NC_STR_FMT"\", ", NC_STR_ARG(cwd));
+
+            nc_file_write_fmt(bc, "\"arguments\": [");
+            nc_list_for_each(const char**, c, &cmd) {
+                if (c != cmd.items) nc_file_write_fmt(bc, ", ");
+                nc_file_write_fmt(bc, "\"%s\"", *c);
+            }
+            nc_file_write_fmt(bc, "]");
+
+            nc_file_write_fmt(bc, "}");
         } else {
-            io_write_str(compile_commands, STR(", "), ErrPanic);
+            result = false;
         }
 
-        io_write_str(compile_commands, STR("{"), ErrPanic);
-        {
-            io_write_fmt(compile_commands, "\"directory\": \"" STR_FMT "\",", STR_ARG(cwd));
-
-            Path path = it.current.path;
-            io_write_fmt(compile_commands, "\"file\": \"" STR_FMT "\",", STR_ARG(path));
-
-            Path filename = path_stem(path);
-            cmd_push(&cmd, STR("-o"),
-                     str_format(&it.scratch, "build/obj/" STR_FMT ".o", STR_ARG(filename)));
-            Str command = str_join(STR(" "), cmd.len, cmd.items, &it.scratch);
-            io_write_fmt(compile_commands, "\"command\": \"" STR_FMT "\"", STR_ARG(command));
-        }
-        io_write_str(compile_commands, STR("}"), ErrPanic);
-
-        cmd.len = cmd_len;
+        nc_list_clear(&cmd);
     }
-    fs_iter_end(&it, ErrPanic);
+    nc_fs_end(&it);
+    nc_file_write_fmt(bc, "]");
 
-    io_write_str(compile_commands, STR("]"), ErrPanic);
+    nc_fs_remove(NC_PATH("test.o"));
 
-    fs_file_close(compile_commands, ErrPanic);
-    arena_free(&scratch);
+    nc_file_close(bc);
+    nc_arena_free(&arena);
+    return result;
 }
 
-void _read_and_write_entire_file(FILE* output, Path file, Arena* arena) {
-    char buffer[200] = {0};
-    FILE* in_file = fs_file_open(file, "r", ErrPanic);
-    Str line = io_read_line(in_file, ARRAY_LEN(buffer), buffer, ErrPanic);
-    for (;line.len; line = io_read_line(in_file, ARRAY_LEN(buffer), buffer, ErrPanic)) {
-        if (str_contains(line, STR("#include \""))) continue;
-        io_write_fmt(output, STR_FMT, STR_ARG(line));
-    }
-    io_write_str(output, STR("\n"), ErrPanic);
-    fs_file_close(in_file, ErrPanic);
+static i32 path_compare(const void *s1, const void *s2) {
+    const nc_Path *p1 = s1;
+    const nc_Path *p2 = s2;
+
+    if (p1->len > p2->len) return strncmp(p2->data, p1->data, p2->len);
+    else                   return strncmp(p1->data, p2->data, p1->len);
 }
 
-void create_single_header(void) {
-    Arena arena = {0};
+static void write_to_file(FILE* out, Files* files) {
+    nc_Arena scratch = {0};
 
-    Path single_header_file = PATH("nc.h");
-    FILE* file = fs_file_open(single_header_file, "w", ErrPanic);
+    nc_list_for_each(nc_Path*, path, files) {
+        nc_file_write_fmt(out, "// "NC_STR_FMT"\n", NC_STR_ARG(*path));
 
-    io_write_str(file, STR("#ifndef _NC_H_\n"), ErrPanic);
-    io_write_str(file, STR("#define _NC_H_\n\n"), ErrPanic);
-    // headers
-
-    Path defines = PATH("include/nc/defines.h");
-    _read_and_write_entire_file(file, defines, &arena);
-
-    {
-        FsIter it = fs_iter_begin(PATH("include/nc"), true);
-        while (fs_iter_next_suffix(&it, STR(".h"))) {
-            arena_reset(&arena);
-            if (str_eq(it.current.path, defines)) continue;
-            io_write_fmt(file, "// "STR_FMT"\n", STR_ARG(it.current.path));
-            _read_and_write_entire_file(file, it.current.path, &arena);
+        if (nc_str_contains(*path, NC_STR("windows"))) {
+            nc_file_write_fmt(out, "#if defined(_WIN32)\n");
         }
-        fs_iter_end(&it, ErrPanic);
-    }
-    io_write_str(file, STR("#endif // _NC_H_\n"), ErrPanic);
 
-    io_write_str(file, STR("#ifdef NC_IMPLEMENTATION\n"), ErrPanic);
-    // source
-    {
-        FsIter it = fs_iter_begin(PATH("src/nc"), true);
-        while (fs_iter_next_suffix(&it, STR(".c"))) {
-            arena_reset(&arena);
-            if (str_contains(it.current.path, STR("windows"))) {
-                io_write_fmt(file, "#if defined(_WIN32)\n");
-            }
-            if (str_contains(it.current.path, STR("posix"))) {
-                io_write_fmt(file, "#if !defined(_WIN32)\n");
-            }
-
-            io_write_fmt(file, "// "STR_FMT"\n", STR_ARG(it.current.path));
-            _read_and_write_entire_file(file, it.current.path, &arena);
-
-            if (str_contains(it.current.path, STR("windows")) || str_contains(it.current.path, STR("posix"))) {
-                io_write_fmt(file, "#endif\n");
-            }
-            io_write_str(file, STR("\n"), ErrPanic);
+        if (nc_str_contains(*path, NC_STR("posix"))) {
+            nc_file_write_fmt(out, "#if !defined(_WIN32)\n");
         }
-        fs_iter_end(&it, ErrPanic);
+
+        FILE* file = nc_file_open(*path, "r", NULL);
+
+        nc_Str content = nc_file_read_str(file, &scratch);
+        for (nc_Str line; nc_str_try_chop_by_delim(&content, '\n', &line);) {
+            if (nc_str_contains(line, NC_STR("_H_"))) continue;
+            if (nc_str_contains(line, NC_STR("#include \"nc/"))) continue;
+            nc_file_write_fmt(out, NC_STR_FMT"\n", NC_STR_ARG(line));
+        } 
+
+        nc_file_close(file);
+
+
+        if (nc_str_contains(*path, NC_STR("windows")) || nc_str_contains(*path, NC_STR("posix"))) {
+            nc_file_write_fmt(out, "#endif\n");
+        }
+
+        nc_arena_reset(&scratch);
     }
-    io_write_str(file, STR("#endif // NC_IMPLEMENTATION\n"), ErrPanic);
-    fs_file_close(file, ErrPanic);
+
+    nc_arena_free(&scratch);
 }
 
-int main(void) {
-    os_mkdir(PATH("build"));
-    os_mkdir(PATH("build/lib"));
-    os_mkdir(PATH("build/obj"));
-    os_mkdir(PATH("build/obj/posix"));
-    os_mkdir(PATH("build/obj/windows"));
+static bool build_header_file(void) {
+    nc_Arena arena = {0};
 
-    fs_file_write_str(PATH("build/.gitignore"), STR("*"), ErrPanic);
+    FILE* nc = nc_file_open(NC_PATH("nc.h"), "w", NULL);
 
-    Arena arena = {0};
-    Cmd cmd = cmd_new(&arena);
+    nc_file_write_fmt(nc, "/* nycticebus standard library */\n\n");
 
-    Str binary = STR("build/lib/libnc.a");
-    cmd_push(&cmd, STR("ar"), STR("rcs"), binary);
-    collect_files(&cmd);
+    Files headers = {0};
+    nc_list_init(&headers, &arena);
+    collect_files(&headers, NC_PATH("include/nc/"), NULL);
+    nc_list_sort(&headers, path_compare);
 
-    cmd_exec_da(ErrPanic, &cmd);
+    nc_file_write_fmt(nc, "#ifndef _NC_H_\n");
+    write_to_file(nc, &headers);
+    nc_file_write_fmt(nc, "#endif // _NC_H_\n\n");
 
-    write_compile_commands();
+    Files src = {0};
+    nc_list_init(&src, &arena);
+    collect_files(&src, NC_PATH("src/nc/"), NULL);
+    nc_list_sort(&src, path_compare);
 
-    da_clear(&cmd);
+    nc_file_write_fmt(nc, "#ifdef NC_IMPLEMENTATION\n");
+    write_to_file(nc, &src);
+    nc_file_write_fmt(nc, "#endif // NC_IMPLEMENTATION\n");
 
-    cmd_push(&cmd, 
-             STR(CC),
-             STR("-o"),
-             STR("build/test"),
-             STR("tests/main.c"),
-             STR("-Iinclude"),
-             STR("-Lbuild/lib"),
-             STR("-lnc")
-    );
+    nc_file_close(nc);
+
+
+    nc_Cmd cmd = {0};
+    nc_list_init(&cmd, &arena);
+
+    nc_cmd_push(&cmd, CC, "-c", "-o", "build/nc.o", "-DNC_IMPLEMENTATION", "nc.h");
     collect_flags(&cmd);
-    cmd_exec_da(ErrPanic, &cmd);
+    if (nc_cmd_exec_list(&cmd) != 0) return false;
 
-    create_single_header();
-    da_clear(&cmd);
-    cmd_push(&cmd, 
-             STR(CC),
-             STR("-o"),
-             STR("build/nc.o"),
-             STR("-DNC_IMPLEMENTATION"),
-             STR("nc.h"),
-    );
-    collect_flags(&cmd);
-    cmd_exec_da(ErrPanic, &cmd);
+    nc_arena_free(&arena);
+    return true;
+}
+
+int main(int argc, const char** argv) {
+    if (!compile_commands()) return 1;
+
+    if (argc < 2 || strcmp("build", argv[1]) == 0 || strcmp("test", argv[1])) {
+        if (!build_header_file()) return 2;
+    }
+
+    if (argc >= 2 && strcmp("test", argv[1]) == 0) {
+        NC_NOT_IMPLEMENTED("tests");
+    }
+
+    return 0;
 }
