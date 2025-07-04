@@ -136,7 +136,10 @@ static bool build_header_file(void) {
 
     FILE* nsl = nsl_file_open(NSL_PATH("nsl.h"), "w", NULL);
 
-    nsl_file_write_fmt(nsl, "/* nycticebus standard library */\n\n");
+    FILE* r = nsl_file_open(NSL_PATH("README.md"), "r", NULL);
+    nsl_Str readme = nsl_file_read_str(r, &arena);
+    nsl_file_write_fmt(nsl, "/*\n"NSL_STR_FMT"*/\n\n", NSL_STR_ARG(readme));
+    nsl_file_close(r);
 
     Files headers = {0};
     nsl_list_init(&headers, &arena);
