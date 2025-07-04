@@ -1,5 +1,5 @@
-#ifndef _NC_STR_H
-#define _NC_STR_H
+#ifndef _NC_STR_H_
+#define _NC_STR_H_
 
 #include "nc/core/arena.h"
 #include "nc/defines.h"
@@ -106,4 +106,4 @@ NC_API char nc_str_getc(nc_Str s, usize idx);
 // Basic FNV hash.
 NC_API u64 nc_str_hash(nc_Str s);
 
-#endif // _NC_STR_H
+#endif // _NC_STR_H_
