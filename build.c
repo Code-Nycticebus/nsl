@@ -20,7 +20,6 @@ static void collect_flags(nsl_Cmd *cmd) {
     nsl_cmd_push(cmd, "-O0");
     nsl_cmd_push(cmd, "-fsanitize=address,undefined");
     nsl_cmd_push(cmd, "-fPIE");
-    nsl_cmd_push(cmd, "-DFUCK");
 }
 
 static void collect_files(Files* files, nsl_Path path, nsl_Error* error) {
@@ -90,42 +89,37 @@ static bool compile_commands(void) {
 static i32 path_compare(const void *s1, const void *s2) {
     const nsl_Path *p1 = s1;
     const nsl_Path *p2 = s2;
-
-    if (p1->len > p2->len) return strncmp(p2->data, p1->data, p2->len);
-    else                   return strncmp(p1->data, p2->data, p1->len);
+    if (nsl_str_contains(*p1, NSL_STR("defines.h"))) return -1;
+    if (nsl_str_contains(*p2, NSL_STR("defines.h"))) return  1;
+    return strncmp(p2->data, p1->data, nsl_usize_min(p1->len, p2->len));
 }
 
-static void write_to_file(FILE* out, Files* files) {
+static void copy_to_file(FILE* out, nsl_Path path) {
     nsl_Arena scratch = {0};
 
-    nsl_list_for_each(nsl_Path*, path, files) {
-        nsl_file_write_fmt(out, "// "NSL_STR_FMT"\n", NSL_STR_ARG(*path));
+    nsl_file_write_fmt(out, "// "NSL_STR_FMT"\n", NSL_STR_ARG(path));
 
-        if (nsl_str_contains(*path, NSL_STR("windows"))) {
-            nsl_file_write_fmt(out, "#if defined(_WIN32)\n");
-        }
+    if (nsl_str_contains(path, NSL_STR("windows"))) {
+        nsl_file_write_fmt(out, "#if defined(_WIN32)\n");
+    }
 
-        if (nsl_str_contains(*path, NSL_STR("posix"))) {
-            nsl_file_write_fmt(out, "#if !defined(_WIN32)\n");
-        }
+    if (nsl_str_contains(path, NSL_STR("posix"))) {
+        nsl_file_write_fmt(out, "#if !defined(_WIN32)\n");
+    }
 
-        FILE* file = nsl_file_open(*path, "r", NULL);
+    FILE* file = nsl_file_open(path, "r", NULL);
 
-        nsl_Str content = nsl_file_read_str(file, &scratch);
-        for (nsl_Str line; nsl_str_try_chop_by_delim(&content, '\n', &line);) {
-            if (nsl_str_contains(line, NSL_STR("_H_"))) continue;
-            if (nsl_str_contains(line, NSL_STR("#include \"nsl/"))) continue;
-            nsl_file_write_fmt(out, NSL_STR_FMT"\n", NSL_STR_ARG(line));
-        } 
+    nsl_Str content = nsl_file_read_str(file, &scratch);
+    for (nsl_Str line; nsl_str_try_chop_by_delim(&content, '\n', &line);) {
+        if (nsl_str_contains(line, NSL_STR("_H_"))) continue;
+        if (nsl_str_contains(line, NSL_STR("#include \"nsl/"))) continue;
+        nsl_file_write_fmt(out, NSL_STR_FMT"\n", NSL_STR_ARG(line));
+    } 
 
-        nsl_file_close(file);
+    nsl_file_close(file);
 
-
-        if (nsl_str_contains(*path, NSL_STR("windows")) || nsl_str_contains(*path, NSL_STR("posix"))) {
-            nsl_file_write_fmt(out, "#endif\n");
-        }
-
-        nsl_arena_reset(&scratch);
+    if (nsl_str_contains(path, NSL_STR("windows")) || nsl_str_contains(path, NSL_STR("posix"))) {
+        nsl_file_write_fmt(out, "#endif\n");
     }
 
     nsl_arena_free(&scratch);
@@ -148,7 +142,9 @@ static bool build_header_file(void) {
 
     nsl_file_write_fmt(nsl, "#ifndef _NSL_H_\n");
     nsl_file_write_fmt(nsl, "#define _NSL_H_\n\n");
-    write_to_file(nsl, &headers);
+    nsl_list_for_each(nsl_Path*, path, &headers) {
+        copy_to_file(nsl, *path);
+    }
     nsl_file_write_fmt(nsl, "#endif // _NSL_H_\n\n");
 
     Files src = {0};
@@ -157,7 +153,9 @@ static bool build_header_file(void) {
     nsl_list_sort(&src, path_compare);
 
     nsl_file_write_fmt(nsl, "#ifdef NSL_IMPLEMENTATION\n");
-    write_to_file(nsl, &src);
+    nsl_list_for_each(nsl_Path*, path, &src) {
+        copy_to_file(nsl, *path);
+    }
     nsl_file_write_fmt(nsl, "#endif // NSL_IMPLEMENTATION\n");
 
     nsl_file_close(nsl);
