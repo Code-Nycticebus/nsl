@@ -97,13 +97,9 @@ static i32 path_compare(const void *s1, const void *s2) {
 static void copy_to_file(FILE* out, nsl_Path path) {
     nsl_Arena scratch = {0};
 
-    nsl_file_write_fmt(out, "// "NSL_STR_FMT"\n", NSL_STR_ARG(path));
-
     if (nsl_str_contains(path, NSL_STR("windows"))) {
         nsl_file_write_fmt(out, "#if defined(_WIN32)\n");
-    }
-
-    if (nsl_str_contains(path, NSL_STR("posix"))) {
+    } else if (nsl_str_contains(path, NSL_STR("posix"))) {
         nsl_file_write_fmt(out, "#if !defined(_WIN32)\n");
     }
 
@@ -111,15 +107,17 @@ static void copy_to_file(FILE* out, nsl_Path path) {
 
     nsl_Str content = nsl_file_read_str(file, &scratch);
     for (nsl_Str line; nsl_str_try_chop_by_delim(&content, '\n', &line);) {
-        if (nsl_str_contains(line, NSL_STR("_H_"))) continue;
+        if (nsl_str_contains(line, NSL_STR("_H_")))             continue;
         if (nsl_str_contains(line, NSL_STR("#include \"nsl/"))) continue;
         nsl_file_write_fmt(out, NSL_STR_FMT"\n", NSL_STR_ARG(line));
     } 
 
     nsl_file_close(file);
 
-    if (nsl_str_contains(path, NSL_STR("windows")) || nsl_str_contains(path, NSL_STR("posix"))) {
-        nsl_file_write_fmt(out, "#endif\n");
+    if (nsl_str_contains(path, NSL_STR("windows"))) {
+        nsl_file_write_fmt(out, "#endif // _WIN32\n\n");
+    } else if (nsl_str_contains(path, NSL_STR("posix"))) {
+        nsl_file_write_fmt(out, "#endif // !_WIN32\n\n");
     }
 
     nsl_arena_free(&scratch);

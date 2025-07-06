@@ -35,7 +35,6 @@ Here's whats left to do:
 #ifndef _NSL_H_
 #define _NSL_H_
 
-// include/nsl/defines.h
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -228,7 +227,6 @@ typedef nsl_List(u8) nsl_ByteBuffer;
 #    error "No Byte Order detected!"
 #endif
 
-// include/nsl/types/str.h
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -333,7 +331,6 @@ NSL_API char nsl_str_getc(nsl_Str s, usize idx);
 // Basic FNV hash.
 NSL_API u64 nsl_str_hash(nsl_Str s);
 
-// include/nsl/types/path.h
 
 
 NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path* parts, nsl_Arena* arena);
@@ -348,7 +345,6 @@ NSL_API nsl_Str nsl_path_suffix(nsl_Path path);
 NSL_API nsl_Str nsl_path_stem(nsl_Path path);
 NSL_API nsl_Path nsl_path_parent(nsl_Path path);
 
-// include/nsl/types/int.h
 
 
 #define INTEGER_DECL(T)                                                                            \
@@ -396,7 +392,6 @@ INTEGER_DECL(usize)
 
 #undef INTEGER_DECL
 
-// include/nsl/types/char.h
 
 
 NSL_API NSL_CONST_FN bool nsl_char_is_alnum(char c);
@@ -423,7 +418,6 @@ NSL_API NSL_CONST_FN char nsl_char_from_u8(u8 d);
 NSL_API NSL_CONST_FN char nsl_char_hex_from_u8(u8 d);
 NSL_API NSL_CONST_FN char nsl_char_HEX_from_u8(u8 d);
 
-// include/nsl/types/byte.h
 
 
 NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data);
@@ -439,7 +433,6 @@ NSL_API u64 nsl_bytes_hash(nsl_Bytes bytes);
 NSL_API nsl_Str nsl_bytes_to_hex(nsl_Bytes bytes, nsl_Arena *arena);
 NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena);
 
-// include/nsl/structs/set.h
 
 
 typedef struct {
@@ -474,7 +467,6 @@ NSL_API void nsl_set_intersection(const nsl_Set *set, const nsl_Set *other, nsl_
 NSL_API void nsl_set_difference(const nsl_Set *set, const nsl_Set *other, nsl_Set* out);
 NSL_API void nsl_set_union(const nsl_Set *set, const nsl_Set *other, nsl_Set* out);
 
-// include/nsl/structs/map.h
 
 
 typedef enum {
@@ -537,7 +529,6 @@ NSL_API const u64 *nsl_map_get_u64_const(const nsl_Map *map, u64 hash);
 NSL_API const f64 *nsl_map_get_f64_const(const nsl_Map *map, u64 hash);
 NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
 
-// include/nsl/structs/list.h
 
 
 #include <stdlib.h>
@@ -704,7 +695,6 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
 #define nsl_list_for_each(T, iter, da)                                                              \
     if ((da)->len) for (T iter = &nsl_list_first(da); iter <= &nsl_list_last(da); iter++)
 
-// include/nsl/os/os.h
 
 
 typedef struct {
@@ -718,7 +708,6 @@ NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error);
 NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error);
 NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error);
 
-// include/nsl/os/fs.h
 
 
 typedef struct {
@@ -744,7 +733,6 @@ NSL_API bool nsl_fs_exists(nsl_Path path);
 NSL_API bool nsl_fs_is_dir(nsl_Path path);
 NSL_API bool nsl_fs_remove(nsl_Path path);
 
-// include/nsl/os/file.h
 
 
 NSL_API FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error);
@@ -764,7 +752,6 @@ NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...);
 NSL_API void nsl_file_write_str(FILE *file, nsl_Str content);
 NSL_API void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
 
-// include/nsl/os/cmd.h
 
 
 
@@ -788,7 +775,6 @@ typedef nsl_List(const char*) nsl_Cmd;
 NSL_API nsl_CmdError nsl_cmd_exec(usize argc, const char** argv);
 NSL_API nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd* args);
 
-// include/nsl/core/error.h
 
 
 #include <stdlib.h>
@@ -869,7 +855,6 @@ NSL_API nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd* args);
         fprintf(stderr, NSL_ERROR_FMT "\n", NSL_ERROR_ARG(E));                   \
     } while (0)
 
-// include/nsl/core/arena.h
 
 
 NSL_API void nsl_arena_free(nsl_Arena *arena);
@@ -891,7 +876,6 @@ NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr);
 #endif // _NSL_H_
 
 #ifdef NSL_IMPLEMENTATION
-// src/nsl/types/str.c
 
 
 #include <stdarg.h>
@@ -1588,7 +1572,6 @@ NSL_API u64 nsl_str_hash(nsl_Str s) {
     }
     return hash;
 }
-// src/nsl/types/path.c
 
 
 #include <stdio.h>
@@ -1728,7 +1711,6 @@ NSL_API nsl_Path nsl_path_parent(nsl_Path path) {
     if (idx == NSL_STR_NOT_FOUND) return NSL_PATH(".");
     return nsl_str_substring(path, 0, nsl_usize_min(path.len, idx+1));
 }
-// src/nsl/types/int.c
 
 
 #include <string.h>
@@ -1961,7 +1943,6 @@ INTEGER_IMPL(usize)
 
 #undef INTEGER_IMPL
 #undef BITS
-// src/nsl/types/char.c
 
 #include <ctype.h>
 
@@ -2034,7 +2015,6 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
   }
   return 0;
 }
-// src/nsl/types/byte.c
 
 
 #include <stdio.h>
@@ -2123,7 +2103,6 @@ NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// src/nsl/structs/set.c
 
 
 NSL_API void nsl_set_init(nsl_Set *set, nsl_Arena *arena) {
@@ -2368,7 +2347,6 @@ NSL_API void nsl_set_union(const nsl_Set *set, const nsl_Set *other, nsl_Set* ou
     }
   }
 }
-// src/nsl/structs/map.c
 
 
 #include <string.h>
@@ -2584,11 +2562,10 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash) {
     nsl_MapValue *value = nsl_map_get(map, hash);
     return value ? value->ptr : NULL;
 }
-// src/nsl/os/windows/os.c
 #if defined(_WIN32)
 #error "not implemented"
-#endif
-// src/nsl/os/windows/fs.c
+#endif // _WIN32
+
 #if defined(_WIN32)
 
 
@@ -2680,8 +2657,8 @@ NSL_API nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
 
     return NULL;
 }
-#endif
-// src/nsl/os/windows/cmd.c
+#endif // _WIN32
+
 #if defined(_WIN32)
 
 #include <windows.h>
@@ -2771,8 +2748,8 @@ defer:
 }
 
 
-#endif
-// src/nsl/os/posix/os.c
+#endif // _WIN32
+
 #if !defined(_WIN32)
 
 
@@ -2829,8 +2806,8 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {
     return nsl_str_from_cstr(var);
 }
 
-#endif
-// src/nsl/os/posix/fs.c
+#endif // !_WIN32
+
 #if !defined(_WIN32)
 
 
@@ -2915,8 +2892,8 @@ NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
     }
     return NULL;
 }
-#endif
-// src/nsl/os/posix/cmd.c
+#endif // !_WIN32
+
 #if !defined(_WIN32)
 
 
@@ -2955,8 +2932,8 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
 
     return NSL_CMD_OK;
 }
-#endif
-// src/nsl/os/fs.c
+#endif // !_WIN32
+
 
 
 #include <string.h>
@@ -2995,7 +2972,6 @@ NSL_API bool nsl_fs_remove(nsl_Path path) {
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     return (unlink(filepath) != 0);
 }
-// src/nsl/os/file.c
 
 
 #include <errno.h>
@@ -3074,13 +3050,11 @@ NSL_API void nsl_file_write_str(FILE* file, nsl_Str content) {
 NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
     fwrite(content.data, 1, content.size, file);
 }
-// src/nsl/os/cmd.c
 
 NSL_API nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd *cmd) {
     return nsl_cmd_exec(cmd->len, cmd->items);
 }
 
-// src/nsl/core/arena.c
 
 #include <stdlib.h>
 #include <string.h>
