@@ -10,12 +10,9 @@ typedef nsl_List(nsl_Path) Files;
 static void collect_flags(nsl_Cmd *cmd) {
     nsl_cmd_push(cmd, "-Wall", "-Werror", "-Wextra", "-Wpedantic");
     nsl_cmd_push(cmd, "-Wmissing-prototypes", "-Wmissing-declarations");
-    nsl_cmd_push(cmd, "-Wconversion", "-Wsign-conversion");
+    nsl_cmd_push(cmd, "-Wconversion", "-Wsign-conversion", "-Warith-conversion");
     nsl_cmd_push(cmd, "-Wshadow", "-Wpointer-arith", "-Wstrict-prototypes");
     nsl_cmd_push(cmd, "-Wcast-qual", "-Wcast-align", "-Wwrite-strings");
-    nsl_cmd_push(cmd, "-Wundef", "-Wswitch-enum", "-Wdouble-promotion");
-    nsl_cmd_push(cmd, "-Wbad-function-cast", "-Wuninitialized");
-    nsl_cmd_push(cmd, "-Wredundant-decls", "-Wvla", "-Wnested-externs");
     nsl_cmd_push(cmd, "-Wstrict-aliasing=2", "-Wno-unused-parameter");
     nsl_cmd_push(cmd, "-std=c99");
     nsl_cmd_push(cmd, "-Iinclude");

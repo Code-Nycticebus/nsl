@@ -28,7 +28,7 @@ NSL_API char nsl_char_to_upper(char c) { return (char)toupper(c); }
 
 NSL_API u8 nsl_char_to_u8(char c) {
   NSL_ASSERT(nsl_char_is_digit(c) && "char not convertible");
-  return (u8)c - '0';
+  return (u8)(c - '0');
 }
 
 NSL_API u8 nsl_char_hex_to_u8(char c) {
@@ -47,7 +47,7 @@ NSL_API u8 nsl_char_hex_to_u8(char c) {
 
 NSL_API char nsl_char_from_u8(u8 d) {
   NSL_ASSERT(d < DBASE && "char not convertible");
-  return '0' + (i8)d;
+  return (char)('0' + d);
 }
 
 NSL_API char nsl_char_hex_from_u8(u8 d) {
