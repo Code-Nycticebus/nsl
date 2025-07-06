@@ -17,13 +17,13 @@
 #    include <unistd.h>
 #endif
 
-bool nsl_fs_exists(nsl_Path path) {
+NSL_API bool nsl_fs_exists(nsl_Path path) {
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     return access(filepath, 0) == 0;
 }
 
-bool nsl_fs_is_dir(nsl_Path path) {
+NSL_API bool nsl_fs_is_dir(nsl_Path path) {
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
 
@@ -35,7 +35,7 @@ bool nsl_fs_is_dir(nsl_Path path) {
     return S_ISDIR(info.st_mode);
 }
 
-bool nsl_fs_remove(nsl_Path path) {
+NSL_API bool nsl_fs_remove(nsl_Path path) {
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     return (unlink(filepath) != 0);

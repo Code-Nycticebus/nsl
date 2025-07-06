@@ -17,13 +17,13 @@ typedef struct {
     void *_handle;    // platform specific handle
 } nsl_FsIter;
 
-nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error);
-void nsl_fs_end(nsl_FsIter *it);
+NSL_API nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error);
+NSL_API void nsl_fs_end(nsl_FsIter *it);
 
-nsl_FsEntry *nsl_fs_next(nsl_FsIter *it);
+NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it);
 
-bool nsl_fs_exists(nsl_Path path);
-bool nsl_fs_is_dir(nsl_Path path);
-bool nsl_fs_remove(nsl_Path path);
+NSL_API bool nsl_fs_exists(nsl_Path path);
+NSL_API bool nsl_fs_is_dir(nsl_Path path);
+NSL_API bool nsl_fs_remove(nsl_Path path);
 
 #endif // _NSL_FS_H_

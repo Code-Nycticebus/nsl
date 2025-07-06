@@ -17,7 +17,7 @@ typedef struct nsl_FsNode {
     char name[];
 } nsl_FsNode;
 
-nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error* error) {
+NSL_API nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error* error) {
     nsl_FsIter it = {.recursive=recursive, .error=error};
 
     const usize size = sizeof(nsl_FsNode) + directory.len + 1;
@@ -33,7 +33,7 @@ nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error* error) {
     return it;
 }
 
-void nsl_fs_end(nsl_FsIter *it) {
+NSL_API void nsl_fs_end(nsl_FsIter *it) {
     while (it->_handle != NULL) {
         nsl_FsNode* node = it->_handle;
         if (node->handle) closedir(node->handle);
@@ -42,7 +42,7 @@ void nsl_fs_end(nsl_FsIter *it) {
     nsl_arena_free(&it->scratch);
 }
 
-nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
+NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
     if (it->error && it->error->code) return NULL;
     while (it->_handle != NULL) {
         nsl_arena_reset(&it->scratch);

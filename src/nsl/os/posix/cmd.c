@@ -9,7 +9,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
+NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     if (argc == 0) return NSL_CMD_NOT_FOUND;
 
     errno = 0;

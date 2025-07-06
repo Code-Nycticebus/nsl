@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
+NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
     if (config.parents) {
         if (nsl_path_is_root(path)) return;
         if (path.len == 1 && path.data[0] == '.') return;
@@ -29,7 +29,7 @@ void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
     }
 }
 
-void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
+NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
@@ -38,7 +38,7 @@ void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
     }
 }
 
-nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
     errno = 0;
     char *buf = nsl_arena_alloc(arena, FILENAME_MAX);
     char *ret = getcwd(buf, FILENAME_MAX - 1);
@@ -49,7 +49,7 @@ nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
     return nsl_str_from_cstr(ret);
 }
 
-nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {
     const char *var = getenv(env);
     if (var == NULL) {
         NSL_ERROR_EMIT(error, -1, env);

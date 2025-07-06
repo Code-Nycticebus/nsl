@@ -36,7 +36,7 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb
     }
 }
 
-nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
+NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     if (argc == 0) return NSL_CMD_NOT_FOUND;
 
     STARTUPINFOA si;
