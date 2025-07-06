@@ -14,18 +14,14 @@ Its a complete rewrite of [cebus](https://github.com/Code-Nycticebus/cebus).
 int main(int argc, const char** argv) {
     nsl_Arena arena {0};
 
-    nsl_Cmd cmd = {0};
-    nsl_list_init(&cmd, &arena);
-
-    nsl_cmd_push(&cmd, "cc", "-o", "main", "main.c")
-
-    if (nsl_cmd_exec_list(&cmd) != 0) return 1;
+    const char* name = "nsl";
+    nsl_Str s = nsl_str_format(&arena, "Hello, %s!", name);
+    printf(NSL_STR_FMT"\n", NSL_STR_ARG(s));
 
     nsl_arena_free(&arena);
     return 0;
 }
 ```
-
 
 ## TODO
 Here's whats left to do:
