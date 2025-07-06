@@ -2721,7 +2721,7 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
 
-    DWORD exit_code = 0;
+    DWORD result = 0;
 
     nsl_Arena arena = {0};
 
@@ -2733,10 +2733,7 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
 
     if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
         DWORD ec = GetLastError();
-        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) {
-            exit_code = NSL_CMD_NOT_FOUND;
-            goto defer;
-        }
+        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) NSL_DEFER(NSL_CMD_NOT_FOUND);
 
         char msg[512] = {0};
         FormatMessageA(
@@ -2764,7 +2761,7 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     CloseHandle(pi.hThread);
 defer:
     nsl_arena_free(&arena);
-    return (nsl_CmdError)exit_code;
+    return (nsl_CmdError)result;
 }
 
 
