@@ -776,8 +776,14 @@ typedef enum {
 
 typedef nsl_List(const char*) nsl_Cmd;
 
-#define nsl_cmd_push(cmd, ...)                                                                      \
-    nsl_list_extend(cmd, NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
+#define nsl_cmd_push(cmd, ...)                                                                     \
+    nsl_list_extend(cmd,                                                                           \
+        NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}),                                              \
+        (const char *[]){__VA_ARGS__}                                                              \
+    )
+
+#define NSL_CMD(...)                                                                               \
+    nsl_cmd_exec(NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
 
 NSL_API nsl_CmdError nsl_cmd_exec(usize argc, const char** argv);
 NSL_API nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd* args);
