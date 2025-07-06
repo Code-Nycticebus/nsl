@@ -26,6 +26,14 @@ int main(int argc, const char** argv) {
 }
 ```
 
+
+## TODO
+Here's whats left to do:
+[ ] windows implementation for `os.h`
+[ ] more cmd functions like: async, run and reset, CMD macro usw
+[ ] scratch arena in some way
+[ ] dll loading
+
 */
 
 #ifndef _NSL_H_
@@ -67,7 +75,7 @@ int main(int argc, const char** argv) {
 #define NSL_STR(str) ((nsl_Str){.len = sizeof(str) - 1, .data = (str)})
 #define NSL_STR_STATIC(str) { .len = sizeof(str) - 1, .data = (str) }
 
-#define NSL_STR_FMT  "%.*s"
+#define NSL_STR_FMT "%.*s"
 #define NSL_STR_REPR "'%.*s'"
 #define NSL_STR_ARG(str) (i32)(str).len, (str).data
 
