@@ -710,9 +710,9 @@ typedef struct {
 } nsl_OsDirConfig;
 void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config);
 
-void nsl_os_chdir(nsl_Path path, nsl_Error* error);
-nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error);
-nsl_Str nsl_os_getenv(const char *env, nsl_Error *error);
+NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error);
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error);
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error);
 
 // include/nsl/os/fs.h
 
@@ -731,34 +731,34 @@ typedef struct {
     void *_handle;    // platform specific handle
 } nsl_FsIter;
 
-nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error);
-void nsl_fs_end(nsl_FsIter *it);
+NSL_API nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error);
+NSL_API void nsl_fs_end(nsl_FsIter *it);
 
-nsl_FsEntry *nsl_fs_next(nsl_FsIter *it);
+NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it);
 
-bool nsl_fs_exists(nsl_Path path);
-bool nsl_fs_is_dir(nsl_Path path);
-bool nsl_fs_remove(nsl_Path path);
+NSL_API bool nsl_fs_exists(nsl_Path path);
+NSL_API bool nsl_fs_is_dir(nsl_Path path);
+NSL_API bool nsl_fs_remove(nsl_Path path);
 
 // include/nsl/os/file.h
 
 
-FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error);
-void nsl_file_close(FILE *file);
+NSL_API FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error);
+NSL_API void nsl_file_close(FILE *file);
 
-void nsl_file_check_error(FILE* file, nsl_Error* error);
+NSL_API void nsl_file_check_error(FILE* file, nsl_Error* error);
 
-usize nsl_file_size(FILE *file);
+NSL_API usize nsl_file_size(FILE *file);
 
-nsl_Str nsl_file_read_str(FILE *file, nsl_Arena *arena);
-nsl_Str nsl_file_read_sb(FILE *file, nsl_StrBuilder *sb);
-nsl_Str nsl_file_read_line(FILE *file, nsl_StrBuilder *sb);
+NSL_API nsl_Str nsl_file_read_str(FILE *file, nsl_Arena *arena);
+NSL_API nsl_Str nsl_file_read_sb(FILE *file, nsl_StrBuilder *sb);
+NSL_API nsl_Str nsl_file_read_line(FILE *file, nsl_StrBuilder *sb);
 
-nsl_Bytes nsl_file_read_bytes(FILE *file, usize size, u8 *buffer);
+NSL_API nsl_Bytes nsl_file_read_bytes(FILE *file, usize size, u8 *buffer);
 
-NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...);
-void nsl_file_write_str(FILE *file, nsl_Str content);
-void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
+NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...);
+NSL_API void nsl_file_write_str(FILE *file, nsl_Str content);
+NSL_API void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
 
 // include/nsl/os/cmd.h
 
@@ -775,8 +775,8 @@ typedef nsl_List(const char*) nsl_Cmd;
 #define nsl_cmd_push(cmd, ...)                                                                      \
     nsl_list_extend(cmd, NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
 
-nsl_CmdError nsl_cmd_exec(usize argc, const char** argv);
-nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd* args);
+NSL_API nsl_CmdError nsl_cmd_exec(usize argc, const char** argv);
+NSL_API nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd* args);
 
 // include/nsl/core/error.h
 
@@ -2591,7 +2591,7 @@ typedef struct nsl_FsNode {
     char name[];
 } nsl_FsNode;
 
-nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error) {
+NSL_API nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error) {
     nsl_FsIter it = {.recursive = recursive, .error = error};
 
     const usize len = directory.len + (sizeof("/*") - 1);
@@ -2610,7 +2610,7 @@ nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error) {
     return it;
 }
 
-void nsl_fs_end(nsl_FsIter *it) {
+NSL_API void nsl_fs_end(nsl_FsIter *it) {
     while (it->_handle != NULL) {
         nsl_FsNode *current = it->_handle;
         it->_handle = current->next;
@@ -2619,7 +2619,7 @@ void nsl_fs_end(nsl_FsIter *it) {
     nsl_arena_free(&it->scratch);
 }
 
-nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
+NSL_API nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
     if (it->error && it->error->code) return NULL;
     while (it->_handle != NULL) {
         nsl_arena_reset(&it->scratch);
@@ -2708,7 +2708,7 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb
     }
 }
 
-nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
+NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     if (argc == 0) return NSL_CMD_NOT_FOUND;
 
     STARTUPINFOA si;
@@ -2774,7 +2774,7 @@ defer:
 #include <errno.h>
 #include <unistd.h>
 
-void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
+NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
     if (config.parents) {
         if (nsl_path_is_root(path)) return;
         if (path.len == 1 && path.data[0] == '.') return;
@@ -2793,7 +2793,7 @@ void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
     }
 }
 
-void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
+NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
@@ -2802,7 +2802,7 @@ void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
     }
 }
 
-nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
     errno = 0;
     char *buf = nsl_arena_alloc(arena, FILENAME_MAX);
     char *ret = getcwd(buf, FILENAME_MAX - 1);
@@ -2813,7 +2813,7 @@ nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
     return nsl_str_from_cstr(ret);
 }
 
-nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {
     const char *var = getenv(env);
     if (var == NULL) {
         NSL_ERROR_EMIT(error, -1, env);
@@ -2839,7 +2839,7 @@ typedef struct nsl_FsNode {
     char name[];
 } nsl_FsNode;
 
-nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error* error) {
+NSL_API nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error* error) {
     nsl_FsIter it = {.recursive=recursive, .error=error};
 
     const usize size = sizeof(nsl_FsNode) + directory.len + 1;
@@ -2855,7 +2855,7 @@ nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error* error) {
     return it;
 }
 
-void nsl_fs_end(nsl_FsIter *it) {
+NSL_API void nsl_fs_end(nsl_FsIter *it) {
     while (it->_handle != NULL) {
         nsl_FsNode* node = it->_handle;
         if (node->handle) closedir(node->handle);
@@ -2864,7 +2864,7 @@ void nsl_fs_end(nsl_FsIter *it) {
     nsl_arena_free(&it->scratch);
 }
 
-nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
+NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
     if (it->error && it->error->code) return NULL;
     while (it->_handle != NULL) {
         nsl_arena_reset(&it->scratch);
@@ -2918,7 +2918,7 @@ nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
 #include <sys/wait.h>
 #include <unistd.h>
 
-nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
+NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     if (argc == 0) return NSL_CMD_NOT_FOUND;
 
     errno = 0;
@@ -2965,13 +2965,13 @@ nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
 #    include <unistd.h>
 #endif
 
-bool nsl_fs_exists(nsl_Path path) {
+NSL_API bool nsl_fs_exists(nsl_Path path) {
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     return access(filepath, 0) == 0;
 }
 
-bool nsl_fs_is_dir(nsl_Path path) {
+NSL_API bool nsl_fs_is_dir(nsl_Path path) {
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
 
@@ -2983,7 +2983,7 @@ bool nsl_fs_is_dir(nsl_Path path) {
     return S_ISDIR(info.st_mode);
 }
 
-bool nsl_fs_remove(nsl_Path path) {
+NSL_API bool nsl_fs_remove(nsl_Path path) {
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     return (unlink(filepath) != 0);
@@ -2996,7 +2996,7 @@ bool nsl_fs_remove(nsl_Path path) {
 #include <stdarg.h>
 
 
-FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error) {
+NSL_API FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error) {
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
@@ -3006,15 +3006,15 @@ FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error) {
     return file;
 }
 
-void nsl_file_close(FILE *file) {
+NSL_API void nsl_file_close(FILE *file) {
     fclose(file);
 }
 
-void nsl_file_check_error(FILE* file, nsl_Error* error) {
+NSL_API void nsl_file_check_error(FILE* file, nsl_Error* error) {
     if (ferror(file) != 0) NSL_ERROR_EMIT(error, errno, strerror(errno));
 }
 
-usize nsl_file_size(FILE* file) {
+NSL_API usize nsl_file_size(FILE* file) {
     long current = ftell(file);
     fseek(file, 0, SEEK_END);
     usize size = (usize)ftell(file);
@@ -3022,14 +3022,14 @@ usize nsl_file_size(FILE* file) {
     return size;
 }
 
-nsl_Str nsl_file_read_str(FILE* file, nsl_Arena* arena) {
+NSL_API nsl_Str nsl_file_read_str(FILE* file, nsl_Arena* arena) {
     usize size = nsl_file_size(file);
     char* data = nsl_arena_calloc(arena, size+1);
     size = fread(data, 1, size, file);
     return nsl_str_from_parts(size, data);
 }
 
-nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
+NSL_API nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
     usize size = nsl_file_size(file);
     nsl_list_reserve(sb, size);
     char* start = &nsl_list_last(sb);
@@ -3038,7 +3038,7 @@ nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
     return nsl_str_from_parts(size, start);
 }
 
-nsl_Str nsl_file_read_line(FILE* file, nsl_StrBuilder* sb) {
+NSL_API nsl_Str nsl_file_read_line(FILE* file, nsl_StrBuilder* sb) {
     usize off = sb->len;
     i32 c = 0;
     while (!feof(file) && c != '\n') {
@@ -3048,28 +3048,28 @@ nsl_Str nsl_file_read_line(FILE* file, nsl_StrBuilder* sb) {
     return nsl_str_from_parts(sb->len - off, &sb->items[off]);
 }
 
-nsl_Bytes nsl_file_read_bytes(FILE* file, usize size, u8* buffer) {
+NSL_API nsl_Bytes nsl_file_read_bytes(FILE* file, usize size, u8* buffer) {
     size = fread(buffer, 1, size, file);
     return nsl_bytes_from_parts(size, buffer);
 }
 
-NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...) {
+NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...) {
     va_list va;
     va_start(va, fmt);
     vfprintf(file, fmt, va);
     va_end(va);
 }
 
-void nsl_file_write_str(FILE* file, nsl_Str content) {
+NSL_API void nsl_file_write_str(FILE* file, nsl_Str content) {
     fwrite(content.data, 1, content.len, file);
 }
 
-void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
+NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
     fwrite(content.data, 1, content.size, file);
 }
 // src/nsl/os/cmd.c
 
-nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd *cmd) {
+NSL_API nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd *cmd) {
     return nsl_cmd_exec(cmd->len, cmd->items);
 }
 
