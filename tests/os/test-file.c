@@ -1,10 +1,4 @@
-#include "nsl.h"
-
-#include "nsl.h"
-#include "nsl.h"
-#include "nsl.h"
-#include "nsl.h"
-#include "nsl.h"
+#include "../../nsl.h"
 
 static void test_file_open(void) {
     nsl_Error error = {0};
@@ -25,7 +19,7 @@ static void test_file_read_str(void) {
 
     nsl_Str content = nsl_file_read_sb(file, &sb);
     nsl_Str line = nsl_str_chop_by_delim(&content, '\n');
-    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"nc/os/file.h\"")));
+    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../../nsl.h\"")));
 
     nsl_file_check_error(file, &error);
     NSL_ASSERT(error.code == 0);
@@ -46,7 +40,7 @@ static void test_file_read_sb(void) {
 
     nsl_Str content = nsl_file_read_sb(file, &sb);
     nsl_Str line = nsl_str_chop_by_delim(&content, '\n');
-    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"nc/os/file.h\"")));
+    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../../nsl.h\"")));
 
     nsl_file_check_error(file, &error);
     NSL_ASSERT(error.code == 0);
@@ -66,7 +60,7 @@ static void test_file_read_line(void) {
     nsl_list_init(&sb, &arena);
 
     nsl_Str line = nsl_file_read_line(file, &sb);
-    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"nc/os/file.h\"\n")));
+    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../../nsl.h\"\n")));
 
     line = nsl_file_read_line(file, &sb);
     NSL_ASSERT(nsl_str_eq(line, NSL_STR("\n")));

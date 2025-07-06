@@ -170,15 +170,8 @@ static bool build_header_file(void) {
 }
 
 static bool build_tests(void) {
-    nsl_Arena arena = {0};
-    nsl_Cmd cmd = {0};
-    nsl_list_init(&cmd, &arena);
-
-    nsl_cmd_push(&cmd, CC, "-o", "build/test", "-I.", "tests/main.c");
-
-    nsl_cmd_exec_list(&cmd);
-
-    nsl_arena_free(&arena);
+    if (NSL_CMD(CC, "-o", "build/test", "-I.", "tests/main.c") != 0) return false;
+    if (NSL_CMD("./build/test") != 0) return false;
     return true;
 }
 
