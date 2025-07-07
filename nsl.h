@@ -2569,6 +2569,7 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash) {
 #if defined(_WIN32)
 
 
+#include <windows.h>
 #include <io.h>
 #include <string.h>
 
@@ -2723,19 +2724,20 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
             FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, ec,
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            buffer, (DWORD)sizeof(msg), NULL
+            msg, (DWORD)sizeof(msg), NULL
         );
         NSL_PANIC(msg);
     }
 
     WaitForSingleObject(pi.hProcess, INFINITE);
-    if (!GetExitCodeProcess(pi.hProcess, &exit_code)) {
+    if (!GetExitCodeProcess(pi.hProcess, &result)) {
+        DWORD ec = GetLastError();
         char msg[512] = {0};
         FormatMessageA(
             FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, ec,
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            buffer, (DWORD)sizeof(msg), NULL
+            msg, (DWORD)sizeof(msg), NULL
         );
         NSL_PANIC(msg);
     }

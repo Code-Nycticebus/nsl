@@ -2,6 +2,7 @@
 
 #include "nsl/types/str.h"
 
+#include <windows.h>
 #include <io.h>
 #include <string.h>
 
