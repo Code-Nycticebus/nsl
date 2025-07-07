@@ -175,6 +175,8 @@ typedef nsl_List(u8) nsl_ByteBuffer;
 #        define NSL_API __declspec(dllexport)
 #    elif defined(NSL_DLL_LOAD)
 #        define NSL_API __declspec(dllimport)
+#    else
+#        define NSL_API
 #    endif
 #else
 #    define NSL_API __attribute__((visibility("default")))
