@@ -5,8 +5,9 @@
 
 #include <windows.h>
 
-
 NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
+    nsl_Arena arena = {0};
+
     if (config.parents) {
         if (nsl_path_is_root(path)) return;
         if (path.len == 1 && path.data[0] == '.') return;
@@ -16,9 +17,8 @@ NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig confi
         NSL_ERROR_PROPAGATE(error, { goto defer; });
     }
 
-    nsl_Arena arena = {0};
     nsl_Str filepath = nsl_str_copy(path, &arena);
-    
+
     if (CreateDirectoryA(filepath.data, NULL) != 0) {
         DWORD ec = GetLastError();
         if (config.exists_ok && ec == ERROR_ALREADY_EXISTS) {
@@ -43,7 +43,7 @@ NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
         NSL_ERROR_EMIT(error, ec, "could not get current directory");
     }
 
-    LPTSTR buffer = nsl_arena_alloc(arena, size);
+    LPTSTR buffer = nsl_arena_alloc(arena);
     GetCurrentDirectory(size, buffer);
     return nsl_str_from_parts(size, buffer);
 }
