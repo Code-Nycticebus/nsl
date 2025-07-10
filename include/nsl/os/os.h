@@ -8,7 +8,7 @@ typedef struct {
     bool exists_ok; // error when the directory exists
     bool parents;   // create parent paths
 } nsl_OsDirConfig;
-void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config);
+NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config);
 
 NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error);
 NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error);
