@@ -14,8 +14,10 @@ NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig confi
     if (config.parents) {
         if (nsl_path_is_root(path)) return;
         if (path.len == 1 && path.data[0] == '.') return;
-        config.exists_ok = true;
-        nsl_os_mkdir(nsl_path_parent(path), error, config);
+        nsl_OsDirConfig c = config;
+        c.exists_ok = true;
+        nsl_os_mkdir(nsl_path_parent(path), error, c);
+        NSL_ERROR_PROPAGATE(error, { return; });
     }
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
