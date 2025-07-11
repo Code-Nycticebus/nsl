@@ -2568,6 +2568,8 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash) {
 
 
 #include <windows.h>
+#include <string.h>
+#include <errno.h>
 
 NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
     nsl_Arena arena = {0};
@@ -2598,7 +2600,20 @@ defer:
     nsl_arena_free(&arena);
 }
 
-// NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error) {}
+NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
+    if (path.len >= MAX_PATH-1) {
+        NSL_ERROR_EMIT(error, ENAMETOOLONG, "filename too long for windows to handle");
+        return;
+    }
+
+    char pathname[MAX_PATH] = {0};
+    memcpy(pathname, path.data, path.len);
+
+    if (!SetCurrentDirectoryA(pathname)) {
+        DWORD ec = GetLastError();
+        NSL_ERROR_EMIT(error, ec, "could not change directory");
+    }
+}
 
 NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
     DWORD size = GetCurrentDirectory(0, NULL);
@@ -2607,12 +2622,30 @@ NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
         NSL_ERROR_EMIT(error, ec, "could not get current directory");
     }
 
-    LPTSTR buffer = nsl_arena_alloc(arena);
+    LPTSTR buffer = nsl_arena_alloc(arena, size);
     GetCurrentDirectory(size, buffer);
     return nsl_str_from_parts(size, buffer);
 }
 
-// NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {}
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {
+    nsl_Str result = {0};
+    nsl_Arena arena = {0};
+
+    DWORD size = GetEnvironmentVariableA(env, NULL, 0);
+    if (size == 0) {
+        DWORD ec = GetLastError();
+        NSL_ERROR_EMIT(error, ec, "could not get env variable)");
+        NSL_DEFER((nsl_Str){0});
+    }
+
+    char* buffer = nsl_arena_calloc(&arena, size);
+    GetEnvironmentVariableA(env, buffer, size);
+    result = nsl_str_from_cstr(buffer);
+
+defer:
+    nsl_arena_free(&arena);
+    return result;
+}
 #endif // _WIN32
 
 #if defined(_WIN32)
