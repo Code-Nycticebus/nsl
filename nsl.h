@@ -25,7 +25,7 @@ int main(int argc, const char** argv) {
 
 ## TODO
 Here's whats left to do:
-- [ ] windows implementation for `os.h`
+- [x] windows implementation for `os.h`
 - [ ] more cmd functions like: async, run and reset, CMD macro usw
 - [ ] scratch arena in some way
 - [ ] dll loading
