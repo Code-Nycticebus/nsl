@@ -3,10 +3,8 @@
 
 #include "nsl/defines.h"
 
-NSL_API FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error);
+NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode);
 NSL_API void nsl_file_close(FILE *file);
-
-NSL_API void nsl_file_check_error(FILE* file, nsl_Error* error);
 
 NSL_API usize nsl_file_size(FILE *file);
 

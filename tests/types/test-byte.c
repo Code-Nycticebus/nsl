@@ -1,7 +1,5 @@
 #include "nsl.h"
 
-#include "nsl.h"
-
 static void test_bytes(void) {
     nsl_Arena arena = {0};
     nsl_Bytes b = NSL_BYTES(0x02, 0xFF, 0xAA, 0xBB, 0x41, 0x41, 0x41);

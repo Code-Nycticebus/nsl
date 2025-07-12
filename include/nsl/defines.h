@@ -68,13 +68,8 @@ typedef struct {
     nsl_Chunk *begin, *end;
 } nsl_Arena;
 
-typedef struct {
-    i64 code;            // 0 = no error
-    const char *file;    // __FILE__ where error occured
-    i32 line;            // __LINE__ where error occured
-    const char *func;    // __func__ where error occured
-    const char *message; // human-readable message
-} nsl_Error;
+// Error codes
+typedef i64 nsl_Error;
 
 #define nsl_List(T)                                                                                \
     struct {                                                                                       \

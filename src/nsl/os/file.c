@@ -10,23 +10,24 @@
 #include <string.h>
 #include <stdarg.h>
 
-
-NSL_API FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error) {
+NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode) {
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
 
     FILE *file = fopen(filepath, mode);
-    if (file == NULL) NSL_ERROR_EMIT(error, errno, strerror(errno));
-    return file;
+    if (file == NULL) {
+        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        NSL_PANIC(strerror(errno));
+    }
+
+    *out = file;
+    return NSL_NO_ERROR;
 }
 
 NSL_API void nsl_file_close(FILE *file) {
     fclose(file);
-}
-
-NSL_API void nsl_file_check_error(FILE* file, nsl_Error* error) {
-    if (ferror(file) != 0) NSL_ERROR_EMIT(error, errno, strerror(errno));
 }
 
 NSL_API usize nsl_file_size(FILE* file) {

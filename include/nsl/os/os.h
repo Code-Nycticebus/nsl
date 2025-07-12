@@ -8,10 +8,10 @@ typedef struct {
     bool exists_ok; // error when the directory exists
     bool parents;   // create parent paths
 } nsl_OsDirConfig;
-NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config);
+NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config);
 
-NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error);
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error);
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error);
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
+NSL_API nsl_Error nsl_os_cwd(nsl_Path* path, nsl_Arena *arena);
+NSL_API nsl_Str nsl_os_getenv(const char *env);
 
 #endif // _NSL_OS_H_

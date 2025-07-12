@@ -5,7 +5,6 @@
 #undef NSL_IMPLEMENTATION
 
 #include "core/test-arena.c"
-#include "core/test-error.c"
 
 #include "os/test-fs.c"
 #include "os/test-file.c"
@@ -24,7 +23,6 @@
 int main(void) {
     // core
     run_test_arena();
-    run_test_error();
 
     // os
     run_test_fs();

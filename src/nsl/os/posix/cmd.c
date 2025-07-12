@@ -9,8 +9,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
-    if (argc == 0) return NSL_CMD_NOT_FOUND;
+NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
 
     errno = 0;
     pid_t pid = fork();
@@ -33,9 +33,9 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     int status = 0;
     waitpid(pid, &status, 0);
     if (WIFEXITED(status)) {
-        nsl_CmdError exit_code = WEXITSTATUS(status);
-        return exit_code == 127 ? NSL_CMD_NOT_FOUND : exit_code;
+        nsl_Error exit_code = WEXITSTATUS(status);
+        return exit_code == 127 ? NSL_ERROR_FILE_NOT_FOUND : exit_code;
     }
 
-    return NSL_CMD_OK;
+    return NSL_NO_ERROR;
 }

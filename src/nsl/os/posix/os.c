@@ -10,53 +10,61 @@
 #include <errno.h>
 #include <unistd.h>
 
-NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
+NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
     if (config.parents) {
-        if (nsl_path_is_root(path)) return;
-        if (path.len == 1 && path.data[0] == '.') return;
+        if (nsl_path_is_root(path)) return NSL_NO_ERROR;
+        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
         nsl_OsDirConfig c = config;
         c.exists_ok = true;
-        nsl_os_mkdir(nsl_path_parent(path), error, c);
-        NSL_ERROR_PROPAGATE(error, { return; });
+        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
+        if (recursive_error) return recursive_error;
     }
+
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
         if (config.exists_ok && errno == EEXIST) {
             struct stat info;
-            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return;
+            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return NSL_NO_ERROR;
         }
-        NSL_ERROR_EMIT(error, errno, strerror(errno));
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == EEXIST) return NSL_ERROR_ALREADY_EXISTS;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
     }
+    return NSL_NO_ERROR;
 }
 
-NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     if (chdir(filepath) != 0) {
-        NSL_ERROR_EMIT(error, errno, strerror(errno));
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
     }
+
+    return NSL_NO_ERROR;
 }
 
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
+NSL_API nsl_Error nsl_os_cwd(nsl_Path *out, nsl_Arena *arena) {
     errno = 0;
-    char *buf = nsl_arena_alloc(arena, FILENAME_MAX);
-    char *ret = getcwd(buf, FILENAME_MAX - 1);
-    if (ret == NULL) {
-        NSL_ERROR_EMIT(error, errno, strerror(errno));
-        return (nsl_Str){0};
+    char *path = getcwd(NULL, 0);
+    if (path == NULL) {
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
     }
-    return nsl_str_from_cstr(ret);
+    *out = nsl_str_copy(nsl_str_from_cstr(path), arena);
+    free(path);
+    return NSL_NO_ERROR;
 }
 
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {
+NSL_API nsl_Str nsl_os_getenv(const char *env) {
     const char *var = getenv(env);
-    if (var == NULL) {
-        NSL_ERROR_EMIT(error, -1, env);
-        return (nsl_Str){0};
-    }
-    return nsl_str_from_cstr(var);
+    return var ? nsl_str_from_cstr(var) : (nsl_Str){0};
 }
 

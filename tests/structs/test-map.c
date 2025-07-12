@@ -1,7 +1,5 @@
 #include "nsl.h"
 
-#include "nsl.h"
-
 static void test_init(void) {
     nsl_Arena arena = {0};
     nsl_Map map = {0};

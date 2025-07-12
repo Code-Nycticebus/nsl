@@ -1,7 +1,5 @@
 #include "nsl.h"
 
-#include "nsl.h"
-
 static void test_str_compare(void) {
     nsl_Str s = NSL_STR("Hello, World");
 

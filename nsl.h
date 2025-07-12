@@ -103,13 +103,8 @@ typedef struct {
     nsl_Chunk *begin, *end;
 } nsl_Arena;
 
-typedef struct {
-    i64 code;            // 0 = no error
-    const char *file;    // __FILE__ where error occured
-    i32 line;            // __LINE__ where error occured
-    const char *func;    // __func__ where error occured
-    const char *message; // human-readable message
-} nsl_Error;
+// Error codes
+typedef i64 nsl_Error;
 
 #define nsl_List(T)                                                                                \
     struct {                                                                                       \
@@ -705,11 +700,11 @@ typedef struct {
     bool exists_ok; // error when the directory exists
     bool parents;   // create parent paths
 } nsl_OsDirConfig;
-NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config);
+NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config);
 
-NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error);
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error);
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error);
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
+NSL_API nsl_Error nsl_os_cwd(nsl_Path* path, nsl_Arena *arena);
+NSL_API nsl_Str nsl_os_getenv(const char *env);
 
 
 
@@ -722,12 +717,12 @@ typedef struct {
 
 typedef struct {
     nsl_Arena scratch; // per file scratch buffer
-    bool recursive;   // recursive
-    nsl_Error *error;  // Error
-    void *_handle;    // platform specific handle
+    bool recursive;    // recursive
+    nsl_Error error;   // Error
+    void *_handle;     // platform specific handle
 } nsl_FsIter;
 
-NSL_API nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error);
+NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive);
 NSL_API void nsl_fs_end(nsl_FsIter *it);
 
 NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it);
@@ -738,10 +733,8 @@ NSL_API bool nsl_fs_remove(nsl_Path path);
 
 
 
-NSL_API FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error);
+NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode);
 NSL_API void nsl_file_close(FILE *file);
-
-NSL_API void nsl_file_check_error(FILE* file, nsl_Error* error);
 
 NSL_API usize nsl_file_size(FILE *file);
 
@@ -758,12 +751,6 @@ NSL_API void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
 
 
 
-typedef enum {
-    NSL_CMD_OK = 0,
-    // the command return code 1-255
-    NSL_CMD_NOT_FOUND = 256,
-} nsl_CmdError;
-
 typedef nsl_List(const char*) nsl_Cmd;
 
 #define nsl_cmd_push(cmd, ...)                                                                     \
@@ -775,88 +762,27 @@ typedef nsl_List(const char*) nsl_Cmd;
 #define NSL_CMD(...)                                                                               \
     nsl_cmd_exec(NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
 
-NSL_API nsl_CmdError nsl_cmd_exec(usize argc, const char** argv);
-NSL_API nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd* args);
+NSL_API nsl_Error nsl_cmd_exec(usize argc, const char** argv);
+NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd* args);
 
 
 
 #include <stdlib.h>
 #include <stdio.h>
 
-#define NSL_ERROR_FMT "%s:%d (%s): %s"
-#define NSL_ERROR_ARG(E) (E)->file, (E)->line, (E)->func, (E)->message
+#define NSL_ERROR_FMT "%s:%d: %s():"
+#define NSL_ERROR_ARG __FILE__, __LINE__, __func__
 
-#define NSL_ERROR_EMIT(E, error_code, error_message)
-#define NSL_ERROR_HANDLE(E, ...)
-#define NSL_ERROR_EXCEPT_CASE(E, CODE, ...)
-#define NSL_ERROR_PROPAGATE(E, ...)
-#define NSL_ERROR_CLEAR(E)
-#define NSL_ERROR_RAISE(E)
-#define NSL_ERROR_LOG(E)
+// nsl_Error
+enum {
+    NSL_ERROR = -1,
+    NSL_NO_ERROR = 0,
+    NSL_ERROR_FILE_NOT_FOUND = 256,
+    NSL_ERROR_ACCESS_DENIED,
+    NSL_ERROR_ALREADY_EXISTS,
+    NSL_ERROR_NOT_DIRECTORY,
+};
 
-// Implemetation
-#undef NSL_ERROR_EMIT
-#define NSL_ERROR_EMIT(E, error_code, error_message)                                               \
-    do {                                                                                           \
-        if ((E) == NULL) {                                                                         \
-            nsl_Error _panic_error = {                                                             \
-                error_code, __FILE__, __LINE__, __func__, error_message,                           \
-            };                                                                                     \
-            NSL_ERROR_RAISE(&_panic_error);                                                        \
-        } else {                                                                                   \
-            (E)->code = error_code;                                                                \
-            (E)->file = __FILE__;                                                                  \
-            (E)->line = __LINE__;                                                                  \
-            (E)->func = __func__;                                                                  \
-            (E)->message = error_message;                                                          \
-        }                                                                                          \
-    } while (0)
-
-#undef NSL_ERROR_HANDLE
-#define NSL_ERROR_HANDLE(E, ...)                                                                   \
-    do {                                                                                           \
-        if ((E) != NULL && (E)->code) {                                                            \
-            { __VA_ARGS__; }                                                                       \
-            if ((E)->code) {                                                                       \
-                NSL_ERROR_RAISE(E);                                                                \
-            }                                                                                      \
-        }                                                                                          \
-    } while (0)
-
-#undef NSL_ERROR_EXCEPT_CASE
-#define NSL_ERROR_EXCEPT_CASE(E, CODE, ...)                                                        \
-    case CODE: {                                                                                   \
-        __VA_ARGS__;                                                                               \
-        NSL_ERROR_CLEAR(E);                                                                        \
-        break;                                                                                     \
-    }
-
-#undef NSL_ERROR_PROPAGATE
-#define NSL_ERROR_PROPAGATE(E, ...)                                                                \
-    do {                                                                                           \
-        if ((E) != NULL && (E)->code) {                                                            \
-            { __VA_ARGS__; }                                                                       \
-        }                                                                                          \
-    } while (0)
-
-#undef NSL_ERROR_CLEAR
-#define NSL_ERROR_CLEAR(E)                                                                         \
-    do {                                                                                           \
-        *(E) = (nsl_Error){0};                                                                     \
-    } while (0)
-
-#undef NSL_ERROR_RAISE
-#define NSL_ERROR_RAISE(E)                                                                         \
-    do {                                                                                           \
-        fprintf(stderr, NSL_ERROR_FMT "\n", NSL_ERROR_ARG(E));                                     \
-        abort();                                                                                   \
-    } while (0)
-
-#undef NSL_ERROR_LOG
-#define NSL_ERROR_LOG(E)                                                                           \
-    do {                                                                                           \
-        fprintf(stderr, NSL_ERROR_FMT "\n", NSL_ERROR_ARG(E));                                     \
-    } while (0)
 
 
 NSL_API void nsl_arena_free(nsl_Arena *arena);
@@ -2842,54 +2768,62 @@ defer:
 #include <errno.h>
 #include <unistd.h>
 
-NSL_API void nsl_os_mkdir(nsl_Path path, nsl_Error *error, nsl_OsDirConfig config) {
+NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
     if (config.parents) {
-        if (nsl_path_is_root(path)) return;
-        if (path.len == 1 && path.data[0] == '.') return;
+        if (nsl_path_is_root(path)) return NSL_NO_ERROR;
+        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
         nsl_OsDirConfig c = config;
         c.exists_ok = true;
-        nsl_os_mkdir(nsl_path_parent(path), error, c);
-        NSL_ERROR_PROPAGATE(error, { return; });
+        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
+        if (recursive_error) return recursive_error;
     }
+
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
         if (config.exists_ok && errno == EEXIST) {
             struct stat info;
-            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return;
+            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return NSL_NO_ERROR;
         }
-        NSL_ERROR_EMIT(error, errno, strerror(errno));
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == EEXIST) return NSL_ERROR_ALREADY_EXISTS;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
     }
+    return NSL_NO_ERROR;
 }
 
-NSL_API void nsl_os_chdir(nsl_Path path, nsl_Error* error) {
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     if (chdir(filepath) != 0) {
-        NSL_ERROR_EMIT(error, errno, strerror(errno));
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
     }
+
+    return NSL_NO_ERROR;
 }
 
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena, nsl_Error *error) {
+NSL_API nsl_Error nsl_os_cwd(nsl_Path *out, nsl_Arena *arena) {
     errno = 0;
-    char *buf = nsl_arena_alloc(arena, FILENAME_MAX);
-    char *ret = getcwd(buf, FILENAME_MAX - 1);
-    if (ret == NULL) {
-        NSL_ERROR_EMIT(error, errno, strerror(errno));
-        return (nsl_Str){0};
+    char *path = getcwd(NULL, 0);
+    if (path == NULL) {
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
     }
-    return nsl_str_from_cstr(ret);
+    *out = nsl_str_copy(nsl_str_from_cstr(path), arena);
+    free(path);
+    return NSL_NO_ERROR;
 }
 
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Error *error) {
+NSL_API nsl_Str nsl_os_getenv(const char *env) {
     const char *var = getenv(env);
-    if (var == NULL) {
-        NSL_ERROR_EMIT(error, -1, env);
-        return (nsl_Str){0};
-    }
-    return nsl_str_from_cstr(var);
+    return var ? nsl_str_from_cstr(var) : (nsl_Str){0};
 }
 
 #endif // !_WIN32
@@ -2909,20 +2843,21 @@ typedef struct nsl_FsNode {
     char name[];
 } nsl_FsNode;
 
-NSL_API nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error* error) {
-    nsl_FsIter it = {.recursive=recursive, .error=error};
+NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive) {
+    it->recursive = recursive;
 
     const usize size = sizeof(nsl_FsNode) + directory.len + 1;
-    nsl_FsNode* node = nsl_arena_calloc_chunk(&it.scratch, size);
+    nsl_FsNode* node = nsl_arena_calloc_chunk(&it->scratch, size);
     memcpy(node->name, directory.data, directory.len);
-    it._handle = node;
+    it->_handle = node;
 
     node->handle = opendir(node->name);
     if (node->handle == NULL) {
-        NSL_ERROR_EMIT(it.error, errno, strerror(errno));
+        it->error = NSL_ERROR;
+        return NSL_ERROR;
     }
 
-    return it;
+    return NSL_NO_ERROR;
 }
 
 NSL_API void nsl_fs_end(nsl_FsIter *it) {
@@ -2935,7 +2870,7 @@ NSL_API void nsl_fs_end(nsl_FsIter *it) {
 }
 
 NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
-    if (it->error && it->error->code) return NULL;
+    if (it->error) return NULL;
     while (it->_handle != NULL) {
         nsl_arena_reset(&it->scratch);
         nsl_FsNode *current = it->_handle;
@@ -2988,8 +2923,8 @@ NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
 #include <sys/wait.h>
 #include <unistd.h>
 
-NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
-    if (argc == 0) return NSL_CMD_NOT_FOUND;
+NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
 
     errno = 0;
     pid_t pid = fork();
@@ -3012,11 +2947,11 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     int status = 0;
     waitpid(pid, &status, 0);
     if (WIFEXITED(status)) {
-        nsl_CmdError exit_code = WEXITSTATUS(status);
-        return exit_code == 127 ? NSL_CMD_NOT_FOUND : exit_code;
+        nsl_Error exit_code = WEXITSTATUS(status);
+        return exit_code == 127 ? NSL_ERROR_FILE_NOT_FOUND : exit_code;
     }
 
-    return NSL_CMD_OK;
+    return NSL_NO_ERROR;
 }
 #endif // !_WIN32
 
@@ -3064,23 +2999,24 @@ NSL_API bool nsl_fs_remove(nsl_Path path) {
 #include <string.h>
 #include <stdarg.h>
 
-
-NSL_API FILE *nsl_file_open(nsl_Path path, const char *mode, nsl_Error *error) {
+NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode) {
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
 
     FILE *file = fopen(filepath, mode);
-    if (file == NULL) NSL_ERROR_EMIT(error, errno, strerror(errno));
-    return file;
+    if (file == NULL) {
+        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        NSL_PANIC(strerror(errno));
+    }
+
+    *out = file;
+    return NSL_NO_ERROR;
 }
 
 NSL_API void nsl_file_close(FILE *file) {
     fclose(file);
-}
-
-NSL_API void nsl_file_check_error(FILE* file, nsl_Error* error) {
-    if (ferror(file) != 0) NSL_ERROR_EMIT(error, errno, strerror(errno));
 }
 
 NSL_API usize nsl_file_size(FILE* file) {
@@ -3137,7 +3073,7 @@ NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
     fwrite(content.data, 1, content.size, file);
 }
 
-NSL_API nsl_CmdError nsl_cmd_exec_list(const nsl_Cmd *cmd) {
+NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd *cmd) {
     return nsl_cmd_exec(cmd->len, cmd->items);
 }
 

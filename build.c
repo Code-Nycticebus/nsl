@@ -22,29 +22,41 @@ static void collect_flags(nsl_Cmd *cmd) {
     nsl_cmd_push(cmd, "-fPIE");
 }
 
-static void collect_files(Files *files, nsl_Path path, nsl_Error *error) {
-    nsl_FsIter it = nsl_fs_begin(path, true, error);
+static bool collect_files(Files *files, nsl_Path path) {
+    nsl_FsIter it = {0}; 
+    if (nsl_fs_begin(&it, path, true)) return true;
+
     for (nsl_FsEntry *file = NULL; (file = nsl_fs_next(&it));) {
         if (file->is_dir) continue;
         nsl_list_push(files, nsl_str_copy(file->path, files->arena));
     }
+
     nsl_fs_end(&it);
+
+    return false;
 }
 
 static bool compile_commands(void) {
-    nsl_os_mkdir(NSL_PATH("build"), NULL, (nsl_OsDirConfig){.exists_ok = true});
+    bool result = false;
+    FILE *bc = NULL;
 
-    bool result = true;
-    bool first = true;
-    FILE *bc = nsl_file_open(NSL_PATH("build/compile_commands.json"), "w", NULL);
+    if (nsl_os_mkdir(NSL_PATH("build"), (nsl_OsDirConfig){.exists_ok = true})) NSL_DEFER(true);
+
+    if (nsl_file_open(&bc, NSL_PATH("build/compile_commands.json"), "w")) NSL_DEFER(true);
+
     nsl_Arena arena = {0};
     nsl_Cmd cmd = {0};
     nsl_list_init(&cmd, &arena);
 
-    nsl_Path cwd = nsl_os_cwd(&arena, NULL);
+    nsl_Path cwd;
+    if (nsl_os_cwd(&cwd, &arena)) NSL_DEFER(true);
+
+    nsl_FsIter it = {0}; 
+    if (nsl_fs_begin(&it, NSL_PATH("src/nsl"), true)) NSL_DEFER(true);
+
+    bool first = true;
 
     nsl_file_write_fmt(bc, "[");
-    nsl_FsIter it = nsl_fs_begin(NSL_PATH("src/nsl"), true, NULL);
     for (nsl_FsEntry *file = NULL; (file = nsl_fs_next(&it));) {
         if (file->is_dir) continue;
 #if defined(_WIN32)
@@ -56,7 +68,7 @@ static bool compile_commands(void) {
         nsl_cmd_push(&cmd, CC, "-c", "-o", "test.o", file->path.data);
         collect_flags(&cmd);
 
-        if (nsl_cmd_exec_list(&cmd) == 0) {
+        if (!nsl_cmd_exec_list(&cmd)) {
             if (!first) nsl_file_write_fmt(bc, ", ");
             nsl_file_write_fmt(bc, "{");
             nsl_file_write_fmt(bc, "\"file\": \"" NSL_STR_FMT "\", ", NSL_STR_ARG(file->path));
@@ -81,7 +93,8 @@ static bool compile_commands(void) {
 
     nsl_fs_remove(NSL_PATH("test.o"));
 
-    nsl_file_close(bc);
+defer:
+    if (bc) nsl_file_close(bc);
     nsl_arena_free(&arena);
     return result;
 }
@@ -103,7 +116,8 @@ static void copy_to_file(FILE *out, nsl_Path path) {
         nsl_file_write_fmt(out, "#if !defined(_WIN32)\n");
     }
 
-    FILE *file = nsl_file_open(path, "r", NULL);
+    FILE* file = NULL;
+    if (nsl_file_open(&file, path, "r")) NSL_PANIC("this file should open!!!");
 
     nsl_Str content = nsl_file_read_str(file, &scratch);
     for (nsl_Str line; nsl_str_try_chop_by_delim(&content, '\n', &line);) {
@@ -124,18 +138,21 @@ static void copy_to_file(FILE *out, nsl_Path path) {
 }
 
 static bool build_header_file(void) {
+    bool result = false;
     nsl_Arena arena = {0};
 
-    FILE *nsl = nsl_file_open(NSL_PATH("nsl.h"), "w", NULL);
+    FILE *nsl = NULL;
+    if (nsl_file_open(&nsl, NSL_PATH("nsl.h"), "w")) NSL_DEFER(true);
 
-    FILE *r = nsl_file_open(NSL_PATH("README.md"), "r", NULL);
+    FILE *r = NULL;
+    if (nsl_file_open(&r, NSL_PATH("README.md"), "r")) NSL_DEFER(true);
     nsl_Str readme = nsl_file_read_str(r, &arena);
     nsl_file_write_fmt(nsl, "/*\n" NSL_STR_FMT "*/\n\n", NSL_STR_ARG(readme));
     nsl_file_close(r);
 
     Files headers = {0};
     nsl_list_init(&headers, &arena);
-    collect_files(&headers, NSL_PATH("include/nsl/"), NULL);
+    if (collect_files(&headers, NSL_PATH("include/nsl/"))) NSL_DEFER(true);
     nsl_list_sort(&headers, path_compare);
 
     nsl_file_write_fmt(nsl, "#ifndef _NSL_H_\n");
@@ -147,7 +164,7 @@ static bool build_header_file(void) {
 
     Files src = {0};
     nsl_list_init(&src, &arena);
-    collect_files(&src, NSL_PATH("src/nsl/"), NULL);
+    if (collect_files(&src, NSL_PATH("src/nsl/"))) NSL_DEFER(true);
     nsl_list_sort(&src, path_compare);
 
     nsl_file_write_fmt(nsl, "#ifdef NSL_IMPLEMENTATION\n");
@@ -157,33 +174,36 @@ static bool build_header_file(void) {
     nsl_file_write_fmt(nsl, "#endif // NSL_IMPLEMENTATION\n");
 
     nsl_file_close(nsl);
+    nsl = NULL;
 
     nsl_Cmd cmd = {0};
     nsl_list_init(&cmd, &arena);
 
     nsl_cmd_push(&cmd, CC, "-c", "-o", "build/nsl.o", "-DNSL_IMPLEMENTATION", "nsl.h");
     collect_flags(&cmd);
-    if (nsl_cmd_exec_list(&cmd) != 0) return false;
+    if (nsl_cmd_exec_list(&cmd) != 0) NSL_DEFER(true);
 
+defer:
+    if (nsl) nsl_file_close(nsl);
     nsl_arena_free(&arena);
-    return true;
+    return result;
 }
 
 static bool build_tests(void) {
-    if (NSL_CMD(CC, "-o", "build/test", "-I.", "tests/main.c") != 0) return false;
-    if (NSL_CMD("./build/test") != 0) return false;
-    return true;
+    if (NSL_CMD(CC, "-o", "build/test", "-I.", "tests/main.c") != 0) return true;
+    if (NSL_CMD("./build/test") != 0) return true;
+    return false;
 }
 
 int main(int argc, const char **argv) {
-    if (!compile_commands()) return 1;
+    if (compile_commands()) return 1;
 
     if (argc < 2 || strcmp("build", argv[1]) == 0 || strcmp("test", argv[1]) == 0) {
-        if (!build_header_file()) return 2;
+        if (build_header_file()) return 2;
     }
 
     if (argc >= 2 && strcmp("test", argv[1]) == 0) {
-        if (!build_tests()) return 3;
+        if (build_tests()) return 3;
     }
 
     return 0;
