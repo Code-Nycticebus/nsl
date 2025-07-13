@@ -97,6 +97,7 @@ NSL_API void *nsl_arena_calloc(nsl_Arena *arena, usize size) {
 
 NSL_API void *nsl_arena_alloc_chunk(nsl_Arena *arena, usize size) {
     nsl_Chunk *chunk = chunk_allocate(size);
+    if (arena == NULL) return chunk->data;
     chunk->cap = 0;
     chunk->allocated = size;
     chunk->next = arena->begin;
@@ -114,39 +115,32 @@ NSL_API void *nsl_arena_calloc_chunk(nsl_Arena *arena, usize size) {
 }
 
 NSL_API void *nsl_arena_realloc_chunk(nsl_Arena *arena, void *ptr, usize size) {
-    if (ptr == NULL) {
-        return nsl_arena_alloc_chunk(arena, size);
-    }
+    if (ptr == NULL) return nsl_arena_alloc_chunk(arena, size);
+
     nsl_Chunk *chunk = (nsl_Chunk *)((usize)ptr - sizeof(nsl_Chunk));
-    if (size < chunk->allocated) {
-        return chunk->data;
-    }
+
+    if (size < chunk->allocated) return chunk->data;
+
     nsl_Chunk *new_chunk = realloc(chunk, sizeof(nsl_Chunk) + size);
-    if (new_chunk->prev) {
-        new_chunk->prev->next = new_chunk;
-    }
-    if (new_chunk->next) {
-        new_chunk->next->prev = new_chunk;
-    }
-    if (arena->begin == chunk) {
-        arena->begin = new_chunk;
-    }
+
+    if (arena == NULL) return new_chunk->data;
+
+    if (new_chunk->prev)       new_chunk->prev->next = new_chunk;
+    if (new_chunk->next)       new_chunk->next->prev = new_chunk;
+    if (arena->begin == chunk) arena->begin = new_chunk;
+
     return new_chunk->data;
 }
 
 NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr) {
-    if (ptr == NULL) {
-        return;
-    }
+    if (ptr == NULL) return;
+
     nsl_Chunk *chunk = (nsl_Chunk *)((usize)ptr - sizeof(nsl_Chunk));
-    if (chunk == arena->begin) {
-        arena->begin = chunk->next;
+    if (arena) {
+        if (chunk == arena->begin) arena->begin = chunk->next;
+        if (chunk->prev)           chunk->prev->next = chunk->next;
+        if (chunk->next)           chunk->next->prev = chunk->prev;
     }
-    if (chunk->prev) {
-        chunk->prev->next = chunk->next;
-    }
-    if (chunk->next) {
-        chunk->next->prev = chunk->prev;
-    }
+
     free(chunk);
 }

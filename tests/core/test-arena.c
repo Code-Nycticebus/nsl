@@ -106,6 +106,16 @@ static void test_size(void) {
     nsl_arena_free(&arena);
 }
 
+static void test_null(void) {
+    const char msg[] = "Hello World";
+    char* buffer = nsl_arena_alloc_chunk(NULL, sizeof(msg));
+    memcpy(buffer, msg, sizeof(msg));
+
+    NSL_ASSERT(strcmp(buffer, msg) == 0);
+
+    nsl_arena_free_chunk(NULL, buffer);
+}
+
 void run_test_arena(void);
 void run_test_arena(void) {
     test_arena();
@@ -113,4 +123,5 @@ void run_test_arena(void) {
     test_calloc();
     test_reset();
     test_size();
+    test_null();
 }
