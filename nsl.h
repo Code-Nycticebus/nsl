@@ -3147,7 +3147,7 @@ NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd *cmd) {
 #include <string.h>
 
 // 4 kb
-#define CHUNK_DEFAULT_SIZE 4000
+#define CHUNK_DEFAULT_SIZE 4096
 
 struct nsl_Chunk {
     nsl_Chunk *next, *prev;
