@@ -15,7 +15,6 @@ typedef struct {
 #define NSL_SET_DEFAULT_SIZE 8
 #define NSL_SET_DELETED ((u64)0xdeaddeaddeaddead)
 
-NSL_API void nsl_set_init(nsl_Set* set, nsl_Arena *arena);
 NSL_API void nsl_set_free(nsl_Set* set);
 
 NSL_API void nsl_set_resize(nsl_Set *set, usize size);

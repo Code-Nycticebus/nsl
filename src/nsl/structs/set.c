@@ -2,17 +2,6 @@
 
 #include "nsl/types/int.h"
 
-NSL_API void nsl_set_init(nsl_Set *set, nsl_Arena *arena) {
-    NSL_ASSERT(set && arena);
-    NSL_ASSERT(set->items == NULL && "The map was already initialized");
-
-    set->len = 0;
-    set->_cap = 0;
-    set->_del = 0;
-    set->arena = arena;
-    set->items = NULL;
-}
-
 NSL_API void nsl_set_free(nsl_Set* set) {
     nsl_arena_free_chunk(set->arena, set->items);
 }
