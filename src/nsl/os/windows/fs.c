@@ -1,6 +1,8 @@
 #include "nsl/os/fs.h"
 
+#include "nsl/core/error.h"
 #include "nsl/types/str.h"
+#include "nsl/types/path.h"
 
 #include <windows.h>
 #include <io.h>
@@ -12,23 +14,25 @@ typedef struct nsl_FsNode {
     char name[];
 } nsl_FsNode;
 
-NSL_API nsl_FsIter nsl_fs_begin(nsl_Path directory, bool recursive, nsl_Error *error) {
-    nsl_FsIter it = {.recursive = recursive, .error = error};
+NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive) {
+    *it = (nsl_FsIter){.recursive = recursive};
 
     const usize len = directory.len + (sizeof("/*") - 1);
     const usize size = sizeof(nsl_FsNode) + len + 1;
-    nsl_FsNode *node = nsl_arena_calloc_chunk(&it.scratch, size);
+    nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
     memcpy(node->name, directory.data, directory.len);
-    it._handle = node;
+    it->_handle = node;
 
-    nsl_Path path = nsl_path_join(2, (nsl_Path[]){directory, NSL_STR("/*")}, &it.scratch);
+    nsl_Path path = nsl_path_join(2, (nsl_Path[]){directory, NSL_STR("/*")}, &it->scratch);
     WIN32_FIND_DATA findFileData;
     node->handle = FindFirstFile(path.data, &findFileData);
     if (node->handle == INVALID_HANDLE_VALUE) {
-        NSL_ERROR_EMIT(it.error, GetLastError(), "FindFirstFile failed\n");
+        it->error = NSL_ERROR;
+        nsl_arena_free(&it->scratch);
+        return it->error;
     }
 
-    return it;
+    return NSL_NO_ERROR;
 }
 
 NSL_API void nsl_fs_end(nsl_FsIter *it) {
@@ -41,7 +45,7 @@ NSL_API void nsl_fs_end(nsl_FsIter *it) {
 }
 
 NSL_API nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
-    if (it->error && it->error->code) return NULL;
+    if (it->error) return NULL;
     while (it->_handle != NULL) {
         nsl_arena_reset(&it->scratch);
         nsl_FsNode *current = it->_handle;

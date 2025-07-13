@@ -1,3 +1,5 @@
+#include "nsl/os/cmd.h"
+
 #include "nsl/core/arena.h"
 #include "nsl/core/error.h"
 #include "nsl/structs/list.h"
@@ -36,8 +38,8 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb
     }
 }
 
-NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
-    if (argc == 0) return NSL_CMD_NOT_FOUND;
+NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
 
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
@@ -57,7 +59,7 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
 
     if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
         DWORD ec = GetLastError();
-        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) NSL_DEFER(NSL_CMD_NOT_FOUND);
+        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) NSL_DEFER(NSL_ERROR_FILE_NOT_FOUND);
 
         char msg[512] = {0};
         FormatMessageA(
@@ -86,7 +88,7 @@ NSL_API nsl_CmdError nsl_cmd_exec(size_t argc, const char **argv) {
     CloseHandle(pi.hThread);
 defer:
     nsl_arena_free(&arena);
-    return (nsl_CmdError)result;
+    return (nsl_Error)result;
 }
 
 

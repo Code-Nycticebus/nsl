@@ -28,6 +28,7 @@ NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursiv
     node->handle = opendir(node->name);
     if (node->handle == NULL) {
         it->error = NSL_ERROR;
+        nsl_arena_free(&it->scratch);
         return NSL_ERROR;
     }
 

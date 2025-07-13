@@ -48,8 +48,7 @@ static bool compile_commands(void) {
     nsl_Cmd cmd = {0};
     nsl_list_init(&cmd, &arena);
 
-    nsl_Path cwd;
-    if (nsl_os_cwd(&cwd, &arena)) NSL_DEFER(true);
+    nsl_Path cwd = nsl_os_cwd(&arena);
 
     nsl_FsIter it = {0}; 
     if (nsl_fs_begin(&it, NSL_PATH("src/nsl"), true)) NSL_DEFER(true);

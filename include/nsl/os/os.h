@@ -11,7 +11,7 @@ typedef struct {
 NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config);
 
 NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
-NSL_API nsl_Error nsl_os_cwd(nsl_Path* path, nsl_Arena *arena);
-NSL_API nsl_Str nsl_os_getenv(const char *env);
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena);
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena);
 
 #endif // _NSL_OS_H_

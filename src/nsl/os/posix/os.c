@@ -41,8 +41,8 @@ NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
     if (chdir(filepath) != 0) {
-        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
-        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOENT)  return NSL_ERROR_FILE_NOT_FOUND;
         if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
         NSL_PANIC(strerror(errno));
     }
@@ -50,21 +50,19 @@ NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
     return NSL_NO_ERROR;
 }
 
-NSL_API nsl_Error nsl_os_cwd(nsl_Path *out, nsl_Arena *arena) {
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
     errno = 0;
-    char *path = getcwd(NULL, 0);
-    if (path == NULL) {
-        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
-        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+    char *temp_path = getcwd(NULL, 0);
+    if (temp_path == NULL) {
         NSL_PANIC(strerror(errno));
     }
-    *out = nsl_str_copy(nsl_str_from_cstr(path), arena);
-    free(path);
-    return NSL_NO_ERROR;
+    nsl_Path path = nsl_str_copy(nsl_str_from_cstr(temp_path), arena);
+    free(temp_path);
+    return path;
 }
 
-NSL_API nsl_Str nsl_os_getenv(const char *env) {
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena* arena) {
     const char *var = getenv(env);
-    return var ? nsl_str_from_cstr(var) : (nsl_Str){0};
+    return var ? nsl_str_copy(nsl_str_from_cstr(var), arena) : (nsl_Str){0};
 }
 
