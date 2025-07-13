@@ -2,9 +2,7 @@
 
 void run_test_cmd(void);
 void run_test_cmd(void) {
-    nsl_Arena arena = {0};
     nsl_Cmd cmd = {0};
-    nsl_list_init(&cmd, &arena);
 
 #if defined(_WIN32)
     nsl_cmd_push(&cmd, "cmd.exe", "/c", "exit", "0");
@@ -21,5 +19,5 @@ void run_test_cmd(void) {
     NSL_ASSERT(nsl_cmd_exec_list(&cmd) == NSL_ERROR_FILE_NOT_FOUND);
     nsl_list_clear(&cmd);
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&cmd);
 }

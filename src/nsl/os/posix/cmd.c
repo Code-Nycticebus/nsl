@@ -17,16 +17,13 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
     if (pid == -1) {
         NSL_PANIC("fork failed");
     } else if (pid == 0) {
-        nsl_Arena arena = {0};
-
         nsl_List(const char *) args = {0};
-        nsl_list_init(&args, &arena);
 
         nsl_list_extend(&args, argc, argv);
         nsl_list_push(&args, NULL);
         execvp(args.items[0], (char *const *)(void *)args.items);
 
-        nsl_arena_free(&arena);
+        nsl_list_free(&args);
         exit(127);
     }
 

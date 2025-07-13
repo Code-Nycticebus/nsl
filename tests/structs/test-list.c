@@ -20,9 +20,7 @@ static void test_vec(void) {
 }
 
 static void test_list_init(void) {
-    nsl_Arena arena = {0};
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
     nsl_list_extend_static(&list, (usize[]){1, 2, 3, 4, 5});
 
     NSL_ASSERT(list.len == 5 && "Did not set len correctly");
@@ -32,16 +30,14 @@ static void test_list_init(void) {
     NSL_ASSERT(list.items[2] == 3 && "Did not init correctly");
     NSL_ASSERT(list.items[4] == 5 && "Did not init correctly");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static usize times_two(usize v) { return v * 2; }
 
 static void test_map(void) {
-    nsl_Arena arena = {0};
     const usize n = 10;
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
 
     for (usize i = 0; i < n; ++i) {
         nsl_list_push(&list, i);
@@ -52,7 +48,8 @@ static void test_map(void) {
     for (usize i = 0; i < list.len; ++i) {
         NSL_ASSERT(list.items[i] == i * 2 && "Mapping did not multiply by two");
     }
-    nsl_arena_free(&arena);
+
+    nsl_list_free(&list);
 }
 
 static i32 compare(const void *a, const void *b) {
@@ -60,10 +57,8 @@ static i32 compare(const void *a, const void *b) {
 }
 
 static void test_sort(void) {
-    nsl_Arena arena = {0};
-
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
+
     nsl_list_extend_static(&list, (usize[]){0, 3, 2, 5, 1, 4, 8, 7, 9, 6});
 
     nsl_list_sort(&list, compare);
@@ -72,14 +67,12 @@ static void test_sort(void) {
         NSL_ASSERT(list.items[i] == i && "sorting did not work correctly");
     }
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static void test_last(void) {
-    nsl_Arena arena = {0};
-
     nsl_List(i32) list = {0};
-    nsl_list_init(&list, &arena);
+
     NSL_ASSERT(nsl_list_is_empty(&list) && "List should be initialized empty");
     nsl_list_push(&list, 10);
     nsl_list_push(&list, 20);
@@ -88,13 +81,11 @@ static void test_last(void) {
     int first = nsl_list_first(&list);
     NSL_ASSERT(first == 10 && "First is not the correct number");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static void test_extend(void) {
-    nsl_Arena arena = {0};
     nsl_List(i32) list = {0};
-    nsl_list_init(&list, &arena);
 
     nsl_list_extend_static(&list, ((int[]){1, 2, 3}));
     NSL_ASSERT(list.len == 3 && "List did not extend correctly");
@@ -110,24 +101,23 @@ static void test_extend(void) {
     NSL_ASSERT(list.items[6] == 1 && list.items[7] == 2 && list.items[8] == 3 &&
            "List did not extend correctly");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static void test_reserve(void) {
-    nsl_Arena arena = {0};
     nsl_List(i32) list = {0};
-    nsl_list_init(&list, &arena);
+
     nsl_list_resize(&list, 20);
     NSL_ASSERT(list.cap == 20 && "Capacity was not increased");
     nsl_list_reserve(&list, 50);
     NSL_ASSERT(list.cap == 80 && "Capacity was not increased");
-    nsl_arena_free(&arena);
+
+    nsl_list_free(&list);
 }
 
 static void test_reverse(void) {
-    nsl_Arena arena = {0};
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
+
     const usize n = 10;
     for (usize i = 0; i < n; i++) {
         nsl_list_push(&list, i + 1);
@@ -137,15 +127,14 @@ static void test_reverse(void) {
         NSL_ASSERT(list.items[i] == n - i && "List was not reversed correctly");
     }
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static bool is_odd(usize i) { return i % 2 == 0; }
 
 static void test_filter(void) {
-    nsl_Arena arena = {0};
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
+
     const usize n = 10;
     for (usize i = 0; i < n; i++) {
         nsl_list_push(&list, i);
@@ -157,7 +146,7 @@ static void test_filter(void) {
     NSL_ASSERT(list.items[2] == 4 && "list was not filtered correctly");
     NSL_ASSERT(list.items[3] == 6 && "list was not filtered correctly");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 typedef struct {
@@ -166,9 +155,8 @@ typedef struct {
 static bool filter_with_context(Ctx *ctx, usize a) { return ctx->a < a; }
 
 static void test_filter_ctx(void) {
-    nsl_Arena arena = {0};
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
+
     const usize n = 10;
     for (usize i = 0; i < n; i++) {
         nsl_list_push(&list, i);
@@ -181,21 +169,19 @@ static void test_filter_ctx(void) {
     NSL_ASSERT(list.items[1] == 6 && "list was not filtered correctly");
     NSL_ASSERT(list.items[2] == 7 && "list was not filtered correctly");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static void test_copy(void) {
     nsl_Arena arena = {0};
-    nsl_List(usize) l1 = {0};
-    nsl_list_init(&l1, &arena);
+    nsl_List(usize) l1 = {.arena = &arena};
 
     const usize n = 10;
     for (usize i = 0; i < n; i++) {
         nsl_list_push(&l1, i + 1);
     }
 
-    nsl_List(usize) l2 = {0};
-    nsl_list_init(&l2, &arena);
+    nsl_List(usize) l2 = {.arena = &arena};
 
     nsl_list_copy(&l1, &l2);
     NSL_ASSERT(l1.len == l2.len && "list was not copied correctly");
@@ -207,9 +193,7 @@ static void test_copy(void) {
 }
 
 static void test_pop(void) {
-    nsl_Arena arena = {0};
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
     const usize n = 10;
     for (usize i = 0; i < n; i++) {
         nsl_list_push(&list, i + 1);
@@ -221,13 +205,11 @@ static void test_pop(void) {
 
     NSL_ASSERT(nsl_list_is_empty(&list) == true && "After all that not empty");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static void test_insert(void) {
-    nsl_Arena arena = {0};
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
 
     nsl_list_push(&list, 1);
     nsl_list_push(&list, 4);
@@ -241,13 +223,11 @@ static void test_insert(void) {
     NSL_ASSERT(list.items[2] == 3);
     NSL_ASSERT(list.items[3] == 4);
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static void test_remove(void) {
-    nsl_Arena arena = {0};
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
 
     nsl_list_push(&list, 1);
     nsl_list_push(&list, 2);
@@ -261,13 +241,11 @@ static void test_remove(void) {
     NSL_ASSERT(list.items[0] == 1 && "");
     NSL_ASSERT(list.items[1] == 4 && "");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static void test_for_each(void) {
-    nsl_Arena arena = {0};
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
 
     usize el[] = {1, 2, 3, 4};
     nsl_list_extend_static(&list, el);
@@ -279,7 +257,7 @@ static void test_for_each(void) {
     }
     NSL_ASSERT(i == list.len && "");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 void run_test_list(void);

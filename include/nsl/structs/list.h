@@ -17,14 +17,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define nsl_list_init(list, _arena)                                            \
-  do {                                                                         \
-    (list)->len = 0;                                                           \
-    (list)->cap = 0;                                                           \
-    (list)->arena = _arena;                                                    \
-    (list)->items = NULL;                                                      \
-  } while (0)
-
 #define nsl_list_free(list)                                                    \
   do {                                                                         \
     nsl_arena_free_chunk((list)->arena, (list)->items);                        \

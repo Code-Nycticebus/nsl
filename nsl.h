@@ -551,14 +551,6 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define nsl_list_init(list, _arena)                                            \
-  do {                                                                         \
-    (list)->len = 0;                                                           \
-    (list)->cap = 0;                                                           \
-    (list)->arena = _arena;                                                    \
-    (list)->items = NULL;                                                      \
-  } while (0)
-
 #define nsl_list_free(list)                                                    \
   do {                                                                         \
     nsl_arena_free_chunk((list)->arena, (list)->items);                        \
@@ -1528,9 +1520,7 @@ NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path *parts, nsl_Arena *aren
     if (len == 1) {
         return nsl_str_copy(parts[0], arena);
     }
-    nsl_Arena scratch = {0};
     nsl_List(char) buffer = {0};
-    nsl_list_init(&buffer, &scratch);
 
     for (usize i = 0; i < len; i++) {
         nsl_list_reserve(&buffer, parts[i].len + 2);
@@ -1551,14 +1541,13 @@ NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path *parts, nsl_Arena *aren
 
 
     nsl_Str result = nsl_str_copy(nsl_str_from_parts(buffer.len, buffer.items), arena);
-    nsl_arena_free(&scratch);
+    nsl_list_free(&buffer);
     return result;
 }
 
 NSL_API nsl_Path nsl_path_normalize(nsl_Path path, nsl_Arena *arena) {
     nsl_Arena scratch = {0};
-    nsl_List(nsl_Path) parts = {0};
-    nsl_list_init(&parts, &scratch);
+    nsl_List(nsl_Path) parts = {.arena = &scratch};
     char win_path_prefix_buffer[4] = "C:/";
 
     nsl_Path prefix = NSL_PATH("");
@@ -2998,16 +2987,13 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
     if (pid == -1) {
         NSL_PANIC("fork failed");
     } else if (pid == 0) {
-        nsl_Arena arena = {0};
-
         nsl_List(const char *) args = {0};
-        nsl_list_init(&args, &arena);
 
         nsl_list_extend(&args, argc, argv);
         nsl_list_push(&args, NULL);
         execvp(args.items[0], (char *const *)(void *)args.items);
 
-        nsl_arena_free(&arena);
+        nsl_list_free(&args);
         exit(127);
     }
 
