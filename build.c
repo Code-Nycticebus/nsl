@@ -2,7 +2,6 @@
 #include "nsl.h"
 
 #ifdef WINDOWS
-#    undef _WIN32
 #    define _WIN32
 #    define CC "x86_64-w64-mingw32-gcc"
 #endif
