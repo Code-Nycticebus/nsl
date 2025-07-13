@@ -22,9 +22,15 @@ int main(int argc, const char** argv) {
 }
 ```
 
+## Errors
+I've decided that functions which can fail should return an error code.
+Since a non-zero error code is considered truthy, I'm using the same logic for boolean-returning functions. They return true on failure and false on success. This mirrors the Unix convention where a non-zero exit code indicates an error.
+
 ## TODO
 Here's whats left to do:
-- [x] windows implementation for `os.h`
+- [ ] windows implementation for `os.h` and `fs.h`
+- [ ] make `nsl_arena_allocate_chunk()` allocate with malloc when `nsl_Arena*` is NULL
+- [ ] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
 - [ ] more cmd functions like: async, run and reset, CMD macro usw
 - [ ] scratch arena in some way
 - [ ] dll loading
