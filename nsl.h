@@ -43,13 +43,6 @@ nsl_map_insert_u64(hash, 69);
 nsl_arena_free(&arena); // frees everything in the arena, including the map
 ```
 
-This works too if you want to free just the map itself:
-```c
-nsl_Map map = {.arena = &arena};
-nsl_map_insert_u64(hash, 69);
-nsl_map_free(&arena); // only removes the map, arena remains intact
-```
-
 ## TODO
 Here's whats left to do:
 - [ ] windows implementation for `os.h` and `fs.h`
