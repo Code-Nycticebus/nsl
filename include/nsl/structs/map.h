@@ -38,6 +38,7 @@ typedef struct nsl_Map {
 #define NSL_MAP_DELETED ((u64)0xdeaddeaddeaddead)
 
 NSL_API void nsl_map_init(nsl_Map *map, nsl_MapType type, nsl_Arena *arena);
+NSL_API void nsl_map_free(nsl_Map *map);
 
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);
 NSL_API void nsl_map_extend(nsl_Map *map, usize count, nsl_MapItem *items);

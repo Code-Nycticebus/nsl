@@ -3,9 +3,7 @@
 #include <assert.h>
 
 static void test_set_init(void) {
-    nsl_Arena arena = {0};
     nsl_Set set = {0};
-    nsl_set_init(&set, &arena);
 
     nsl_set_add(&set, 1);
     nsl_set_add(&set, 2);
@@ -30,7 +28,7 @@ static void test_set_init(void) {
     NSL_ASSERT(set._del == 0);
     NSL_ASSERT(set.len == 2);
 
-    nsl_arena_free(&arena);
+    nsl_set_free(&set);
 }
 
 static void test_set_update(void) {

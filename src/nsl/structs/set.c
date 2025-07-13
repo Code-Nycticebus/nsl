@@ -13,6 +13,10 @@ NSL_API void nsl_set_init(nsl_Set *set, nsl_Arena *arena) {
     set->items = NULL;
 }
 
+NSL_API void nsl_set_free(nsl_Set* set) {
+    nsl_arena_free_chunk(set->arena, set->items);
+}
+
 NSL_API void nsl_set_resize(nsl_Set *set, usize size) {
     if (size < set->_cap) {
         return;

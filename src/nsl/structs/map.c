@@ -80,6 +80,10 @@ NSL_API void nsl_map_init(nsl_Map *map, nsl_MapType type, nsl_Arena *arena) {
     map->items = NULL;
 }
 
+NSL_API void nsl_map_free(nsl_Map *map) {
+    nsl_arena_free_chunk(map->arena, map->items);
+}
+
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other) {
     nsl_map_reserve(map, other->len);
     for (usize i = 0; i < other->cap; ++i) {

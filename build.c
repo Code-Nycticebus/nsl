@@ -16,10 +16,6 @@ static void collect_flags(nsl_Cmd *cmd) {
     nsl_cmd_push(cmd, "-Wstrict-aliasing=2", "-Wno-unused-parameter");
     nsl_cmd_push(cmd, "-std=c99");
     nsl_cmd_push(cmd, "-Iinclude");
-    nsl_cmd_push(cmd, "-g");
-    nsl_cmd_push(cmd, "-O0");
-    nsl_cmd_push(cmd, "-fsanitize=address,undefined");
-    nsl_cmd_push(cmd, "-fPIE");
 }
 
 static bool collect_files(Files *files, nsl_Path path) {
@@ -189,7 +185,7 @@ defer:
 }
 
 static bool build_tests(void) {
-    if (NSL_CMD(CC, "-o", "build/test", "-I.", "tests/main.c") != 0) return true;
+    if (NSL_CMD(CC, "-o", "build/test", "-I.", "-fsanitize=address,undefined", "-fPIE", "tests/main.c") != 0) return true;
     if (NSL_CMD("./build/test") != 0) return true;
     return false;
 }

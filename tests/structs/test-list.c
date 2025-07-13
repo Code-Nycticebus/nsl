@@ -3,10 +3,8 @@
 #include <stdio.h>
 
 static void test_vec(void) {
-    nsl_Arena arena = {0};
     const usize n = 10;
     nsl_List(usize) list = {0};
-    nsl_list_init(&list, &arena);
     for (usize i = 0; i < n; ++i) {
         nsl_list_push(&list, i + 1);
     }
@@ -18,7 +16,7 @@ static void test_vec(void) {
     nsl_list_clear(&list);
     NSL_ASSERT(list.len == 0 && "Clearing did not reset list.len");
 
-    nsl_arena_free(&arena);
+    nsl_list_free(&list);
 }
 
 static void test_list_init(void) {

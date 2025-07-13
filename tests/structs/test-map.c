@@ -1,9 +1,7 @@
 #include "nsl.h"
 
 static void test_init(void) {
-    nsl_Arena arena = {0};
-    nsl_Map map = {0};
-    nsl_map_init(&map, NSL_MAP_U64, &arena);
+    nsl_Map map = {.type=NSL_MAP_U64};
 
     NSL_ASSERT(map.type == NSL_MAP_U64);
     NSL_ASSERT(map.cap == 0);
@@ -31,7 +29,7 @@ static void test_init(void) {
     NSL_ASSERT(map.del == 0);
     NSL_ASSERT(map.len == 2);
 
-    nsl_arena_free(&arena);
+    nsl_map_free(&map);
 }
 
 static void test_access(void) {

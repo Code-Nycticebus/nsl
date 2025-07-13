@@ -31,7 +31,7 @@ Since a non-zero error code is considered truthy, I'm using the same logic for b
 Here's whats left to do:
 - [ ] windows implementation for `os.h` and `fs.h`
 - [x] make `nsl_arena_allocate_chunk()` allocate with malloc when `nsl_Arena*` is `NULL`
-- [ ] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
+- [x] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
 - [ ] more cmd functions like: async, run and reset, CMD macro usw
 - [ ] scratch arena in some way
 - [ ] dll loading
@@ -450,6 +450,7 @@ typedef struct {
 #define NSL_SET_DELETED ((u64)0xdeaddeaddeaddead)
 
 NSL_API void nsl_set_init(nsl_Set* set, nsl_Arena *arena);
+NSL_API void nsl_set_free(nsl_Set* set);
 
 NSL_API void nsl_set_resize(nsl_Set *set, usize size);
 NSL_API void nsl_set_reserve(nsl_Set *set, usize size);
@@ -506,6 +507,7 @@ typedef struct nsl_Map {
 #define NSL_MAP_DELETED ((u64)0xdeaddeaddeaddead)
 
 NSL_API void nsl_map_init(nsl_Map *map, nsl_MapType type, nsl_Arena *arena);
+NSL_API void nsl_map_free(nsl_Map *map);
 
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);
 NSL_API void nsl_map_extend(nsl_Map *map, usize count, nsl_MapItem *items);
@@ -547,157 +549,163 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define nsl_list_init(list, _arena)                                                                \
-    do {                                                                                           \
-        (list)->len = 0;                                                                           \
-        (list)->cap = 0;                                                                           \
-        (list)->arena = _arena;                                                                    \
-        (list)->items = NULL;                                                                      \
-    } while (0)
+#define nsl_list_init(list, _arena)                                            \
+  do {                                                                         \
+    (list)->len = 0;                                                           \
+    (list)->cap = 0;                                                           \
+    (list)->arena = _arena;                                                    \
+    (list)->items = NULL;                                                      \
+  } while (0)
 
-#define nsl_list_copy(src, dest)                                                                   \
-    do {                                                                                           \
-        nsl_list_resize((dest), (src)->len);                                                       \
-        for (usize __c_i = 0; __c_i < (src)->len; __c_i++) {                                       \
-            (dest)->items[__c_i] = (src)->items[__c_i];                                            \
-        }                                                                                          \
-        (dest)->len = (src)->len;                                                                  \
-    } while (0)
+#define nsl_list_free(list)                                                    \
+  do {                                                                         \
+    nsl_arena_free_chunk((list)->arena, (list)->items);                        \
+  } while (0)
 
-///////////////////////////////////////////////////////////////////////////////
-
-#define nsl_list_resize(list, size)                                                                \
-    do {                                                                                           \
-        if (size < (list)->cap) {                                                                  \
-            break;                                                                                 \
-        }                                                                                          \
-        (list)->cap = size;                                                                        \
-        (list)->items = nsl_arena_realloc_chunk((list)->arena, (list)->items,                      \
-                                                (list)->cap * sizeof(*(list)->items));             \
-    } while (0)
-
-#define nsl_list_reserve(list, size)                                                               \
-    do {                                                                                           \
-        const usize __rs = (list)->len + size;                                                     \
-        if (__rs < (list)->cap) {                                                                  \
-            break;                                                                                 \
-        }                                                                                          \
-        usize __ns = (list)->cap == 0 ? 5 : (list)->cap;                                           \
-        while (__ns < __rs) {                                                                      \
-            __ns *= 2;                                                                             \
-        }                                                                                          \
-        nsl_list_resize(list, __ns);                                                               \
-    } while (0)
+#define nsl_list_copy(src, dest)                                               \
+  do {                                                                         \
+    nsl_list_resize((dest), (src)->len);                                       \
+    for (usize __c_i = 0; __c_i < (src)->len; __c_i++) {                       \
+      (dest)->items[__c_i] = (src)->items[__c_i];                              \
+    }                                                                          \
+    (dest)->len = (src)->len;                                                  \
+  } while (0)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define nsl_list_push(list, ...)                                                                   \
-    do {                                                                                           \
-        nsl_list_reserve((list), 1);                                                               \
-        (list)->items[(list)->len++] = (__VA_ARGS__);                                              \
-    } while (0)
+#define nsl_list_resize(list, size)                                            \
+  do {                                                                         \
+    if (size < (list)->cap) {                                                  \
+      break;                                                                   \
+    }                                                                          \
+    (list)->cap = size;                                                        \
+    (list)->items = nsl_arena_realloc_chunk(                                   \
+        (list)->arena, (list)->items, (list)->cap * sizeof(*(list)->items));   \
+  } while (0)
 
-#define nsl_list_extend(list, count, ...)                                                          \
-    do {                                                                                           \
-        nsl_list_reserve((list), (count));                                                         \
-        for (usize __e_i = 0; __e_i < (count); __e_i++) {                                          \
-            (list)->items[(list)->len + __e_i] = (__VA_ARGS__)[__e_i];                             \
-        }                                                                                          \
-        (list)->len += count;                                                                      \
-    } while (0)
-
-#define nsl_list_extend_static(list, ...)                                                          \
-    do {                                                                                           \
-        nsl_list_extend(list, NSL_ARRAY_LEN(__VA_ARGS__), __VA_ARGS__);                            \
-    } while (0)
-
-#define nsl_list_extend_list(list, other)                                                          \
-    do {                                                                                           \
-        nsl_list_reserve((list), (other)->len);                                                    \
-        for (usize __e_i = 0; __e_i < (other)->len; __e_i++) {                                     \
-            (list)->items[(list)->len + __e_i] = (other)->items[__e_i];                            \
-        }                                                                                          \
-        (list)->len += (other)->len;                                                               \
-    } while (0)
-
-#define nsl_list_insert(list, value, idx)                                                          \
-    do {                                                                                           \
-        nsl_list_reserve(list, 1);                                                                 \
-        for (usize __r_i = idx + 1; __r_i < (list)->len + 1; __r_i++) {                            \
-            (list)->items[__r_i] = (list)->items[__r_i - 1];                                       \
-        }                                                                                          \
-        (list)->items[idx] = value;                                                                \
-        (list)->len++;                                                                             \
-    } while (0)
-
-#define nsl_list_remove(list, idx)                                                                 \
-    do {                                                                                           \
-        for (usize __r_i = idx + 1; __r_i < (list)->len; __r_i++) {                                \
-            (list)->items[__r_i - 1] = (list)->items[__r_i];                                       \
-        }                                                                                          \
-        (list)->len--;                                                                             \
-    } while (0)
+#define nsl_list_reserve(list, size)                                           \
+  do {                                                                         \
+    const usize __rs = (list)->len + size;                                     \
+    if (__rs < (list)->cap) {                                                  \
+      break;                                                                   \
+    }                                                                          \
+    usize __ns = (list)->cap == 0 ? 5 : (list)->cap;                           \
+    while (__ns < __rs) {                                                      \
+      __ns *= 2;                                                               \
+    }                                                                          \
+    nsl_list_resize(list, __ns);                                               \
+  } while (0)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define nsl_list_map(src, dest, map)                                                               \
-    do {                                                                                           \
-        nsl_list_reserve((dest), (src)->len);                                                      \
-        for (usize __m_i = 0; __m_i < (src)->len; __m_i++) {                                       \
-            (dest)->items[__m_i] = map((src)->items[__m_i]);                                       \
-        }                                                                                          \
-        (dest)->len = (src)->len;                                                                  \
-    } while (0)
+#define nsl_list_push(list, ...)                                               \
+  do {                                                                         \
+    nsl_list_reserve((list), 1);                                               \
+    (list)->items[(list)->len++] = (__VA_ARGS__);                              \
+  } while (0)
 
-#define nsl_list_map_ctx(src, dest, map, ctx)                                                      \
-    do {                                                                                           \
-        nsl_list_reserve((dest), (src)->len);                                                      \
-        for (usize __m_i = 0; __m_i < (src)->len; __m_i++) {                                       \
-            (dest)->items[__m_i] = map(ctx, (src)->items[__m_i]);                                  \
-        }                                                                                          \
-        (dest)->len = (src)->len;                                                                  \
-    } while (0)
+#define nsl_list_extend(list, count, ...)                                      \
+  do {                                                                         \
+    nsl_list_reserve((list), (count));                                         \
+    for (usize __e_i = 0; __e_i < (count); __e_i++) {                          \
+      (list)->items[(list)->len + __e_i] = (__VA_ARGS__)[__e_i];               \
+    }                                                                          \
+    (list)->len += count;                                                      \
+  } while (0)
 
-#define nsl_list_filter(src, dest, filter)                                                         \
-    do {                                                                                           \
-        nsl_list_reserve((dest), (src)->len);                                                      \
-        usize __f_count = 0;                                                                       \
-        for (usize __f_i = 0; __f_i < (src)->len; __f_i++) {                                       \
-            if (filter((src)->items[__f_i])) {                                                     \
-                (dest)->items[__f_count++] = (src)->items[__f_i];                                  \
-            }                                                                                      \
-        }                                                                                          \
-        (dest)->len = __f_count;                                                                   \
-    } while (0)
+#define nsl_list_extend_static(list, ...)                                      \
+  do {                                                                         \
+    nsl_list_extend(list, NSL_ARRAY_LEN(__VA_ARGS__), __VA_ARGS__);            \
+  } while (0)
 
-#define nsl_list_filter_ctx(src, dest, filter, ctx)                                                \
-    do {                                                                                           \
-        nsl_list_reserve((dest), (src)->len);                                                      \
-        usize __f_count = 0;                                                                       \
-        for (usize __f_i = 0; __f_i < (src)->len; __f_i++) {                                       \
-            if (filter((ctx), (src)->items[__f_i])) {                                              \
-                (dest)->items[__f_count++] = (src)->items[__f_i];                                  \
-            }                                                                                      \
-        }                                                                                          \
-        (dest)->len = __f_count;                                                                   \
-    } while (0)
+#define nsl_list_extend_list(list, other)                                      \
+  do {                                                                         \
+    nsl_list_reserve((list), (other)->len);                                    \
+    for (usize __e_i = 0; __e_i < (other)->len; __e_i++) {                     \
+      (list)->items[(list)->len + __e_i] = (other)->items[__e_i];              \
+    }                                                                          \
+    (list)->len += (other)->len;                                               \
+  } while (0)
 
-#define nsl_list_sort(src, sort) qsort((src)->items, (src)->len, sizeof((src)->items[0]), sort)
+#define nsl_list_insert(list, value, idx)                                      \
+  do {                                                                         \
+    nsl_list_reserve(list, 1);                                                 \
+    for (usize __r_i = idx + 1; __r_i < (list)->len + 1; __r_i++) {            \
+      (list)->items[__r_i] = (list)->items[__r_i - 1];                         \
+    }                                                                          \
+    (list)->items[idx] = value;                                                \
+    (list)->len++;                                                             \
+  } while (0)
 
-#define nsl_list_reverse(list)                                                                     \
-    do {                                                                                           \
-        nsl_list_reserve((list), 1);                                                               \
-        for (usize __r_i = 0; __r_i < (list)->len - __r_i - 1; __r_i++) {                          \
-            usize __last_idx = (list)->len - __r_i - 1;                                            \
-            (list)->items[(list)->len] = (list)->items[__r_i];                                     \
-            (list)->items[__r_i] = (list)->items[__last_idx];                                      \
-            (list)->items[__last_idx] = (list)->items[(list)->len];                                \
-        }                                                                                          \
-    } while (0)
+#define nsl_list_remove(list, idx)                                             \
+  do {                                                                         \
+    for (usize __r_i = idx + 1; __r_i < (list)->len; __r_i++) {                \
+      (list)->items[__r_i - 1] = (list)->items[__r_i];                         \
+    }                                                                          \
+    (list)->len--;                                                             \
+  } while (0)
 
-#define nsl_list_for_each(T, iter, da)                                                             \
-    if ((da)->len)                                                                                 \
-        for (T iter = &nsl_list_first(da); iter <= &nsl_list_last(da); iter++)
+///////////////////////////////////////////////////////////////////////////////
+
+#define nsl_list_map(src, dest, map)                                           \
+  do {                                                                         \
+    nsl_list_reserve((dest), (src)->len);                                      \
+    for (usize __m_i = 0; __m_i < (src)->len; __m_i++) {                       \
+      (dest)->items[__m_i] = map((src)->items[__m_i]);                         \
+    }                                                                          \
+    (dest)->len = (src)->len;                                                  \
+  } while (0)
+
+#define nsl_list_map_ctx(src, dest, map, ctx)                                  \
+  do {                                                                         \
+    nsl_list_reserve((dest), (src)->len);                                      \
+    for (usize __m_i = 0; __m_i < (src)->len; __m_i++) {                       \
+      (dest)->items[__m_i] = map(ctx, (src)->items[__m_i]);                    \
+    }                                                                          \
+    (dest)->len = (src)->len;                                                  \
+  } while (0)
+
+#define nsl_list_filter(src, dest, filter)                                     \
+  do {                                                                         \
+    nsl_list_reserve((dest), (src)->len);                                      \
+    usize __f_count = 0;                                                       \
+    for (usize __f_i = 0; __f_i < (src)->len; __f_i++) {                       \
+      if (filter((src)->items[__f_i])) {                                       \
+        (dest)->items[__f_count++] = (src)->items[__f_i];                      \
+      }                                                                        \
+    }                                                                          \
+    (dest)->len = __f_count;                                                   \
+  } while (0)
+
+#define nsl_list_filter_ctx(src, dest, filter, ctx)                            \
+  do {                                                                         \
+    nsl_list_reserve((dest), (src)->len);                                      \
+    usize __f_count = 0;                                                       \
+    for (usize __f_i = 0; __f_i < (src)->len; __f_i++) {                       \
+      if (filter((ctx), (src)->items[__f_i])) {                                \
+        (dest)->items[__f_count++] = (src)->items[__f_i];                      \
+      }                                                                        \
+    }                                                                          \
+    (dest)->len = __f_count;                                                   \
+  } while (0)
+
+#define nsl_list_sort(src, sort)                                               \
+  qsort((src)->items, (src)->len, sizeof((src)->items[0]), sort)
+
+#define nsl_list_reverse(list)                                                 \
+  do {                                                                         \
+    nsl_list_reserve((list), 1);                                               \
+    for (usize __r_i = 0; __r_i < (list)->len - __r_i - 1; __r_i++) {          \
+      usize __last_idx = (list)->len - __r_i - 1;                              \
+      (list)->items[(list)->len] = (list)->items[__r_i];                       \
+      (list)->items[__r_i] = (list)->items[__last_idx];                        \
+      (list)->items[__last_idx] = (list)->items[(list)->len];                  \
+    }                                                                          \
+  } while (0)
+
+#define nsl_list_for_each(T, iter, da)                                         \
+  if ((da)->len)                                                               \
+    for (T iter = &nsl_list_first(da); iter <= &nsl_list_last(da); iter++)
 
 
 
@@ -2050,6 +2058,10 @@ NSL_API void nsl_set_init(nsl_Set *set, nsl_Arena *arena) {
     set->items = NULL;
 }
 
+NSL_API void nsl_set_free(nsl_Set* set) {
+    nsl_arena_free_chunk(set->arena, set->items);
+}
+
 NSL_API void nsl_set_resize(nsl_Set *set, usize size) {
     if (size < set->_cap) {
         return;
@@ -2359,6 +2371,10 @@ NSL_API void nsl_map_init(nsl_Map *map, nsl_MapType type, nsl_Arena *arena) {
     map->del = 0;
     map->arena = arena;
     map->items = NULL;
+}
+
+NSL_API void nsl_map_free(nsl_Map *map) {
+    nsl_arena_free_chunk(map->arena, map->items);
 }
 
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other) {

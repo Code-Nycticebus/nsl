@@ -30,7 +30,7 @@ Since a non-zero error code is considered truthy, I'm using the same logic for b
 Here's whats left to do:
 - [ ] windows implementation for `os.h` and `fs.h`
 - [x] make `nsl_arena_allocate_chunk()` allocate with malloc when `nsl_Arena*` is `NULL`
-- [ ] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
+- [x] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
 - [ ] more cmd functions like: async, run and reset, CMD macro usw
 - [ ] scratch arena in some way
 - [ ] dll loading
