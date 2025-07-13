@@ -30,10 +30,11 @@ Since a non-zero error code is considered truthy, I'm using the same logic for b
 ## TODO
 Here's whats left to do:
 - [ ] windows implementation for `os.h` and `fs.h`
+- [ ] make `FsIter` zero initialized valid
 - [x] make `nsl_arena_allocate_chunk()` allocate with malloc when `nsl_Arena*` is `NULL`
 - [x] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
 - [ ] more cmd functions like: async, run and reset, CMD macro usw
-- [ ] scratch arena in some way
+- [ ] scratch arena by just allocating a chunk that i can reset? and allocate a certain size that i will assert if i overdo it??? 
 - [ ] dll loading
 
 */
