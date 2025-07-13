@@ -41,8 +41,7 @@ static bool compile_commands(void) {
     if (nsl_file_open(&bc, NSL_PATH("build/compile_commands.json"), "w")) NSL_DEFER(true);
 
     nsl_Arena arena = {0};
-    nsl_Cmd cmd = {0};
-    nsl_list_init(&cmd, &arena);
+    nsl_Cmd cmd = {.arena = &arena};
 
     nsl_Path cwd = nsl_os_cwd(&arena);
 
@@ -145,8 +144,7 @@ static bool build_header_file(void) {
     nsl_file_write_fmt(nsl, "/*\n" NSL_STR_FMT "*/\n\n", NSL_STR_ARG(readme));
     nsl_file_close(r);
 
-    Files headers = {0};
-    nsl_list_init(&headers, &arena);
+    Files headers = {.arena = &arena};
     if (collect_files(&headers, NSL_PATH("include/nsl/"))) NSL_DEFER(true);
     nsl_list_sort(&headers, path_compare);
 
@@ -157,8 +155,7 @@ static bool build_header_file(void) {
     }
     nsl_file_write_fmt(nsl, "#endif // _NSL_H_\n\n");
 
-    Files src = {0};
-    nsl_list_init(&src, &arena);
+    Files src = {.arena = &arena};
     if (collect_files(&src, NSL_PATH("src/nsl/"))) NSL_DEFER(true);
     nsl_list_sort(&src, path_compare);
 
@@ -171,8 +168,7 @@ static bool build_header_file(void) {
     nsl_file_close(nsl);
     nsl = NULL;
 
-    nsl_Cmd cmd = {0};
-    nsl_list_init(&cmd, &arena);
+    nsl_Cmd cmd = {.arena = &arena};
 
     nsl_cmd_push(&cmd, CC, "-c", "-o", "build/nsl.o", "-DNSL_IMPLEMENTATION", "nsl.h");
     collect_flags(&cmd);
