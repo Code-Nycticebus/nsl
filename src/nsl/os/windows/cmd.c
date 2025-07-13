@@ -49,10 +49,7 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
 
     DWORD result = 0;
 
-    nsl_Arena arena = {0};
-
     nsl_StrBuilder sb = {0};
-    nsl_list_init(&sb, &arena);
 
     _nc_cmd_win32_wrap(argc, argv, &sb);
     nsl_list_push(&sb, '\0');
@@ -65,7 +62,7 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
         FormatMessageA(
             FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, ec,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
             msg, (DWORD)sizeof(msg), NULL
         );
         NSL_PANIC(msg);
@@ -78,7 +75,7 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
         FormatMessageA(
             FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, ec,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
             msg, (DWORD)sizeof(msg), NULL
         );
         NSL_PANIC(msg);
@@ -87,7 +84,7 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 defer:
-    nsl_arena_free(&arena);
+    nsl_list_free(&sb);
     return (nsl_Error)result;
 }
 

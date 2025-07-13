@@ -43,7 +43,7 @@ NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
         FormatMessageA(
             FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, ec,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
             msg, (DWORD)sizeof(msg), NULL
         );
         NSL_PANIC(msg);
@@ -72,7 +72,7 @@ NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
         FormatMessageA(
             FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, ec,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
             msg, (DWORD)sizeof(msg), NULL
         );
         NSL_PANIC(msg);
@@ -89,7 +89,7 @@ NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
         FormatMessageA(
             FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, ec,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
             msg, (DWORD)sizeof(msg), NULL
         );
         NSL_PANIC(msg);
@@ -112,7 +112,7 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena) {
         FormatMessageA(
             FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL, ec,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
             msg, (DWORD)sizeof(msg), NULL
         );
         NSL_PANIC(msg);
