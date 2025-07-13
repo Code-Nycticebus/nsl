@@ -99,9 +99,8 @@ static void test_size(void) {
     nsl_Arena arena = {0};
 
     int *i = nsl_arena_alloc(&arena, sizeof(*i));
-    NSL_ASSERT(nsl_arena_size(&arena) == test_align(sizeof(*i)) &&
-           "size not matching");
-    NSL_ASSERT(nsl_arena_real_size(&arena) == 4000 && "chunk size does not match");
+    NSL_ASSERT(nsl_arena_size(&arena) == test_align(sizeof(*i)) && "size not matching");
+    NSL_ASSERT(nsl_arena_real_size(&arena) == 4096 && "chunk is not the same size as a page");
 
     nsl_arena_free(&arena);
 }
