@@ -496,11 +496,11 @@ typedef struct {
 } nsl_MapItem;
 
 typedef struct nsl_Map {
+    nsl_Arena *arena;
     nsl_MapType type;
     usize len;
     usize cap;
     usize del;
-    nsl_Arena *arena;
     nsl_MapItem *items;
 } nsl_Map;
 
