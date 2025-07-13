@@ -16,7 +16,7 @@ int main(void) {
 
     nsl_Path file = NSL_PATH("main.c");
     const char* out = nsl_str_to_cstr(nsl_path_stem(file), &arena);
-    if (NSL_CMD("gcc", "-o", out, "-Werror", "-Wall", "-Wextra", file.data)) return 1;
+    if (NSL_CMD("gcc", "-o", out, "-Wall", file.data)) return 1;
 
     nsl_arena_free(&arena);
     return 0;
