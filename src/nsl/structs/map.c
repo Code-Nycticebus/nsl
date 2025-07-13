@@ -69,17 +69,6 @@ static nsl_MapValue *nsl_map_get(const nsl_Map *map, u64 hash) {
     return NULL;
 }
 
-NSL_API void nsl_map_init(nsl_Map *map, nsl_MapType type, nsl_Arena *arena) {
-    NSL_ASSERT(map->items == NULL && "The map was already initialized");
-
-    map->type = type;
-    map->len = 0;
-    map->cap = 0;
-    map->del = 0;
-    map->arena = arena;
-    map->items = NULL;
-}
-
 NSL_API void nsl_map_free(nsl_Map *map) {
     nsl_arena_free_chunk(map->arena, map->items);
 }

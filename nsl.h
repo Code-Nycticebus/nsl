@@ -488,7 +488,6 @@ typedef union {
     u64 u64;
     f64 f64;
     void* ptr;
-    const void* const_ptr;
 } nsl_MapValue;
 
 typedef struct {
@@ -508,7 +507,6 @@ typedef struct nsl_Map {
 #define NSL_MAP_DEFAULT_SIZE 8
 #define NSL_MAP_DELETED ((u64)0xdeaddeaddeaddead)
 
-NSL_API void nsl_map_init(nsl_Map *map, nsl_MapType type, nsl_Arena *arena);
 NSL_API void nsl_map_free(nsl_Map *map);
 
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);
@@ -2351,17 +2349,6 @@ static nsl_MapValue *nsl_map_get(const nsl_Map *map, u64 hash) {
     }
 
     return NULL;
-}
-
-NSL_API void nsl_map_init(nsl_Map *map, nsl_MapType type, nsl_Arena *arena) {
-    NSL_ASSERT(map->items == NULL && "The map was already initialized");
-
-    map->type = type;
-    map->len = 0;
-    map->cap = 0;
-    map->del = 0;
-    map->arena = arena;
-    map->items = NULL;
 }
 
 NSL_API void nsl_map_free(nsl_Map *map) {

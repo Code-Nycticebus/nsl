@@ -17,7 +17,6 @@ typedef union {
     u64 u64;
     f64 f64;
     void* ptr;
-    const void* const_ptr;
 } nsl_MapValue;
 
 typedef struct {
@@ -37,7 +36,6 @@ typedef struct nsl_Map {
 #define NSL_MAP_DEFAULT_SIZE 8
 #define NSL_MAP_DELETED ((u64)0xdeaddeaddeaddead)
 
-NSL_API void nsl_map_init(nsl_Map *map, nsl_MapType type, nsl_Arena *arena);
 NSL_API void nsl_map_free(nsl_Map *map);
 
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);

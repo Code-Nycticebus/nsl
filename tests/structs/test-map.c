@@ -33,9 +33,7 @@ static void test_init(void) {
 }
 
 static void test_access(void) {
-    nsl_Arena arena = {0};
     nsl_Map map = {0};
-    nsl_map_init(&map, NSL_MAP_DYNAMIC, &arena);
 
     nsl_map_insert_i64(&map, 1, -64);
     nsl_map_insert_u64(&map, 2, 64);
@@ -61,21 +59,19 @@ static void test_access(void) {
     void* n = nsl_map_get_ptr(&map, 5);
     NSL_ASSERT(n == NULL);
 
-    nsl_arena_free(&arena);
+    nsl_map_free(&map);
 }
 
 static void test_update(void) {
     nsl_Arena arena = {0};
-    nsl_Map map1 = {0};
-    nsl_map_init(&map1, NSL_MAP_DYNAMIC, &arena);
+    nsl_Map map1 = {.arena = &arena};
 
     nsl_map_insert_i64(&map1, 1, -64);
     nsl_map_insert_u64(&map1, 2, 64);
     nsl_map_insert_f64(&map1, 3, 3.141);
     nsl_map_insert_ptr(&map1, 4, &map1);
 
-    nsl_Map map2 = {0};
-    nsl_map_init(&map2, NSL_MAP_DYNAMIC, &arena);
+    nsl_Map map2 = {.arena = &arena};
 
     nsl_map_update(&map2, &map1);
 
@@ -99,22 +95,18 @@ static void test_update(void) {
 }
 
 static void test_remove_entries(void) {
-    nsl_Arena arena = {0};
     nsl_Map map = {0};
-    nsl_map_init(&map, NSL_MAP_DYNAMIC, &arena);
 
     nsl_map_insert_u64(&map, 1, 420);
 
     NSL_ASSERT(nsl_map_remove(&map, 1) == true);
     NSL_ASSERT(nsl_map_remove(&map, 1) == false);
 
-    nsl_arena_free(&arena);
+    nsl_map_free(&map);
 }
 
 static void test_overwriting(void) {
-    nsl_Arena arena = {0};
     nsl_Map map = {0};
-    nsl_map_init(&map, NSL_MAP_DYNAMIC, &arena);
 
     nsl_map_insert_u64(&map, 1, 420);
     nsl_map_insert_u64(&map, 1, 69);
@@ -123,13 +115,11 @@ static void test_overwriting(void) {
     NSL_ASSERT(u);
     NSL_ASSERT(*u == 69);
 
-    nsl_arena_free(&arena);
+    nsl_map_free(&map);
 }
 
 static void test_clear(void) {
-    nsl_Arena arena = {0};
     nsl_Map map = {0};
-    nsl_map_init(&map, NSL_MAP_DYNAMIC, &arena);
 
     nsl_map_insert_u64(&map, 1, 69);
 
@@ -140,13 +130,11 @@ static void test_clear(void) {
     u64* u = nsl_map_get_ptr(&map, 1);
     NSL_ASSERT(u == NULL);
 
-    nsl_arena_free(&arena);
+    nsl_map_free(&map);
 }
 
 static void test_stress(void) {
-    nsl_Arena arena = {0};
     nsl_Map map = {0};
-    nsl_map_init(&map, NSL_MAP_U64, &arena);
 
     const usize num_entries = 1000000; 
 
@@ -177,8 +165,7 @@ static void test_stress(void) {
         }
     }
 
-
-    nsl_arena_free(&arena);
+    nsl_map_free(&map);
 }
 
 void run_test_map(void);
