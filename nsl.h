@@ -28,19 +28,23 @@ Functions that can fail return a `0` or `NSL_NO_ERROR` on success and a non-zero
 This mirrors the Unix convention where a non-zero exit code indicates an error.
 
 ## Data Structures
-
 The `nsl_List`, `nsl_Map`, and `nsl_Set` data structures are valid when zero-initialized and can be used without any setup:
 ```c
 nsl_Map map = {0};
-nsl_map_insert_u64(hash, 69);
+
+// map operations
+
 nsl_map_free(&map);
 ```
 
 Or, you can allocate all internal memory from a `nsl_Arena`.
 ```c
+nsl_Arena arena = {0};
 nsl_Map map = {.arena = &arena};
-nsl_map_insert_u64(hash, 69);
-nsl_arena_free(&arena); // frees everything in the arena, including the map
+
+// map operations
+
+nsl_arena_free(&arena);
 ```
 
 ## TODO
