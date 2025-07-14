@@ -767,6 +767,22 @@ NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...);
 NSL_API void nsl_file_write_str(FILE *file, nsl_Str content);
 NSL_API void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
 
+#ifndef _NSL_DLL_
+#define _NSL_DLL_
+
+
+typedef struct {
+  void *handle;
+} nsl_Dll;
+
+typedef void (*Function)(void);
+
+nsl_Error dll_load(nsl_Dll* dll, nsl_Path path);
+void dll_close(nsl_Dll *dll);
+
+Function dll_symbol(nsl_Dll *dll, nsl_Str symbol);
+
+#endif // _NSL_DLL_
 
 
 
@@ -2954,6 +2970,44 @@ NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
         return e;
     }
     return NULL;
+}
+#endif // !_WIN32
+
+#if !defined(_WIN32)
+
+
+#include <string.h>
+
+#include <dlfcn.h>
+
+nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
+    if (!nsl_fs_exists(path)) {
+        return NSL_ERROR_FILE_NOT_FOUND;
+    }
+    char lib_path[FILENAME_MAX] = {0};
+    memcpy(lib_path, path.data, nsl_usize_min(path.len, FILENAME_MAX));
+
+    dll->handle = dlopen(lib_path, RTLD_LAZY);
+    if (dll->handle == NULL) {
+        return NSL_ERROR;
+    }
+
+    return NSL_NO_ERROR;
+}
+
+void dll_close(nsl_Dll *dll) {
+    dlclose(dll->handle);
+}
+
+Function dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
+    Function result = NULL;
+    nsl_Arena arena = {0};
+
+    const char* s = nsl_str_to_cstr(symbol, &arena);
+    *(void **)(&result) = dlsym(handle, s);
+
+    nsl_arena_free(&arena);
+    return result;
 }
 #endif // !_WIN32
 
