@@ -49,7 +49,5 @@ Here's whats left to do:
 - [x] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
 - [x] depricate ds init functions
 - [ ] more cmd functions like: async, run and reset, CMD macro usw
-- [ ] scratch arena by just allocating a chunk that i can reset? and allocate a certain size that i will assert if i overdo it??? 
 - [ ] dll loading
-- [ ] overthink the `fs.h` api
 
