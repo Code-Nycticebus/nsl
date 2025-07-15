@@ -61,7 +61,7 @@ static void test_calloc(void) {
     nsl_arena_free(&arena);
 }
 
-static void test_reset(void) { // NOLINT
+static void test_reset(void) {
     nsl_Arena arena = {0};
 
     int *chunk = nsl_arena_alloc_chunk(&arena, sizeof(int));

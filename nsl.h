@@ -261,8 +261,6 @@ NSL_API void nsl_arena_reset(nsl_Arena *arena);
 NSL_API usize nsl_arena_size(nsl_Arena *arena);
 NSL_API usize nsl_arena_real_size(nsl_Arena *arena);
 
-////////////////////////////////////////////////////////////////////////////
-
 NSL_API void *nsl_arena_alloc_chunk(nsl_Arena *arena, usize size);
 NSL_API void *nsl_arena_calloc_chunk(nsl_Arena *arena, usize size);
 NSL_API void *nsl_arena_realloc_chunk(nsl_Arena *arena, void *ptr, usize size);
@@ -313,10 +311,10 @@ typedef struct {
 
 typedef void (*Function)(void);
 
-nsl_Error dll_load(nsl_Dll* dll, nsl_Path path);
-void dll_close(nsl_Dll *dll);
+NSL_API nsl_Error dll_load(nsl_Dll* dll, nsl_Path path);
+NSL_API void dll_close(nsl_Dll *dll);
 
-Function dll_symbol(nsl_Dll *dll, nsl_Str symbol);
+NSL_API Function dll_symbol(nsl_Dll *dll, nsl_Str symbol);
 
 #endif // _NSL_DLL_
 
@@ -346,10 +344,10 @@ typedef struct {
 } nsl_FsEntry;
 
 typedef struct {
-    nsl_Arena scratch; // per file scratch buffer
-    bool recursive;    // recursive
-    nsl_Error error;   // Error
-    void *_handle;     // platform specific handle
+    nsl_Arena scratch;
+    bool recursive;
+    nsl_Error error;
+    void *_handle;
 } nsl_FsIter;
 
 NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive);
@@ -378,16 +376,12 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena);
 
 #include <stdlib.h>
 
-///////////////////////////////////////////////////////////////////////////////
-
 #define nsl_list_first(list) (list)->items[0]
 #define nsl_list_last(list) (list)->items[(list)->len - 1]
 #define nsl_list_pop(list) (list)->items[--(list)->len]
 #define nsl_list_is_empty(list) (!(list)->len)
 
 #define nsl_list_clear(list) ((list)->len = 0)
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define nsl_list_free(list)                                                    \
   do {                                                                         \
@@ -402,8 +396,6 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena);
     }                                                                          \
     (dest)->len = (src)->len;                                                  \
   } while (0)
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define nsl_list_resize(list, size)                                            \
   do {                                                                         \
@@ -427,8 +419,6 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena);
     }                                                                          \
     nsl_list_resize(list, __ns);                                               \
   } while (0)
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define nsl_list_push(list, ...)                                               \
   do {                                                                         \
@@ -476,8 +466,6 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena);
     }                                                                          \
     (list)->len--;                                                             \
   } while (0)
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define nsl_list_map(src, dest, map)                                           \
   do {                                                                         \
@@ -738,17 +726,15 @@ NSL_API nsl_Path nsl_path_parent(nsl_Path path);
 
 
 
-///////////////////////////////////////////////////////////////////////////////
+#define NSL_STR_NOT_FOUND ((usize)-1)
 
-#define NSL_STR_NOT_FOUND SIZE_MAX
-
-#define NSL_STR_LETTERS NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-#define NSL_STR_UPPERCASE NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-#define NSL_STR_LOWERCASE NSL_STR("abcdefghijklmnopqrstuvwxyz")
-#define NSL_STR_DIGITS NSL_STR("0123456789")
-#define NSL_STR_HEXDIGITS NSL_STR("0123456789abcdefABCDEF")
+#define NSL_STR_LETTERS     NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+#define NSL_STR_UPPERCASE   NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+#define NSL_STR_LOWERCASE   NSL_STR("abcdefghijklmnopqrstuvwxyz")
+#define NSL_STR_DIGITS      NSL_STR("0123456789")
+#define NSL_STR_HEXDIGITS   NSL_STR("0123456789abcdefABCDEF")
 #define NSL_STR_PUNCTUATION NSL_STR("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
-#define NSL_STR_WHITESPACE NSL_STR(" \t\n\r\x0b\x0c")
+#define NSL_STR_WHITESPACE  NSL_STR(" \t\n\r\x0b\x0c")
 
 NSL_API nsl_Str nsl_str_from_parts(usize size, const char *cstr);
 NSL_API nsl_Str nsl_str_from_bytes(nsl_Bytes bytes);
@@ -768,7 +754,7 @@ NSL_API nsl_Str nsl_str_join(nsl_Str sep, usize count, nsl_Str *s, nsl_Arena *ar
 NSL_API nsl_Str nsl_str_join_suffix(nsl_Str suffix, usize count, nsl_Str *s, nsl_Arena *arena);
 // Prepends prefix to every element, even the last one
 NSL_API nsl_Str nsl_str_join_prefix(nsl_Str prefix, usize count, nsl_Str *s, nsl_Arena *arena);
-
+// Joins and wraps the elements
 NSL_API nsl_Str nsl_str_join_wrap(nsl_Str sep, nsl_Str wrap, usize count, nsl_Str *s, nsl_Arena *arena);
 
 NSL_API nsl_Str nsl_str_upper(nsl_Str s, nsl_Arena *arena);
@@ -1154,7 +1140,7 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
 
 #include <dlfcn.h>
 
-nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
+NSL_API nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
     if (!nsl_fs_exists(path)) {
         return NSL_ERROR_FILE_NOT_FOUND;
     }
@@ -1169,11 +1155,11 @@ nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
     return NSL_NO_ERROR;
 }
 
-void dll_close(nsl_Dll *dll) {
+NSL_API void dll_close(nsl_Dll *dll) {
     dlclose(dll->handle);
 }
 
-Function dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
+NSL_API Function dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
     Function result = NULL;
     nsl_Arena arena = {0};
 
@@ -2100,21 +2086,15 @@ NSL_API void nsl_set_union(const nsl_Set *set, const nsl_Set *other, nsl_Set* ou
 #include <stdio.h>
 #include <string.h>
 
-///////////////////////////////////////////////////////////////////////////////
-
 NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data) {
     return (nsl_Bytes){.size = size, .data = data};
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API nsl_Bytes nsl_bytes_copy(nsl_Bytes bytes, nsl_Arena *arena) {
     u8 *buffer = nsl_arena_alloc(arena, bytes.size);
     memcpy(buffer, bytes.data, bytes.size);
     return nsl_bytes_from_parts(bytes.size, buffer);
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API nsl_Bytes nsl_bytes_slice(nsl_Bytes bytes, usize idx1, usize idx2) {
     if (idx2 <= idx1 || bytes.size <= idx1 || bytes.size < idx2) {
@@ -2131,8 +2111,6 @@ NSL_API nsl_Bytes nsl_bytes_take(nsl_Bytes *bytes, usize count) {
     return ret;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
 NSL_API bool nsl_bytes_eq(nsl_Bytes b1, nsl_Bytes b2) {
     if (b1.size != b2.size) return false;
     return memcmp(b1.data, b2.data, b1.size) == 0;
@@ -2148,8 +2126,6 @@ NSL_API u64 nsl_bytes_hash(nsl_Bytes bytes) {
     }
     return hash;
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API nsl_Str nsl_bytes_to_hex(nsl_Bytes bytes, nsl_Arena *arena) {
     char *buf = nsl_arena_calloc(arena, bytes.size * 2 + 1);
@@ -2182,7 +2158,6 @@ NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena) {
     return nsl_bytes_from_parts(idx, buffer);
 }
 
-///////////////////////////////////////////////////////////////////////////////
 
 #include <ctype.h>
 
@@ -2626,8 +2601,6 @@ NSL_API nsl_Path nsl_path_parent(nsl_Path path) {
 #include <stdlib.h>
 #include <string.h>
 
-///////////////////////////////////////////////////////////////////////////////
-
 NSL_API nsl_Str nsl_str_from_parts(usize size, const char *cstr) {
     return (nsl_Str){.len = size, .data = cstr};
 }
@@ -2662,8 +2635,6 @@ NSL_API nsl_Str nsl_str_format(nsl_Arena *arena, const char *fmt, ...) {
     va_end(va);
     return nsl_str_from_parts(size - 1, buffer);
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API nsl_Str nsl_str_copy(nsl_Str s, nsl_Arena *arena) {
     char *buffer = nsl_arena_alloc(arena, s.len + 1);
@@ -2894,8 +2865,6 @@ NSL_API nsl_Str nsl_str_reverse(nsl_Str s, nsl_Arena *arena) {
     }
     return nsl_str_from_parts(s.len, buffer);
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API bool nsl_str_eq(nsl_Str s1, nsl_Str s2) {
     if (s1.len != s2.len) {
@@ -3309,7 +3278,7 @@ NSL_API char nsl_str_getc(nsl_Str s, usize idx) {
 
 NSL_API u64 nsl_str_hash(nsl_Str s) {
     const uint64_t magic_prime = 0x00000100000001b3;
-    uint64_t hash = 0xcbf29ce484222325; // NOLINT
+    uint64_t hash = 0xcbf29ce484222325;
     for (usize i = 0; i < s.len; ++i) {
         hash = (hash ^ (u64)s.data[i]) * magic_prime;
     }

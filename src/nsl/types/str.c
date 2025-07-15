@@ -10,8 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-///////////////////////////////////////////////////////////////////////////////
-
 NSL_API nsl_Str nsl_str_from_parts(usize size, const char *cstr) {
     return (nsl_Str){.len = size, .data = cstr};
 }
@@ -46,8 +44,6 @@ NSL_API nsl_Str nsl_str_format(nsl_Arena *arena, const char *fmt, ...) {
     va_end(va);
     return nsl_str_from_parts(size - 1, buffer);
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API nsl_Str nsl_str_copy(nsl_Str s, nsl_Arena *arena) {
     char *buffer = nsl_arena_alloc(arena, s.len + 1);
@@ -278,8 +274,6 @@ NSL_API nsl_Str nsl_str_reverse(nsl_Str s, nsl_Arena *arena) {
     }
     return nsl_str_from_parts(s.len, buffer);
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API bool nsl_str_eq(nsl_Str s1, nsl_Str s2) {
     if (s1.len != s2.len) {
@@ -693,7 +687,7 @@ NSL_API char nsl_str_getc(nsl_Str s, usize idx) {
 
 NSL_API u64 nsl_str_hash(nsl_Str s) {
     const uint64_t magic_prime = 0x00000100000001b3;
-    uint64_t hash = 0xcbf29ce484222325; // NOLINT
+    uint64_t hash = 0xcbf29ce484222325;
     for (usize i = 0; i < s.len; ++i) {
         hash = (hash ^ (u64)s.data[i]) * magic_prime;
     }

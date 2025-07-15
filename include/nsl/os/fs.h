@@ -11,10 +11,10 @@ typedef struct {
 } nsl_FsEntry;
 
 typedef struct {
-    nsl_Arena scratch; // per file scratch buffer
-    bool recursive;    // recursive
-    nsl_Error error;   // Error
-    void *_handle;     // platform specific handle
+    nsl_Arena scratch;
+    bool recursive;
+    nsl_Error error;
+    void *_handle;
 } nsl_FsIter;
 
 NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive);

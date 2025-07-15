@@ -7,21 +7,15 @@
 #include <stdio.h>
 #include <string.h>
 
-///////////////////////////////////////////////////////////////////////////////
-
 NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data) {
     return (nsl_Bytes){.size = size, .data = data};
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API nsl_Bytes nsl_bytes_copy(nsl_Bytes bytes, nsl_Arena *arena) {
     u8 *buffer = nsl_arena_alloc(arena, bytes.size);
     memcpy(buffer, bytes.data, bytes.size);
     return nsl_bytes_from_parts(bytes.size, buffer);
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API nsl_Bytes nsl_bytes_slice(nsl_Bytes bytes, usize idx1, usize idx2) {
     if (idx2 <= idx1 || bytes.size <= idx1 || bytes.size < idx2) {
@@ -38,8 +32,6 @@ NSL_API nsl_Bytes nsl_bytes_take(nsl_Bytes *bytes, usize count) {
     return ret;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
 NSL_API bool nsl_bytes_eq(nsl_Bytes b1, nsl_Bytes b2) {
     if (b1.size != b2.size) return false;
     return memcmp(b1.data, b2.data, b1.size) == 0;
@@ -55,8 +47,6 @@ NSL_API u64 nsl_bytes_hash(nsl_Bytes bytes) {
     }
     return hash;
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 NSL_API nsl_Str nsl_bytes_to_hex(nsl_Bytes bytes, nsl_Arena *arena) {
     char *buf = nsl_arena_calloc(arena, bytes.size * 2 + 1);
@@ -89,4 +79,3 @@ NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena) {
     return nsl_bytes_from_parts(idx, buffer);
 }
 
-///////////////////////////////////////////////////////////////////////////////

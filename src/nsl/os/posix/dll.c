@@ -9,7 +9,7 @@
 
 #include <dlfcn.h>
 
-nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
+NSL_API nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
     if (!nsl_fs_exists(path)) {
         return NSL_ERROR_FILE_NOT_FOUND;
     }
@@ -24,11 +24,11 @@ nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
     return NSL_NO_ERROR;
 }
 
-void dll_close(nsl_Dll *dll) {
+NSL_API void dll_close(nsl_Dll *dll) {
     dlclose(dll->handle);
 }
 
-Function dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
+NSL_API Function dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
     Function result = NULL;
     nsl_Arena arena = {0};
 

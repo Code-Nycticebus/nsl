@@ -1,20 +1,17 @@
 #ifndef _NSL_STR_H_
 #define _NSL_STR_H_
 
-#include "nsl/core/arena.h"
 #include "nsl/defines.h"
 
-///////////////////////////////////////////////////////////////////////////////
+#define NSL_STR_NOT_FOUND ((usize)-1)
 
-#define NSL_STR_NOT_FOUND SIZE_MAX
-
-#define NSL_STR_LETTERS NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-#define NSL_STR_UPPERCASE NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-#define NSL_STR_LOWERCASE NSL_STR("abcdefghijklmnopqrstuvwxyz")
-#define NSL_STR_DIGITS NSL_STR("0123456789")
-#define NSL_STR_HEXDIGITS NSL_STR("0123456789abcdefABCDEF")
+#define NSL_STR_LETTERS     NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+#define NSL_STR_UPPERCASE   NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+#define NSL_STR_LOWERCASE   NSL_STR("abcdefghijklmnopqrstuvwxyz")
+#define NSL_STR_DIGITS      NSL_STR("0123456789")
+#define NSL_STR_HEXDIGITS   NSL_STR("0123456789abcdefABCDEF")
 #define NSL_STR_PUNCTUATION NSL_STR("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
-#define NSL_STR_WHITESPACE NSL_STR(" \t\n\r\x0b\x0c")
+#define NSL_STR_WHITESPACE  NSL_STR(" \t\n\r\x0b\x0c")
 
 NSL_API nsl_Str nsl_str_from_parts(usize size, const char *cstr);
 NSL_API nsl_Str nsl_str_from_bytes(nsl_Bytes bytes);
@@ -34,7 +31,7 @@ NSL_API nsl_Str nsl_str_join(nsl_Str sep, usize count, nsl_Str *s, nsl_Arena *ar
 NSL_API nsl_Str nsl_str_join_suffix(nsl_Str suffix, usize count, nsl_Str *s, nsl_Arena *arena);
 // Prepends prefix to every element, even the last one
 NSL_API nsl_Str nsl_str_join_prefix(nsl_Str prefix, usize count, nsl_Str *s, nsl_Arena *arena);
-
+// Joins and wraps the elements
 NSL_API nsl_Str nsl_str_join_wrap(nsl_Str sep, nsl_Str wrap, usize count, nsl_Str *s, nsl_Arena *arena);
 
 NSL_API nsl_Str nsl_str_upper(nsl_Str s, nsl_Arena *arena);

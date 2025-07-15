@@ -6,16 +6,12 @@
 
 #include <stdlib.h>
 
-///////////////////////////////////////////////////////////////////////////////
-
 #define nsl_list_first(list) (list)->items[0]
 #define nsl_list_last(list) (list)->items[(list)->len - 1]
 #define nsl_list_pop(list) (list)->items[--(list)->len]
 #define nsl_list_is_empty(list) (!(list)->len)
 
 #define nsl_list_clear(list) ((list)->len = 0)
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define nsl_list_free(list)                                                    \
   do {                                                                         \
@@ -30,8 +26,6 @@
     }                                                                          \
     (dest)->len = (src)->len;                                                  \
   } while (0)
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define nsl_list_resize(list, size)                                            \
   do {                                                                         \
@@ -55,8 +49,6 @@
     }                                                                          \
     nsl_list_resize(list, __ns);                                               \
   } while (0)
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define nsl_list_push(list, ...)                                               \
   do {                                                                         \
@@ -104,8 +96,6 @@
     }                                                                          \
     (list)->len--;                                                             \
   } while (0)
-
-///////////////////////////////////////////////////////////////////////////////
 
 #define nsl_list_map(src, dest, map)                                           \
   do {                                                                         \
