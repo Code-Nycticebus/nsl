@@ -48,7 +48,7 @@ nsl_arena_free(&arena);
 
 ## TODO
 Here's whats left to do:
-- [ ] windows implementation for `os.h` and `fs.h`
+- [x] windows implementation for `os.h` and `fs.h`
 - [x] make `nsl_arena_allocate_chunk()` allocate with malloc when `nsl_Arena*` is `NULL`
 - [x] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
 - [x] depricate ds init functions
