@@ -84,8 +84,18 @@ NSL_API bool nsl_os_is_dir(nsl_Path path) {
     return S_ISDIR(info.st_mode);
 }
 
-NSL_API bool nsl_os_remove(nsl_Path path) {
+NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
     char filepath[FILENAME_MAX] = {0};
     memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-    return (unlink(filepath) != 0);
+
+    errno = 0;
+    if (unlink(filepath) != 0) {
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == EISDIR) return NSL_ERROR_NOT_DIRECTORY;
+        if (errno == EBUSY)  return NSL_ERROR_FILE_BUSY;
+        NSL_PANIC(strerror(errno));
+    }
+
+    return NSL_NO_ERROR;
 }

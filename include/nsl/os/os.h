@@ -16,6 +16,6 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena);
 
 NSL_API bool nsl_os_exists(nsl_Path path);
 NSL_API bool nsl_os_is_dir(nsl_Path path);
-NSL_API bool nsl_os_remove(nsl_Path path);
+NSL_API nsl_Error nsl_os_remove(nsl_Path path);
 
 #endif // _NSL_OS_H_

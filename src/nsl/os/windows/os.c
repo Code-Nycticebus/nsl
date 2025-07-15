@@ -125,3 +125,50 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena) {
     nsl_arena_free(&scratch);
     return result;
 }
+
+NSL_API bool nsl_os_exists(nsl_Path path) {
+    NSL_ASSERT(path.len < MAX_PATH && "pathname is too long for windows to handle");
+
+    char filepath[MAX_PATH] = {0};
+    memcpy(filepath, path.data, path.len);
+    DWORD dwAttrib = GetFileAttributesA(filepath);
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES);
+}
+
+NSL_API bool nsl_os_is_dir(nsl_Path path) {
+    NSL_ASSERT(path.len < MAX_PATH && "pathname is too long for windows to handle");
+
+    char filepath[MAX_PATH] = {0};
+    memcpy(filepath, path.data, path.len);
+    DWORD dwAttrib = GetFileAttributesA(filepath);
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
+    NSL_ASSERT(path.len < MAX_PATH && "pathname is too long for windows to handle");
+
+    char filepath[MAX_PATH] = {0};
+    memcpy(filepath, path.data, path.len);
+    if (DeleteFileA(filepath) == 0) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_ACCESS_DENIED)     return NSL_ERROR_ACCESS_DENIED;
+        if (ec == ERROR_SHARING_VIOLATION) return NSL_ERROR_FILE_BUSY;
+        if (ec == ERROR_FILE_NOT_FOUND)    return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_PATH_NOT_FOUND)    return NSL_ERROR_FILE_NOT_FOUND;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+
+    }
+
+    return NSL_NO_ERROR;
+}
+
