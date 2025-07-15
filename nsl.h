@@ -1061,21 +1061,6 @@ NSL_API void nsl_file_write_str(FILE* file, nsl_Str content) {
 NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
     fwrite(content.data, 1, content.size, file);
 }
-
-
-#include <string.h>
-#include <sys/stat.h>
-
-#if defined(_WIN32)
-#    include <direct.h>
-#    include <io.h>
-#    define stat _stat
-#    define access(path, mode) _access(path, mode)
-#    define unlink(path) _unlink(path)
-#else
-#    include <unistd.h>
-#endif
-
 #if !defined(_WIN32)
 
 
