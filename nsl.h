@@ -252,304 +252,127 @@ typedef nsl_List(u8) nsl_ByteBuffer;
 
 
 
-///////////////////////////////////////////////////////////////////////////////
+NSL_API void nsl_arena_free(nsl_Arena *arena);
 
-#define NSL_STR_NOT_FOUND SIZE_MAX
+NSL_API void *nsl_arena_alloc(nsl_Arena *arena, usize size);
+NSL_API void *nsl_arena_calloc(nsl_Arena *arena, usize size);
+NSL_API void nsl_arena_reset(nsl_Arena *arena);
 
-#define NSL_STR_LETTERS NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-#define NSL_STR_UPPERCASE NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-#define NSL_STR_LOWERCASE NSL_STR("abcdefghijklmnopqrstuvwxyz")
-#define NSL_STR_DIGITS NSL_STR("0123456789")
-#define NSL_STR_HEXDIGITS NSL_STR("0123456789abcdefABCDEF")
-#define NSL_STR_PUNCTUATION NSL_STR("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
-#define NSL_STR_WHITESPACE NSL_STR(" \t\n\r\x0b\x0c")
+NSL_API usize nsl_arena_size(nsl_Arena *arena);
+NSL_API usize nsl_arena_real_size(nsl_Arena *arena);
 
-NSL_API nsl_Str nsl_str_from_parts(usize size, const char *cstr);
-NSL_API nsl_Str nsl_str_from_bytes(nsl_Bytes bytes);
-NSL_API nsl_Bytes nsl_str_to_bytes(nsl_Str s);
-NSL_API nsl_Str nsl_str_from_cstr(const char *cstr);
-NSL_API const char* nsl_str_to_cstr(nsl_Str str, nsl_Arena* arena);
-NSL_API NSL_FMT(2) nsl_Str nsl_str_format(nsl_Arena *arena, const char *fmt, ...);
+////////////////////////////////////////////////////////////////////////////
 
-NSL_API nsl_Str nsl_str_copy(nsl_Str s, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_append(nsl_Str s1, nsl_Str suffix, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_prepend(nsl_Str s1, nsl_Str prefix, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_wrap(nsl_Str s, nsl_Str wrap, nsl_Arena *arena);
-
-// Inserts sep in between elements
-NSL_API nsl_Str nsl_str_join(nsl_Str sep, usize count, nsl_Str *s, nsl_Arena *arena);
-// Appends suffix to every element, even the last one
-NSL_API nsl_Str nsl_str_join_suffix(nsl_Str suffix, usize count, nsl_Str *s, nsl_Arena *arena);
-// Prepends prefix to every element, even the last one
-NSL_API nsl_Str nsl_str_join_prefix(nsl_Str prefix, usize count, nsl_Str *s, nsl_Arena *arena);
-
-NSL_API nsl_Str nsl_str_join_wrap(nsl_Str sep, nsl_Str wrap, usize count, nsl_Str *s, nsl_Arena *arena);
-
-NSL_API nsl_Str nsl_str_upper(nsl_Str s, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_lower(nsl_Str s, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_replace(nsl_Str s, nsl_Str old, nsl_Str new, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_center(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_ljust(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_rjust(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_repeat(nsl_Str s, usize count, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_reverse(nsl_Str s, nsl_Arena *arena);
-
-NSL_API bool nsl_str_eq(nsl_Str s1, nsl_Str s2);
-NSL_API bool nsl_str_eq_ignorecase(nsl_Str s1, nsl_Str s2);
-NSL_API bool nsl_str_startswith(nsl_Str s1, nsl_Str prefix);
-NSL_API bool nsl_str_endswith(nsl_Str s1, nsl_Str suffix);
-NSL_API bool nsl_str_endswith_predicate(nsl_Str s1, bool (*predicate)(char));
-
-NSL_API bool nsl_str_contains(nsl_Str haystack, nsl_Str needle);
-NSL_API bool nsl_str_includes(nsl_Str haystack, char needle);
-NSL_API bool nsl_str_is_empty(nsl_Str s);
-
-NSL_API nsl_Str nsl_str_trim_left(nsl_Str s);
-NSL_API nsl_Str nsl_str_trim_left_by_delim(nsl_Str s, char delim);
-NSL_API nsl_Str nsl_str_trim_left_by_predicate(nsl_Str s, bool (*predicate)(char));
-
-NSL_API nsl_Str nsl_str_trim_right(nsl_Str s);
-NSL_API nsl_Str nsl_str_trim_right_by_delim(nsl_Str s, char delim);
-NSL_API nsl_Str nsl_str_trim_right_by_predicate(nsl_Str s, bool (*predicate)(char));
-
-NSL_API nsl_Str nsl_str_trim(nsl_Str s);
-NSL_API nsl_Str nsl_str_trim_by_delim(nsl_Str s, char delim);
-NSL_API nsl_Str nsl_str_trim_by_predicate(nsl_Str s, bool (*predicate)(char));
-
-NSL_API bool nsl_str_try_chop_by_delim(nsl_Str *s, char delim, nsl_Str *chunk);
-NSL_API nsl_Str nsl_str_chop_by_delim(nsl_Str *s, char delim);
-NSL_API bool nsl_str_try_chop_by_predicate(nsl_Str *s, bool (*predicate)(char), nsl_Str *chunk);
-NSL_API nsl_Str nsl_str_chop_by_predicate(nsl_Str *s, bool (*predicate)(char));
-NSL_API nsl_Str nsl_str_chop_right_by_delim(nsl_Str *s, char delim);
-NSL_API nsl_Str nsl_str_chop_right_by_predicate(nsl_Str *s, bool (*predicate)(char));
-NSL_API nsl_Str nsl_str_take(nsl_Str *s, usize count);
-NSL_API bool nsl_str_try_take(nsl_Str *s, usize count, nsl_Str *chunk);
-NSL_API nsl_Str nsl_str_take_right(nsl_Str *s, usize count);
-NSL_API bool nsl_str_try_take_right(nsl_Str *s, usize count, nsl_Str *chunk);
-
-NSL_API nsl_Str nsl_str_substring(nsl_Str s, usize start, usize end);
-
-NSL_API u64 nsl_str_u64(nsl_Str s);
-NSL_API u64 nsl_str_chop_u64(nsl_Str *s);
-
-NSL_API i64 nsl_str_i64(nsl_Str s);
-NSL_API i64 nsl_str_chop_i64(nsl_Str *s);
-
-NSL_API f64 nsl_str_f64(nsl_Str s);
-NSL_API f64 nsl_str_chop_f64(nsl_Str *s);
-
-// Returns 'STR_NOT_FOUND' if 'needle' was not found.
-NSL_API usize nsl_str_find(nsl_Str haystack, nsl_Str needle);
-// Returns 'STR_NOT_FOUND' if 'predicate' was not found.
-NSL_API usize nsl_str_find_by_predicate(nsl_Str haystack, bool (*predicate)(char));
-// Returns 'STR_NOT_FOUND' if 'needle' was not found.
-NSL_API usize nsl_str_find_last(nsl_Str haystack, nsl_Str needle);
-// Returns 'STR_NOT_FOUND' if 'predicate' was not found.
-NSL_API usize nsl_str_find_last_by_predicate(nsl_Str haystack, bool (*predicate)(char));
-
-NSL_API usize nsl_str_count(nsl_Str haystack, nsl_Str needle);
-// Returns '\0' if the index is out of bounds.
-NSL_API char nsl_str_getc(nsl_Str s, usize idx);
-
-// Basic FNV hash.
-NSL_API u64 nsl_str_hash(nsl_Str s);
+NSL_API void *nsl_arena_alloc_chunk(nsl_Arena *arena, usize size);
+NSL_API void *nsl_arena_calloc_chunk(nsl_Arena *arena, usize size);
+NSL_API void *nsl_arena_realloc_chunk(nsl_Arena *arena, void *ptr, usize size);
+NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr);
 
 
 
-NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path* parts, nsl_Arena* arena);
-NSL_API nsl_Path nsl_path_normalize(nsl_Path path, nsl_Arena* arena);
+#include <stdlib.h>
+#include <stdio.h>
 
-NSL_API bool nsl_path_eq(nsl_Path p1, nsl_Path p2);
-NSL_API bool nsl_path_is_absolute(nsl_Path path);
-NSL_API bool nsl_path_is_root(nsl_Path path);
+#define NSL_ERROR_FMT "%s:%d: %s():"
+#define NSL_ERROR_ARG __FILE__, __LINE__, __func__
 
-NSL_API nsl_Str nsl_path_name(nsl_Path path);
-NSL_API nsl_Str nsl_path_suffix(nsl_Path path);
-NSL_API nsl_Str nsl_path_stem(nsl_Path path);
-NSL_API nsl_Path nsl_path_parent(nsl_Path path);
-
-
-
-#define INTEGER_DECL(T)                                                                            \
-    NSL_API NSL_CONST_FN T nsl_##T##_reverse_bits(T value);                                        \
-    NSL_API NSL_CONST_FN usize nsl_##T##_leading_ones(T value);                                    \
-    NSL_API NSL_CONST_FN usize nsl_##T##_trailing_ones(T value);                                   \
-    NSL_API NSL_CONST_FN usize nsl_##T##_leading_zeros(T value);                                   \
-    NSL_API NSL_CONST_FN usize nsl_##T##_trailing_zeros(T value);                                  \
-    NSL_API NSL_CONST_FN usize nsl_##T##_count_zeros(T value);                                     \
-    NSL_API NSL_CONST_FN usize nsl_##T##_count_ones(T value);                                      \
-                                                                                                   \
-    NSL_API NSL_CONST_FN T nsl_##T##_swap_bytes(T value);                                          \
-                                                                                                   \
-    NSL_API NSL_CONST_FN T nsl_##T##_to_be(T value);                                               \
-    NSL_API NSL_CONST_FN T nsl_##T##_from_be(T value);                                             \
-    NSL_API T nsl_##T##_from_be_bytes(nsl_Bytes bytes);                                            \
-    NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_Arena *arena);                            \
-                                                                                                   \
-    NSL_API NSL_CONST_FN T nsl_##T##_to_le(T value);                                               \
-    NSL_API NSL_CONST_FN T nsl_##T##_from_le(T value);                                             \
-    NSL_API T nsl_##T##_from_le_bytes(nsl_Bytes bytes);                                            \
-    NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_Arena *arena);                            \
-                                                                                                   \
-    NSL_API T nsl_##T##_from_ne_bytes(nsl_Bytes bytes);                                            \
-    NSL_API nsl_Bytes nsl_##T##_to_ne_bytes(T value, nsl_Arena *arena);                            \
-                                                                                                   \
-    NSL_API NSL_CONST_FN T nsl_##T##_max(T a, T b);                                                \
-    NSL_API NSL_CONST_FN T nsl_##T##_min(T a, T b);                                                \
-    NSL_API NSL_CONST_FN T nsl_##T##_clamp(T min, T max, T value);                                 \
-                                                                                                   \
-    NSL_API NSL_CONST_FN u64 nsl_##T##_hash(T value);                                              \
-    NSL_API void nsl_##T##_swap(T *v1, T *v2);                                                     \
-                                                                                                   \
-    NSL_API NSL_CONST_FN T nsl_##T##_next_pow2(T n);
-
-INTEGER_DECL(u8)
-INTEGER_DECL(i8)
-INTEGER_DECL(u16)
-INTEGER_DECL(i16)
-INTEGER_DECL(u32)
-INTEGER_DECL(i32)
-INTEGER_DECL(u64)
-INTEGER_DECL(i64)
-INTEGER_DECL(usize)
-
-#undef INTEGER_DECL
+// nsl_Error
+enum {
+    NSL_ERROR = -1,
+    NSL_NO_ERROR = 0,
+    NSL_ERROR_FILE_NOT_FOUND = 256,
+    NSL_ERROR_ACCESS_DENIED,
+    NSL_ERROR_ALREADY_EXISTS,
+    NSL_ERROR_NOT_DIRECTORY,
+};
 
 
 
-NSL_API NSL_CONST_FN bool nsl_char_is_alnum(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_alpha(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_lower(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_upper(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_space(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_cntrl(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_print(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_graph(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_blank(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_punct(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_digit(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_xdigit(char c);
-NSL_API NSL_CONST_FN bool nsl_char_is_path_delimiter(char c);
 
-NSL_API NSL_CONST_FN char nsl_char_to_lower(char c);
-NSL_API NSL_CONST_FN char nsl_char_to_upper(char c);
+typedef nsl_List(const char*) nsl_Cmd;
 
-NSL_API NSL_CONST_FN u8 nsl_char_to_u8(char c);
-NSL_API NSL_CONST_FN u8 nsl_char_hex_to_u8(char c);
+#define nsl_cmd_push(cmd, ...)                                                                     \
+    nsl_list_extend(cmd,                                                                           \
+        NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}),                                              \
+        (const char *[]){__VA_ARGS__}                                                              \
+    )
 
-NSL_API NSL_CONST_FN char nsl_char_from_u8(u8 d);
-NSL_API NSL_CONST_FN char nsl_char_hex_from_u8(u8 d);
-NSL_API NSL_CONST_FN char nsl_char_HEX_from_u8(u8 d);
+#define NSL_CMD(...)                                                                               \
+    nsl_cmd_exec(NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
+
+NSL_API nsl_Error nsl_cmd_exec(usize argc, const char** argv);
+NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd* args);
+
+#ifndef _NSL_DLL_
+#define _NSL_DLL_
 
 
+typedef struct {
+  void *handle;
+} nsl_Dll;
 
-NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data);
+typedef void (*Function)(void);
 
-NSL_API nsl_Bytes nsl_bytes_copy(nsl_Bytes bytes, nsl_Arena *arena);
+nsl_Error dll_load(nsl_Dll* dll, nsl_Path path);
+void dll_close(nsl_Dll *dll);
 
-NSL_API nsl_Bytes nsl_bytes_slice(nsl_Bytes bytes, usize idx1, size_t idx2);
-NSL_API nsl_Bytes nsl_bytes_take(nsl_Bytes *bytes, usize count);
+Function dll_symbol(nsl_Dll *dll, nsl_Str symbol);
 
-NSL_API bool nsl_bytes_eq(nsl_Bytes b1, nsl_Bytes b2);
-NSL_API u64 nsl_bytes_hash(nsl_Bytes bytes);
+#endif // _NSL_DLL_
 
-NSL_API nsl_Str nsl_bytes_to_hex(nsl_Bytes bytes, nsl_Arena *arena);
-NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena);
+
+NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode);
+NSL_API void nsl_file_close(FILE *file);
+
+NSL_API usize nsl_file_size(FILE *file);
+
+NSL_API nsl_Str nsl_file_read_str(FILE *file, nsl_Arena *arena);
+NSL_API nsl_Str nsl_file_read_sb(FILE *file, nsl_StrBuilder *sb);
+NSL_API nsl_Str nsl_file_read_line(FILE *file, nsl_StrBuilder *sb);
+
+NSL_API nsl_Bytes nsl_file_read_bytes(FILE *file, usize size, u8 *buffer);
+
+NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...);
+NSL_API void nsl_file_write_str(FILE *file, nsl_Str content);
+NSL_API void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
 
 
 
 typedef struct {
-    usize len;
-    usize _cap;
-    usize _del;
-    nsl_Arena *arena;
-    u64 *items;
-} nsl_Set;
-
-#define NSL_SET_DEFAULT_SIZE 8
-#define NSL_SET_DELETED ((u64)0xdeaddeaddeaddead)
-
-NSL_API void nsl_set_free(nsl_Set* set);
-
-NSL_API void nsl_set_resize(nsl_Set *set, usize size);
-NSL_API void nsl_set_reserve(nsl_Set *set, usize size);
-
-NSL_API bool nsl_set_remove(nsl_Set* set, u64 hash);
-
-NSL_API bool nsl_set_add(nsl_Set *set, u64 hash);
-NSL_API bool nsl_set_has(const nsl_Set *set, u64 hash);
-
-NSL_API void nsl_set_update(nsl_Set* set, const nsl_Set* other);
-NSL_API void nsl_set_extend(nsl_Set* set, usize count, const u64* hashes);
-
-NSL_API bool nsl_set_eq(const nsl_Set* set, const nsl_Set* other);
-NSL_API bool nsl_set_subset(const nsl_Set* set, const nsl_Set* other);
-NSL_API bool nsl_set_disjoint(const nsl_Set* set, const nsl_Set* other);
-
-NSL_API void nsl_set_intersection(const nsl_Set *set, const nsl_Set *other, nsl_Set* out);
-NSL_API void nsl_set_difference(const nsl_Set *set, const nsl_Set *other, nsl_Set* out);
-NSL_API void nsl_set_union(const nsl_Set *set, const nsl_Set *other, nsl_Set* out);
-
-
-
-typedef enum {
-    NSL_MAP_DYNAMIC,
-    NSL_MAP_I64,
-    NSL_MAP_U64,
-    NSL_MAP_F64,
-    NSL_MAP_PTR,
-} nsl_MapType;
-
-typedef union {
-    i64 i64;
-    u64 u64;
-    f64 f64;
-    void* ptr;
-} nsl_MapValue;
+    nsl_Path path;
+    bool is_dir;
+    usize size;
+    u64 mtime;
+} nsl_FsEntry;
 
 typedef struct {
-    u64 hash;
-    nsl_MapValue value;
-} nsl_MapItem;
+    nsl_Arena scratch; // per file scratch buffer
+    bool recursive;    // recursive
+    nsl_Error error;   // Error
+    void *_handle;     // platform specific handle
+} nsl_FsIter;
 
-typedef struct nsl_Map {
-    nsl_Arena *arena;
-    nsl_MapType type;
-    usize len;
-    usize cap;
-    usize del;
-    nsl_MapItem *items;
-} nsl_Map;
+NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive);
+NSL_API void nsl_fs_end(nsl_FsIter *it);
 
-#define NSL_MAP_DEFAULT_SIZE 8
-#define NSL_MAP_DELETED ((u64)0xdeaddeaddeaddead)
+NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it);
 
-NSL_API void nsl_map_free(nsl_Map *map);
+NSL_API bool nsl_fs_exists(nsl_Path path);
+NSL_API bool nsl_fs_is_dir(nsl_Path path);
+NSL_API bool nsl_fs_remove(nsl_Path path);
 
-NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);
-NSL_API void nsl_map_extend(nsl_Map *map, usize count, nsl_MapItem *items);
 
-NSL_API void nsl_map_clear(nsl_Map *map);
 
-NSL_API void nsl_map_resize(nsl_Map *map, usize size);
-NSL_API void nsl_map_reserve(nsl_Map *map, usize size);
+typedef struct {
+    u32 mode;       // set the directory mode (default = 0755)
+    bool exists_ok; // error when the directory exists
+    bool parents;   // create parent paths
+} nsl_OsDirConfig;
+NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config);
 
-NSL_API bool nsl_map_remove(nsl_Map *map, u64 hash);
-
-NSL_API void nsl_map_insert_i64(nsl_Map *map, u64 hash, i64 value);
-NSL_API void nsl_map_insert_u64(nsl_Map *map, u64 hash, u64 value);
-NSL_API void nsl_map_insert_f64(nsl_Map *map, u64 hash, f64 value);
-NSL_API void nsl_map_insert_ptr(nsl_Map *map, u64 hash, void *value);
-
-NSL_API i64 *nsl_map_get_i64(nsl_Map *map, u64 hash);
-NSL_API u64 *nsl_map_get_u64(nsl_Map *map, u64 hash);
-NSL_API f64 *nsl_map_get_f64(nsl_Map *map, u64 hash);
-NSL_API void *nsl_map_get_ptr(nsl_Map *map, u64 hash);
-
-NSL_API const i64 *nsl_map_get_i64_const(const nsl_Map *map, u64 hash);
-NSL_API const u64 *nsl_map_get_u64_const(const nsl_Map *map, u64 hash);
-NSL_API const f64 *nsl_map_get_f64_const(const nsl_Map *map, u64 hash);
-NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena);
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena);
 
 
 
@@ -718,131 +541,2084 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
 
 
 
-typedef struct {
-    u32 mode;       // set the directory mode (default = 0755)
-    bool exists_ok; // error when the directory exists
-    bool parents;   // create parent paths
-} nsl_OsDirConfig;
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config);
+typedef enum {
+    NSL_MAP_DYNAMIC,
+    NSL_MAP_I64,
+    NSL_MAP_U64,
+    NSL_MAP_F64,
+    NSL_MAP_PTR,
+} nsl_MapType;
 
-NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena);
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena);
-
-
-
-typedef struct {
-    nsl_Path path;
-    bool is_dir;
-    usize size;
-    u64 mtime;
-} nsl_FsEntry;
+typedef union {
+    i64 i64;
+    u64 u64;
+    f64 f64;
+    void* ptr;
+} nsl_MapValue;
 
 typedef struct {
-    nsl_Arena scratch; // per file scratch buffer
-    bool recursive;    // recursive
-    nsl_Error error;   // Error
-    void *_handle;     // platform specific handle
-} nsl_FsIter;
+    u64 hash;
+    nsl_MapValue value;
+} nsl_MapItem;
 
-NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive);
-NSL_API void nsl_fs_end(nsl_FsIter *it);
+typedef struct nsl_Map {
+    nsl_Arena *arena;
+    nsl_MapType type;
+    usize len;
+    usize cap;
+    usize del;
+    nsl_MapItem *items;
+} nsl_Map;
 
-NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it);
+#define NSL_MAP_DEFAULT_SIZE 8
+#define NSL_MAP_DELETED ((u64)0xdeaddeaddeaddead)
 
-NSL_API bool nsl_fs_exists(nsl_Path path);
-NSL_API bool nsl_fs_is_dir(nsl_Path path);
-NSL_API bool nsl_fs_remove(nsl_Path path);
+NSL_API void nsl_map_free(nsl_Map *map);
 
+NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);
+NSL_API void nsl_map_extend(nsl_Map *map, usize count, nsl_MapItem *items);
 
+NSL_API void nsl_map_clear(nsl_Map *map);
 
-NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode);
-NSL_API void nsl_file_close(FILE *file);
+NSL_API void nsl_map_resize(nsl_Map *map, usize size);
+NSL_API void nsl_map_reserve(nsl_Map *map, usize size);
 
-NSL_API usize nsl_file_size(FILE *file);
+NSL_API bool nsl_map_remove(nsl_Map *map, u64 hash);
 
-NSL_API nsl_Str nsl_file_read_str(FILE *file, nsl_Arena *arena);
-NSL_API nsl_Str nsl_file_read_sb(FILE *file, nsl_StrBuilder *sb);
-NSL_API nsl_Str nsl_file_read_line(FILE *file, nsl_StrBuilder *sb);
+NSL_API void nsl_map_insert_i64(nsl_Map *map, u64 hash, i64 value);
+NSL_API void nsl_map_insert_u64(nsl_Map *map, u64 hash, u64 value);
+NSL_API void nsl_map_insert_f64(nsl_Map *map, u64 hash, f64 value);
+NSL_API void nsl_map_insert_ptr(nsl_Map *map, u64 hash, void *value);
 
-NSL_API nsl_Bytes nsl_file_read_bytes(FILE *file, usize size, u8 *buffer);
+NSL_API i64 *nsl_map_get_i64(nsl_Map *map, u64 hash);
+NSL_API u64 *nsl_map_get_u64(nsl_Map *map, u64 hash);
+NSL_API f64 *nsl_map_get_f64(nsl_Map *map, u64 hash);
+NSL_API void *nsl_map_get_ptr(nsl_Map *map, u64 hash);
 
-NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...);
-NSL_API void nsl_file_write_str(FILE *file, nsl_Str content);
-NSL_API void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
+NSL_API const i64 *nsl_map_get_i64_const(const nsl_Map *map, u64 hash);
+NSL_API const u64 *nsl_map_get_u64_const(const nsl_Map *map, u64 hash);
+NSL_API const f64 *nsl_map_get_f64_const(const nsl_Map *map, u64 hash);
+NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
 
-#ifndef _NSL_DLL_
-#define _NSL_DLL_
 
 
 typedef struct {
-  void *handle;
-} nsl_Dll;
+    usize len;
+    usize _cap;
+    usize _del;
+    nsl_Arena *arena;
+    u64 *items;
+} nsl_Set;
 
-typedef void (*Function)(void);
+#define NSL_SET_DEFAULT_SIZE 8
+#define NSL_SET_DELETED ((u64)0xdeaddeaddeaddead)
 
-nsl_Error dll_load(nsl_Dll* dll, nsl_Path path);
-void dll_close(nsl_Dll *dll);
+NSL_API void nsl_set_free(nsl_Set* set);
 
-Function dll_symbol(nsl_Dll *dll, nsl_Str symbol);
+NSL_API void nsl_set_resize(nsl_Set *set, usize size);
+NSL_API void nsl_set_reserve(nsl_Set *set, usize size);
 
-#endif // _NSL_DLL_
+NSL_API bool nsl_set_remove(nsl_Set* set, u64 hash);
 
+NSL_API bool nsl_set_add(nsl_Set *set, u64 hash);
+NSL_API bool nsl_set_has(const nsl_Set *set, u64 hash);
 
+NSL_API void nsl_set_update(nsl_Set* set, const nsl_Set* other);
+NSL_API void nsl_set_extend(nsl_Set* set, usize count, const u64* hashes);
 
-typedef nsl_List(const char*) nsl_Cmd;
+NSL_API bool nsl_set_eq(const nsl_Set* set, const nsl_Set* other);
+NSL_API bool nsl_set_subset(const nsl_Set* set, const nsl_Set* other);
+NSL_API bool nsl_set_disjoint(const nsl_Set* set, const nsl_Set* other);
 
-#define nsl_cmd_push(cmd, ...)                                                                     \
-    nsl_list_extend(cmd,                                                                           \
-        NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}),                                              \
-        (const char *[]){__VA_ARGS__}                                                              \
-    )
-
-#define NSL_CMD(...)                                                                               \
-    nsl_cmd_exec(NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
-
-NSL_API nsl_Error nsl_cmd_exec(usize argc, const char** argv);
-NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd* args);
-
-
-
-#include <stdlib.h>
-#include <stdio.h>
-
-#define NSL_ERROR_FMT "%s:%d: %s():"
-#define NSL_ERROR_ARG __FILE__, __LINE__, __func__
-
-// nsl_Error
-enum {
-    NSL_ERROR = -1,
-    NSL_NO_ERROR = 0,
-    NSL_ERROR_FILE_NOT_FOUND = 256,
-    NSL_ERROR_ACCESS_DENIED,
-    NSL_ERROR_ALREADY_EXISTS,
-    NSL_ERROR_NOT_DIRECTORY,
-};
+NSL_API void nsl_set_intersection(const nsl_Set *set, const nsl_Set *other, nsl_Set* out);
+NSL_API void nsl_set_difference(const nsl_Set *set, const nsl_Set *other, nsl_Set* out);
+NSL_API void nsl_set_union(const nsl_Set *set, const nsl_Set *other, nsl_Set* out);
 
 
 
-NSL_API void nsl_arena_free(nsl_Arena *arena);
+NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data);
 
-NSL_API void *nsl_arena_alloc(nsl_Arena *arena, usize size);
-NSL_API void *nsl_arena_calloc(nsl_Arena *arena, usize size);
-NSL_API void nsl_arena_reset(nsl_Arena *arena);
+NSL_API nsl_Bytes nsl_bytes_copy(nsl_Bytes bytes, nsl_Arena *arena);
 
-NSL_API usize nsl_arena_size(nsl_Arena *arena);
-NSL_API usize nsl_arena_real_size(nsl_Arena *arena);
+NSL_API nsl_Bytes nsl_bytes_slice(nsl_Bytes bytes, usize idx1, size_t idx2);
+NSL_API nsl_Bytes nsl_bytes_take(nsl_Bytes *bytes, usize count);
 
-////////////////////////////////////////////////////////////////////////////
+NSL_API bool nsl_bytes_eq(nsl_Bytes b1, nsl_Bytes b2);
+NSL_API u64 nsl_bytes_hash(nsl_Bytes bytes);
 
-NSL_API void *nsl_arena_alloc_chunk(nsl_Arena *arena, usize size);
-NSL_API void *nsl_arena_calloc_chunk(nsl_Arena *arena, usize size);
-NSL_API void *nsl_arena_realloc_chunk(nsl_Arena *arena, void *ptr, usize size);
-NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr);
+NSL_API nsl_Str nsl_bytes_to_hex(nsl_Bytes bytes, nsl_Arena *arena);
+NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena);
+
+
+
+NSL_API NSL_CONST_FN bool nsl_char_is_alnum(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_alpha(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_lower(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_upper(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_space(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_cntrl(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_print(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_graph(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_blank(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_punct(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_digit(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_xdigit(char c);
+NSL_API NSL_CONST_FN bool nsl_char_is_path_delimiter(char c);
+
+NSL_API NSL_CONST_FN char nsl_char_to_lower(char c);
+NSL_API NSL_CONST_FN char nsl_char_to_upper(char c);
+
+NSL_API NSL_CONST_FN u8 nsl_char_to_u8(char c);
+NSL_API NSL_CONST_FN u8 nsl_char_hex_to_u8(char c);
+
+NSL_API NSL_CONST_FN char nsl_char_from_u8(u8 d);
+NSL_API NSL_CONST_FN char nsl_char_hex_from_u8(u8 d);
+NSL_API NSL_CONST_FN char nsl_char_HEX_from_u8(u8 d);
+
+
+
+#define INTEGER_DECL(T)                                                                            \
+    NSL_API NSL_CONST_FN T nsl_##T##_reverse_bits(T value);                                        \
+    NSL_API NSL_CONST_FN usize nsl_##T##_leading_ones(T value);                                    \
+    NSL_API NSL_CONST_FN usize nsl_##T##_trailing_ones(T value);                                   \
+    NSL_API NSL_CONST_FN usize nsl_##T##_leading_zeros(T value);                                   \
+    NSL_API NSL_CONST_FN usize nsl_##T##_trailing_zeros(T value);                                  \
+    NSL_API NSL_CONST_FN usize nsl_##T##_count_zeros(T value);                                     \
+    NSL_API NSL_CONST_FN usize nsl_##T##_count_ones(T value);                                      \
+                                                                                                   \
+    NSL_API NSL_CONST_FN T nsl_##T##_swap_bytes(T value);                                          \
+                                                                                                   \
+    NSL_API NSL_CONST_FN T nsl_##T##_to_be(T value);                                               \
+    NSL_API NSL_CONST_FN T nsl_##T##_from_be(T value);                                             \
+    NSL_API T nsl_##T##_from_be_bytes(nsl_Bytes bytes);                                            \
+    NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_Arena *arena);                            \
+                                                                                                   \
+    NSL_API NSL_CONST_FN T nsl_##T##_to_le(T value);                                               \
+    NSL_API NSL_CONST_FN T nsl_##T##_from_le(T value);                                             \
+    NSL_API T nsl_##T##_from_le_bytes(nsl_Bytes bytes);                                            \
+    NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_Arena *arena);                            \
+                                                                                                   \
+    NSL_API T nsl_##T##_from_ne_bytes(nsl_Bytes bytes);                                            \
+    NSL_API nsl_Bytes nsl_##T##_to_ne_bytes(T value, nsl_Arena *arena);                            \
+                                                                                                   \
+    NSL_API NSL_CONST_FN T nsl_##T##_max(T a, T b);                                                \
+    NSL_API NSL_CONST_FN T nsl_##T##_min(T a, T b);                                                \
+    NSL_API NSL_CONST_FN T nsl_##T##_clamp(T min, T max, T value);                                 \
+                                                                                                   \
+    NSL_API NSL_CONST_FN u64 nsl_##T##_hash(T value);                                              \
+    NSL_API void nsl_##T##_swap(T *v1, T *v2);                                                     \
+                                                                                                   \
+    NSL_API NSL_CONST_FN T nsl_##T##_next_pow2(T n);
+
+INTEGER_DECL(u8)
+INTEGER_DECL(i8)
+INTEGER_DECL(u16)
+INTEGER_DECL(i16)
+INTEGER_DECL(u32)
+INTEGER_DECL(i32)
+INTEGER_DECL(u64)
+INTEGER_DECL(i64)
+INTEGER_DECL(usize)
+
+#undef INTEGER_DECL
+
+
+
+NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path* parts, nsl_Arena* arena);
+NSL_API nsl_Path nsl_path_normalize(nsl_Path path, nsl_Arena* arena);
+
+NSL_API bool nsl_path_eq(nsl_Path p1, nsl_Path p2);
+NSL_API bool nsl_path_is_absolute(nsl_Path path);
+NSL_API bool nsl_path_is_root(nsl_Path path);
+
+NSL_API nsl_Str nsl_path_name(nsl_Path path);
+NSL_API nsl_Str nsl_path_suffix(nsl_Path path);
+NSL_API nsl_Str nsl_path_stem(nsl_Path path);
+NSL_API nsl_Path nsl_path_parent(nsl_Path path);
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+#define NSL_STR_NOT_FOUND SIZE_MAX
+
+#define NSL_STR_LETTERS NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+#define NSL_STR_UPPERCASE NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+#define NSL_STR_LOWERCASE NSL_STR("abcdefghijklmnopqrstuvwxyz")
+#define NSL_STR_DIGITS NSL_STR("0123456789")
+#define NSL_STR_HEXDIGITS NSL_STR("0123456789abcdefABCDEF")
+#define NSL_STR_PUNCTUATION NSL_STR("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
+#define NSL_STR_WHITESPACE NSL_STR(" \t\n\r\x0b\x0c")
+
+NSL_API nsl_Str nsl_str_from_parts(usize size, const char *cstr);
+NSL_API nsl_Str nsl_str_from_bytes(nsl_Bytes bytes);
+NSL_API nsl_Bytes nsl_str_to_bytes(nsl_Str s);
+NSL_API nsl_Str nsl_str_from_cstr(const char *cstr);
+NSL_API const char* nsl_str_to_cstr(nsl_Str str, nsl_Arena* arena);
+NSL_API NSL_FMT(2) nsl_Str nsl_str_format(nsl_Arena *arena, const char *fmt, ...);
+
+NSL_API nsl_Str nsl_str_copy(nsl_Str s, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_append(nsl_Str s1, nsl_Str suffix, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_prepend(nsl_Str s1, nsl_Str prefix, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_wrap(nsl_Str s, nsl_Str wrap, nsl_Arena *arena);
+
+// Inserts sep in between elements
+NSL_API nsl_Str nsl_str_join(nsl_Str sep, usize count, nsl_Str *s, nsl_Arena *arena);
+// Appends suffix to every element, even the last one
+NSL_API nsl_Str nsl_str_join_suffix(nsl_Str suffix, usize count, nsl_Str *s, nsl_Arena *arena);
+// Prepends prefix to every element, even the last one
+NSL_API nsl_Str nsl_str_join_prefix(nsl_Str prefix, usize count, nsl_Str *s, nsl_Arena *arena);
+
+NSL_API nsl_Str nsl_str_join_wrap(nsl_Str sep, nsl_Str wrap, usize count, nsl_Str *s, nsl_Arena *arena);
+
+NSL_API nsl_Str nsl_str_upper(nsl_Str s, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_lower(nsl_Str s, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_replace(nsl_Str s, nsl_Str old, nsl_Str new, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_center(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_ljust(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_rjust(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_repeat(nsl_Str s, usize count, nsl_Arena *arena);
+NSL_API nsl_Str nsl_str_reverse(nsl_Str s, nsl_Arena *arena);
+
+NSL_API bool nsl_str_eq(nsl_Str s1, nsl_Str s2);
+NSL_API bool nsl_str_eq_ignorecase(nsl_Str s1, nsl_Str s2);
+NSL_API bool nsl_str_startswith(nsl_Str s1, nsl_Str prefix);
+NSL_API bool nsl_str_endswith(nsl_Str s1, nsl_Str suffix);
+NSL_API bool nsl_str_endswith_predicate(nsl_Str s1, bool (*predicate)(char));
+
+NSL_API bool nsl_str_contains(nsl_Str haystack, nsl_Str needle);
+NSL_API bool nsl_str_includes(nsl_Str haystack, char needle);
+NSL_API bool nsl_str_is_empty(nsl_Str s);
+
+NSL_API nsl_Str nsl_str_trim_left(nsl_Str s);
+NSL_API nsl_Str nsl_str_trim_left_by_delim(nsl_Str s, char delim);
+NSL_API nsl_Str nsl_str_trim_left_by_predicate(nsl_Str s, bool (*predicate)(char));
+
+NSL_API nsl_Str nsl_str_trim_right(nsl_Str s);
+NSL_API nsl_Str nsl_str_trim_right_by_delim(nsl_Str s, char delim);
+NSL_API nsl_Str nsl_str_trim_right_by_predicate(nsl_Str s, bool (*predicate)(char));
+
+NSL_API nsl_Str nsl_str_trim(nsl_Str s);
+NSL_API nsl_Str nsl_str_trim_by_delim(nsl_Str s, char delim);
+NSL_API nsl_Str nsl_str_trim_by_predicate(nsl_Str s, bool (*predicate)(char));
+
+NSL_API bool nsl_str_try_chop_by_delim(nsl_Str *s, char delim, nsl_Str *chunk);
+NSL_API nsl_Str nsl_str_chop_by_delim(nsl_Str *s, char delim);
+NSL_API bool nsl_str_try_chop_by_predicate(nsl_Str *s, bool (*predicate)(char), nsl_Str *chunk);
+NSL_API nsl_Str nsl_str_chop_by_predicate(nsl_Str *s, bool (*predicate)(char));
+NSL_API nsl_Str nsl_str_chop_right_by_delim(nsl_Str *s, char delim);
+NSL_API nsl_Str nsl_str_chop_right_by_predicate(nsl_Str *s, bool (*predicate)(char));
+NSL_API nsl_Str nsl_str_take(nsl_Str *s, usize count);
+NSL_API bool nsl_str_try_take(nsl_Str *s, usize count, nsl_Str *chunk);
+NSL_API nsl_Str nsl_str_take_right(nsl_Str *s, usize count);
+NSL_API bool nsl_str_try_take_right(nsl_Str *s, usize count, nsl_Str *chunk);
+
+NSL_API nsl_Str nsl_str_substring(nsl_Str s, usize start, usize end);
+
+NSL_API u64 nsl_str_u64(nsl_Str s);
+NSL_API u64 nsl_str_chop_u64(nsl_Str *s);
+
+NSL_API i64 nsl_str_i64(nsl_Str s);
+NSL_API i64 nsl_str_chop_i64(nsl_Str *s);
+
+NSL_API f64 nsl_str_f64(nsl_Str s);
+NSL_API f64 nsl_str_chop_f64(nsl_Str *s);
+
+// Returns 'STR_NOT_FOUND' if 'needle' was not found.
+NSL_API usize nsl_str_find(nsl_Str haystack, nsl_Str needle);
+// Returns 'STR_NOT_FOUND' if 'predicate' was not found.
+NSL_API usize nsl_str_find_by_predicate(nsl_Str haystack, bool (*predicate)(char));
+// Returns 'STR_NOT_FOUND' if 'needle' was not found.
+NSL_API usize nsl_str_find_last(nsl_Str haystack, nsl_Str needle);
+// Returns 'STR_NOT_FOUND' if 'predicate' was not found.
+NSL_API usize nsl_str_find_last_by_predicate(nsl_Str haystack, bool (*predicate)(char));
+
+NSL_API usize nsl_str_count(nsl_Str haystack, nsl_Str needle);
+// Returns '\0' if the index is out of bounds.
+NSL_API char nsl_str_getc(nsl_Str s, usize idx);
+
+// Basic FNV hash.
+NSL_API u64 nsl_str_hash(nsl_Str s);
 
 #endif // _NSL_H_
 
 #ifdef NSL_IMPLEMENTATION
+
+#include <stdlib.h>
+#include <string.h>
+
+// 4 kb
+#define CHUNK_DEFAULT_SIZE 4096
+
+struct nsl_Chunk {
+    nsl_Chunk *next, *prev;
+    usize cap;
+    usize allocated;
+    u8 data[];
+};
+
+static nsl_Chunk *chunk_allocate(usize size) {
+    nsl_Chunk *chunk = malloc(sizeof(nsl_Chunk) + size);
+    NSL_ASSERT(chunk != NULL && "Memory allocation failed");
+    chunk->cap = size;
+    chunk->allocated = 0;
+    chunk->next = chunk->prev = 0;
+    return chunk;
+}
+
+static void chunk_free(nsl_Chunk *chunk) { 
+    free(chunk); 
+}
+
+NSL_CONST_FN static usize align(usize size) {
+    const usize mask = sizeof(void *) - 1;
+    return (size + mask) & ~mask;
+}
+
+NSL_API void nsl_arena_free(nsl_Arena *arena) {
+    nsl_Chunk *next = arena->begin;
+    while (next != NULL) {
+        nsl_Chunk *temp = next;
+        next = next->next;
+        chunk_free(temp);
+    }
+    arena->begin = NULL;
+}
+
+NSL_API void nsl_arena_reset(nsl_Arena *arena) {
+    for (nsl_Chunk *next = arena->begin; next != NULL; next = next->next) {
+        if (next->cap != 0) {
+            next->allocated = 0;
+        }
+    }
+}
+
+NSL_API usize nsl_arena_size(nsl_Arena *arena) {
+    usize size = 0;
+    for (nsl_Chunk *chunk = arena->begin; chunk != NULL; chunk = chunk->next) {
+        size += chunk->allocated;
+    }
+    return size;
+}
+
+NSL_API usize nsl_arena_real_size(nsl_Arena *arena) {
+    usize size = 0;
+    for (nsl_Chunk *chunk = arena->begin; chunk != NULL; chunk = chunk->next) {
+        size += chunk->cap ? chunk->cap : chunk->allocated;
+    }
+    return size;
+}
+
+NSL_API void *nsl_arena_alloc(nsl_Arena *arena, usize size) {
+    size = align(size);
+    nsl_Chunk *chunk = arena->begin;
+    for (; chunk != NULL; chunk = chunk->next) {
+        NSL_ASSERT(size <= SIZE_MAX - chunk->allocated && "integer overflow");
+        if (chunk->allocated + size < chunk->cap) {
+            break;
+        }
+    }
+    if (chunk == NULL) {
+        const usize chunk_size =
+            size >= CHUNK_DEFAULT_SIZE ? size : CHUNK_DEFAULT_SIZE;
+        chunk = chunk_allocate(chunk_size);
+        chunk->next = arena->begin;
+        if (arena->begin) {
+            arena->begin->prev = chunk;
+        }
+        arena->begin = chunk;
+    }
+    void *ptr = &chunk->data[chunk->allocated];
+    chunk->allocated += size;
+    return ptr;
+}
+
+NSL_API void *nsl_arena_calloc(nsl_Arena *arena, usize size) {
+    void *ptr = nsl_arena_alloc(arena, size);
+    memset(ptr, 0, size);
+    return ptr;
+}
+
+NSL_API void *nsl_arena_alloc_chunk(nsl_Arena *arena, usize size) {
+    nsl_Chunk *chunk = chunk_allocate(size);
+    if (arena == NULL) return chunk->data;
+    chunk->cap = 0;
+    chunk->allocated = size;
+    chunk->next = arena->begin;
+    if (arena->begin) {
+        arena->begin->prev = chunk;
+    }
+    arena->begin = chunk;
+    return chunk->data;
+}
+
+NSL_API void *nsl_arena_calloc_chunk(nsl_Arena *arena, usize size) {
+    void *data = nsl_arena_alloc_chunk(arena, size);
+    memset(data, 0, size);
+    return data;
+}
+
+NSL_API void *nsl_arena_realloc_chunk(nsl_Arena *arena, void *ptr, usize size) {
+    if (ptr == NULL) return nsl_arena_alloc_chunk(arena, size);
+
+    nsl_Chunk *chunk = (nsl_Chunk *)((usize)ptr - sizeof(nsl_Chunk));
+
+    if (size < chunk->allocated) return chunk->data;
+
+    nsl_Chunk *new_chunk = realloc(chunk, sizeof(nsl_Chunk) + size);
+
+    if (arena == NULL) return new_chunk->data;
+
+    if (new_chunk->prev)       new_chunk->prev->next = new_chunk;
+    if (new_chunk->next)       new_chunk->next->prev = new_chunk;
+    if (arena->begin == chunk) arena->begin = new_chunk;
+
+    return new_chunk->data;
+}
+
+NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr) {
+    if (ptr == NULL) return;
+
+    nsl_Chunk *chunk = (nsl_Chunk *)((usize)ptr - sizeof(nsl_Chunk));
+    if (arena) {
+        if (chunk == arena->begin) arena->begin = chunk->next;
+        if (chunk->prev)           chunk->prev->next = chunk->next;
+        if (chunk->next)           chunk->next->prev = chunk->prev;
+    }
+
+    free(chunk);
+}
+
+NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd *cmd) {
+    return nsl_cmd_exec(cmd->len, cmd->items);
+}
+
+
+
+#include <errno.h>
+#include <string.h>
+#include <stdarg.h>
+
+NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode) {
+    errno = 0;
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+
+    FILE *file = fopen(filepath, mode);
+    if (file == NULL) {
+        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        NSL_PANIC(strerror(errno));
+    }
+
+    *out = file;
+    return NSL_NO_ERROR;
+}
+
+NSL_API void nsl_file_close(FILE *file) {
+    fclose(file);
+}
+
+NSL_API usize nsl_file_size(FILE* file) {
+    long current = ftell(file);
+    fseek(file, 0, SEEK_END);
+    usize size = (usize)ftell(file);
+    fseek(file, current, SEEK_SET);
+    return size;
+}
+
+NSL_API nsl_Str nsl_file_read_str(FILE* file, nsl_Arena* arena) {
+    usize size = nsl_file_size(file);
+    char* data = nsl_arena_calloc(arena, size+1);
+    size = fread(data, 1, size, file);
+    return nsl_str_from_parts(size, data);
+}
+
+NSL_API nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
+    usize size = nsl_file_size(file);
+    nsl_list_reserve(sb, size);
+    char* start = &nsl_list_last(sb);
+    size = fread(start, 1, size, file);
+    sb->len += size;
+    return nsl_str_from_parts(size, start);
+}
+
+NSL_API nsl_Str nsl_file_read_line(FILE* file, nsl_StrBuilder* sb) {
+    usize off = sb->len;
+    i32 c = 0;
+    while (!feof(file) && c != '\n') {
+        c = fgetc(file);
+        nsl_list_push(sb, (char)c);
+    }
+    return nsl_str_from_parts(sb->len - off, &sb->items[off]);
+}
+
+NSL_API nsl_Bytes nsl_file_read_bytes(FILE* file, usize size, u8* buffer) {
+    size = fread(buffer, 1, size, file);
+    return nsl_bytes_from_parts(size, buffer);
+}
+
+NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...) {
+    va_list va;
+    va_start(va, fmt);
+    vfprintf(file, fmt, va);
+    va_end(va);
+}
+
+NSL_API void nsl_file_write_str(FILE* file, nsl_Str content) {
+    fwrite(content.data, 1, content.len, file);
+}
+
+NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
+    fwrite(content.data, 1, content.size, file);
+}
+
+
+#include <string.h>
+#include <sys/stat.h>
+
+#if defined(_WIN32)
+#    include <direct.h>
+#    include <io.h>
+#    define stat _stat
+#    define access(path, mode) _access(path, mode)
+#    define unlink(path) _unlink(path)
+#else
+#    include <unistd.h>
+#endif
+
+NSL_API bool nsl_fs_exists(nsl_Path path) {
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    return access(filepath, 0) == 0;
+}
+
+NSL_API bool nsl_fs_is_dir(nsl_Path path) {
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+
+    struct stat info;
+    if (stat(filepath, &info) == -1) {
+        return false;
+    }
+
+    return S_ISDIR(info.st_mode);
+}
+
+NSL_API bool nsl_fs_remove(nsl_Path path) {
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    return (unlink(filepath) != 0);
+}
+#if !defined(_WIN32)
+
+
+#include <string.h>
+#include <errno.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
+
+    errno = 0;
+    pid_t pid = fork();
+    if (pid == -1) {
+        NSL_PANIC("fork failed");
+    } else if (pid == 0) {
+        nsl_List(const char *) args = {0};
+
+        nsl_list_extend(&args, argc, argv);
+        nsl_list_push(&args, NULL);
+        execvp(args.items[0], (char *const *)(void *)args.items);
+
+        nsl_list_free(&args);
+        exit(127);
+    }
+
+    int status = 0;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status)) {
+        nsl_Error exit_code = WEXITSTATUS(status);
+        return exit_code == 127 ? NSL_ERROR_FILE_NOT_FOUND : exit_code;
+    }
+
+    return NSL_NO_ERROR;
+}
+#endif // !_WIN32
+
+#if !defined(_WIN32)
+
+
+#include <string.h>
+
+#include <dlfcn.h>
+
+nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
+    if (!nsl_fs_exists(path)) {
+        return NSL_ERROR_FILE_NOT_FOUND;
+    }
+    char lib_path[FILENAME_MAX] = {0};
+    memcpy(lib_path, path.data, nsl_usize_min(path.len, FILENAME_MAX));
+
+    dll->handle = dlopen(lib_path, RTLD_LAZY);
+    if (dll->handle == NULL) {
+        return NSL_ERROR;
+    }
+
+    return NSL_NO_ERROR;
+}
+
+void dll_close(nsl_Dll *dll) {
+    dlclose(dll->handle);
+}
+
+Function dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
+    Function result = NULL;
+    nsl_Arena arena = {0};
+
+    const char* s = nsl_str_to_cstr(symbol, &arena);
+    *(void **)(&result) = dlsym(handle, s);
+
+    nsl_arena_free(&arena);
+    return result;
+}
+#endif // !_WIN32
+
+#if !defined(_WIN32)
+
+
+#include <dirent.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+
+typedef struct nsl_FsNode {
+    struct nsl_FsNode *next;
+    DIR *handle;
+    char name[];
+} nsl_FsNode;
+
+NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive) {
+    it->recursive = recursive;
+
+    const usize size = sizeof(nsl_FsNode) + directory.len + 1;
+    nsl_FsNode* node = nsl_arena_calloc_chunk(&it->scratch, size);
+    memcpy(node->name, directory.data, directory.len);
+    it->_handle = node;
+
+    node->handle = opendir(node->name);
+    if (node->handle == NULL) {
+        it->error = NSL_ERROR;
+        nsl_arena_free(&it->scratch);
+        return NSL_ERROR;
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API void nsl_fs_end(nsl_FsIter *it) {
+    while (it->_handle != NULL) {
+        nsl_FsNode* node = it->_handle;
+        if (node->handle) closedir(node->handle);
+        it->_handle = node->next;
+    }
+    nsl_arena_free(&it->scratch);
+}
+
+NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
+    if (it->error) return NULL;
+    while (it->_handle != NULL) {
+        nsl_arena_reset(&it->scratch);
+        nsl_FsNode *current = it->_handle;
+
+        struct dirent *entry = readdir(current->handle);
+        if (entry == NULL) {
+            closedir(current->handle);
+            it->_handle = current->next;
+            nsl_arena_free_chunk(&it->scratch, current);
+            continue;
+        }
+
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+
+        nsl_FsEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_FsEntry));
+        nsl_Path parts[] = {
+            nsl_str_from_cstr(current->name), nsl_str_from_cstr(entry->d_name),
+        };
+        e->path = nsl_path_join(NSL_ARRAY_LEN(parts), parts, &it->scratch);
+
+        struct stat entry_info;
+        if (stat(e->path.data, &entry_info) == -1) continue;
+
+        e->is_dir = S_ISDIR(entry_info.st_mode);
+        e->size = (usize)entry_info.st_size;
+        e->mtime = (u64)entry_info.st_mtime;
+
+        if (it->recursive && e->is_dir) {
+            DIR *handle = opendir(e->path.data);
+            if (handle == NULL) continue;
+            const usize size = sizeof(nsl_FsNode) + e->path.len + 1;
+            nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
+            node->handle = handle;
+            memcpy(node->name, e->path.data, e->path.len);
+            node->next = it->_handle;
+            it->_handle = node;
+        }
+
+        return e;
+    }
+    return NULL;
+}
+#endif // !_WIN32
+
+#if !defined(_WIN32)
+
+
+#include <string.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <unistd.h>
+
+NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
+    if (config.parents) {
+        if (nsl_path_is_root(path)) return NSL_NO_ERROR;
+        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
+        nsl_OsDirConfig c = config;
+        c.exists_ok = true;
+        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
+        if (recursive_error) return recursive_error;
+    }
+
+    errno = 0;
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
+        if (config.exists_ok && errno == EEXIST) {
+            struct stat info;
+            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return NSL_NO_ERROR;
+        }
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == EEXIST) return NSL_ERROR_ALREADY_EXISTS;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
+    }
+    return NSL_NO_ERROR;
+}
+
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
+    errno = 0;
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    if (chdir(filepath) != 0) {
+        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOENT)  return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
+    errno = 0;
+    char *temp_path = getcwd(NULL, 0);
+    if (temp_path == NULL) {
+        NSL_PANIC(strerror(errno));
+    }
+    nsl_Path path = nsl_str_copy(nsl_str_from_cstr(temp_path), arena);
+    free(temp_path);
+    return path;
+}
+
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena* arena) {
+    const char *var = getenv(env);
+    return var ? nsl_str_copy(nsl_str_from_cstr(var), arena) : (nsl_Str){0};
+}
+
+#endif // !_WIN32
+
+#if defined(_WIN32)
+
+
+#include <windows.h>
+
+static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
+    // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
+    for (usize i = 0; i < argc; i++) {
+        if (0 < i) nsl_list_push(sb, ' ');
+        const char *arg = argv[i];
+
+        nsl_list_push(sb, '\"');
+        usize backslashes = 0;
+        while (*arg) {
+            char c = *arg;
+            if (c == '\\') {
+                backslashes += 1;
+            } else {
+                if (c == '\"') {
+                    for (size_t k = 0; k < 1 + backslashes; k++) {
+                        nsl_list_push(sb, '\\');
+                    }
+                }
+                backslashes = 0;
+            }
+            nsl_list_push(sb, c);
+            arg++;
+        }
+
+        for (usize k = 0; k < backslashes; k++) {
+            nsl_list_push(sb, '\\');
+        }
+
+        nsl_list_push(sb, '\"');
+    }
+}
+
+NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
+    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
+
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    DWORD result = 0;
+
+    nsl_StrBuilder sb = {0};
+
+    _nc_cmd_win32_wrap(argc, argv, &sb);
+    nsl_list_push(&sb, '\0');
+
+    if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) NSL_DEFER(NSL_ERROR_FILE_NOT_FOUND);
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    if (!GetExitCodeProcess(pi.hProcess, &result)) {
+        DWORD ec = GetLastError();
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+defer:
+    nsl_list_free(&sb);
+    return (nsl_Error)result;
+}
+
+
+#endif // _WIN32
+
+#if defined(_WIN32)
+
+
+#include <windows.h>
+#include <io.h>
+#include <string.h>
+
+typedef struct nsl_FsNode {
+    struct nsl_FsNode *next;
+    HANDLE handle;
+    char name[];
+} nsl_FsNode;
+
+NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive) {
+    *it = (nsl_FsIter){.recursive = recursive};
+
+    const usize len = directory.len + (sizeof("/*") - 1);
+    const usize size = sizeof(nsl_FsNode) + len + 1;
+    nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
+    memcpy(node->name, directory.data, directory.len);
+    it->_handle = node;
+
+    nsl_Path path = nsl_path_join(2, (nsl_Path[]){directory, NSL_STR("/*")}, &it->scratch);
+    WIN32_FIND_DATA findFileData;
+    node->handle = FindFirstFile(path.data, &findFileData);
+    if (node->handle == INVALID_HANDLE_VALUE) {
+        it->error = NSL_ERROR;
+        nsl_arena_free(&it->scratch);
+        return it->error;
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API void nsl_fs_end(nsl_FsIter *it) {
+    while (it->_handle != NULL) {
+        nsl_FsNode *current = it->_handle;
+        it->_handle = current->next;
+        if (current->handle != INVALID_HANDLE_VALUE) FindClose(current->handle);
+    }
+    nsl_arena_free(&it->scratch);
+}
+
+NSL_API nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
+    if (it->error) return NULL;
+    while (it->_handle != NULL) {
+        nsl_arena_reset(&it->scratch);
+        nsl_FsNode *current = it->_handle;
+
+        WIN32_FIND_DATA findFileData;
+        if (!FindNextFile(current->handle, &findFileData)) {
+            FindClose(current->handle);
+            it->_handle = current->next;
+            nsl_arena_free_chunk(&it->scratch, current);
+            continue;
+        }
+
+        // skip "." and ".." directories
+        if (strcmp(findFileData.cFileName, ".") == 0 || strcmp(findFileData.cFileName, "..") == 0) {
+            continue;
+        }
+
+        nsl_FsEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_FsEntry));
+        nsl_Path parts[] = {
+            nsl_str_from_cstr(current->name),
+            nsl_str_from_cstr(findFileData.cFileName),
+        };
+        e->path = nsl_path_join(NSL_ARRAY_LEN(parts), parts, &it->scratch);
+
+        e->is_dir = (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+        e->size = ((u64)findFileData.nFileSizeHigh << 32) | findFileData.nFileSizeLow;
+        e->mtime = ((u64)findFileData.ftLastWriteTime.dwHighDateTime << 32) | findFileData.ftLastWriteTime.dwLowDateTime;
+
+        if (e->is_dir && it->recursive) {
+            nsl_Path path = nsl_path_join(2, (nsl_Path[]){e->path, NSL_STR("/*")}, &it->scratch);
+            HANDLE handle = FindFirstFile(path.data, &findFileData);
+            if (handle == INVALID_HANDLE_VALUE) {
+                continue;
+            }
+
+            const usize size = sizeof(nsl_FsNode) + e->path.len + 1;
+            nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
+            memcpy(node->name, e->path.data, e->path.len);
+
+            node->handle = handle;
+            node->next = it->_handle;
+            it->_handle = node;
+        }
+
+        return e;
+    }
+
+    return NULL;
+}
+#endif // _WIN32
+
+#if defined(_WIN32)
+
+
+#include <windows.h>
+#include <string.h>
+#include <errno.h>
+
+NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
+    nsl_Error result = NSL_NO_ERROR;
+
+    nsl_Arena arena = {0};
+
+    if (config.parents) {
+        if (nsl_path_is_root(path)) NSL_DEFER(NSL_NO_ERROR);
+        if (path.len == 1 && path.data[0] == '.') NSL_DEFER(NSL_NO_ERROR);
+        nsl_OsDirConfig c = config;
+        c.exists_ok = true;
+        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
+        if (recursive_error) NSL_DEFER(recursive_error);
+    }
+
+    nsl_Str filepath = nsl_str_copy(path, &arena);
+
+    if (CreateDirectoryA(filepath.data, NULL) != 0) {
+        DWORD ec = GetLastError();
+        if (config.exists_ok && ec == ERROR_ALREADY_EXISTS) {
+            DWORD attrs = GetFileAttributes(filepath.data);
+            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+                NSL_DEFER(NSL_NO_ERROR);
+            }
+        }
+        if (ec == ERROR_ALREADY_EXISTS)     NSL_DEFER(NSL_ERROR_ALREADY_EXISTS);
+        if (ec == ERROR_ACCESS_DENIED)      NSL_DEFER(NSL_ERROR_ACCESS_DENIED);
+        if (ec == ERROR_PRIVILEGE_NOT_HELD) NSL_DEFER(NSL_ERROR_ACCESS_DENIED);
+        if (ec == ERROR_PATH_NOT_FOUND)     NSL_DEFER(NSL_ERROR_FILE_NOT_FOUND);
+        if (ec == ERROR_DIRECTORY)          NSL_DEFER(NSL_ERROR_NOT_DIRECTORY);
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+defer:
+    nsl_arena_free(&arena);
+    return result;
+}
+
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
+    NSL_ASSERT(path.len >= MAX_PATH - 1 && "Filename is too long for windows to handle");
+
+    char pathname[MAX_PATH] = {0};
+    memcpy(pathname, path.data, path.len);
+
+    if (!SetCurrentDirectoryA(pathname)) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_ALREADY_EXISTS)     return NSL_ERROR_ALREADY_EXISTS;
+        if (ec == ERROR_ACCESS_DENIED)      return NSL_ERROR_ACCESS_DENIED;
+        if (ec == ERROR_SHARING_VIOLATION)  return NSL_ERROR_ACCESS_DENIED;
+        if (ec == ERROR_PATH_NOT_FOUND)     return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_DIRECTORY)          return NSL_ERROR_NOT_DIRECTORY;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
+    DWORD size = GetCurrentDirectoryA(0, NULL);
+    if (size == 0) {
+        DWORD ec = GetLastError();
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    LPTSTR buffer = nsl_arena_alloc(arena, size);
+    GetCurrentDirectoryA(size, buffer);
+    return nsl_str_from_parts(size, buffer);
+}
+
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena) {
+    nsl_Arena scratch = {0};
+
+    DWORD size = GetEnvironmentVariableA(env, NULL, 0);
+    if (size == 0) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_ENVVAR_NOT_FOUND) return (nsl_Str){0};
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    char *buffer = nsl_arena_calloc(&scratch, size);
+    GetEnvironmentVariableA(env, buffer, size);
+
+    nsl_Str result = nsl_str_copy(nsl_str_from_parts(size, buffer), arena);
+    nsl_arena_free(&scratch);
+    return result;
+}
+#endif // _WIN32
+
+
+
+#include <string.h>
+
+static void nsl_map_insert(nsl_Map *map, u64 hash, nsl_MapValue value) {
+    if (map->cap <= map->len + map->del) {
+        nsl_map_resize(map, map->cap * 2);
+    }
+
+    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_MAP_DELETED)) {
+        hash = nsl_u64_hash(hash);
+    }
+
+    usize del_idx = (usize)-1;
+    while (true) {
+        usize idx = hash & (map->cap - 1);
+
+        for (usize i = 0; i < map->cap; i++) {
+            if (map->items[idx].hash == 0) {
+                // NOTE: reusing a deleted slot
+                if (del_idx != (usize)-1) {
+                    map->items[del_idx] = (nsl_MapItem){.hash = hash, .value = value};
+                    map->len++;
+                    map->del--;
+                    return;
+                }
+                map->items[idx] = (nsl_MapItem){.hash = hash, .value = value};
+                map->len++;
+                return;
+            } else if (map->items[idx].hash == hash) {
+                map->items[idx].value = value;
+                return;
+            } else if (map->items[idx].hash == NSL_MAP_DELETED && del_idx == (usize)-1) {
+                del_idx = idx;
+            }
+            idx = (idx + i * i) & (map->cap - 1);
+        }
+
+        nsl_map_resize(map, map->cap * 2);
+    }
+
+    NSL_UNREACHABLE("nsl_map_insert");
+}
+
+static nsl_MapValue *nsl_map_get(const nsl_Map *map, u64 hash) {
+    if (map->len == 0) {
+        return NULL;
+    }
+
+    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_MAP_DELETED)) {
+        hash = nsl_u64_hash(hash);
+    }
+
+    usize idx = hash & (map->cap - 1);
+    for (usize i = 0; i < map->cap; i++) {
+        if (map->items[idx].hash == 0) {
+            return NULL;
+        }
+        if (map->items[idx].hash == hash) {
+            return &map->items[idx].value;
+        }
+        idx = (idx + i * i) & (map->cap - 1);
+    }
+
+    return NULL;
+}
+
+NSL_API void nsl_map_free(nsl_Map *map) {
+    nsl_arena_free_chunk(map->arena, map->items);
+}
+
+NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other) {
+    nsl_map_reserve(map, other->len);
+    for (usize i = 0; i < other->cap; ++i) {
+        if (other->items[i].hash && other->items[i].hash != NSL_MAP_DELETED) {
+            nsl_map_insert(map, other->items[i].hash, other->items[i].value);
+        }
+    }
+}
+
+NSL_API void nsl_map_extend(nsl_Map* map, usize count, nsl_MapItem* items) {
+    nsl_map_reserve(map, count);
+    for (usize i = 0; i < count; i++) {
+        nsl_map_insert(map, items[i].hash, items[i].value);
+    }
+}
+
+NSL_API void nsl_map_clear(nsl_Map* map) {
+    map->len = 0;
+    map->del = 0;
+    memset(map->items, 0, sizeof(map->items[0]) * map->cap);
+}
+
+NSL_API void nsl_map_resize(nsl_Map *map, usize size) {
+    if (size < map->cap) {
+        return;
+    }
+    usize old_cap = map->cap;
+    nsl_MapItem *old_items = map->items;
+
+    map->cap = size == 0 ? NSL_MAP_DEFAULT_SIZE : nsl_usize_next_pow2(size);
+    map->items = nsl_arena_calloc_chunk(map->arena, map->cap * sizeof(map->items[0]));
+
+    map->len = 0;
+    map->del = 0;
+    for (usize i = 0; i < old_cap; ++i) {
+        if (old_items[i].hash && old_items[i].hash != NSL_MAP_DELETED) {
+            nsl_map_insert(map, old_items[i].hash, old_items[i].value);
+        }
+    }
+    nsl_arena_free_chunk(map->arena, old_items);
+}
+
+NSL_API void nsl_map_reserve(nsl_Map *map, usize size) {
+    usize target = map->len + size;
+    if (target <= map->cap) return;
+    nsl_map_resize(map, target);
+}
+
+NSL_API bool nsl_map_remove(nsl_Map *map, u64 hash) {
+    if (map->len == 0) {
+        return false;
+    }
+
+    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_MAP_DELETED)) {
+        hash = nsl_u64_hash(hash);
+    }
+
+    usize idx = hash & (map->cap - 1);
+    for (usize i = 0; i < map->cap; i++) {
+        if (map->items[idx].hash == 0) {
+            return false;
+        }
+        if (map->items[idx].hash && map->items[idx].hash == hash) {
+            map->items[idx].hash = NSL_MAP_DELETED;
+            map->len--;
+            map->del++;
+            return true;
+        }
+        idx = (idx + i * i) & (map->cap - 1);
+    }
+    return false;
+}
+
+NSL_API void nsl_map_insert_i64(nsl_Map *map, u64 hash, i64 value) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_I64);
+    nsl_map_insert(map, hash, (nsl_MapValue){.i64 = value});
+}
+
+NSL_API void nsl_map_insert_u64(nsl_Map *map, u64 hash, u64 value) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_U64);
+    nsl_map_insert(map, hash, (nsl_MapValue){.u64 = value});
+}
+
+NSL_API void nsl_map_insert_f64(nsl_Map *map, u64 hash, f64 value) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_F64);
+    nsl_map_insert(map, hash, (nsl_MapValue){.f64 = value});
+}
+
+NSL_API void nsl_map_insert_ptr(nsl_Map *map, u64 hash, void *value) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_PTR);
+    nsl_map_insert(map, hash, (nsl_MapValue){.ptr = value});
+}
+
+NSL_API i64 *nsl_map_get_i64(nsl_Map *map, u64 hash) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_I64);
+    return (i64 *)nsl_map_get(map, hash);
+}
+
+NSL_API u64 *nsl_map_get_u64(nsl_Map *map, u64 hash) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_U64);
+    return (u64 *)nsl_map_get(map, hash);
+}
+
+NSL_API f64 *nsl_map_get_f64(nsl_Map *map, u64 hash) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_F64);
+    return (f64 *)nsl_map_get(map, hash);
+}
+
+NSL_API void *nsl_map_get_ptr(nsl_Map *map, u64 hash) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_PTR);
+    nsl_MapValue *value = nsl_map_get(map, hash);
+    return value ? value->ptr : NULL;
+}
+
+NSL_API const i64 *nsl_map_get_i64_const(const nsl_Map *map, u64 hash) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_I64);
+    return (const i64 *)nsl_map_get(map, hash);
+}
+
+NSL_API const u64 *nsl_map_get_u64_const(const nsl_Map *map, u64 hash) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_U64);
+    return (const u64 *)nsl_map_get(map, hash);
+}
+
+NSL_API const f64 *nsl_map_get_f64_const(const nsl_Map *map, u64 hash) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_F64);
+    return (const f64 *)nsl_map_get(map, hash);
+}
+
+NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash) {
+    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_PTR);
+    nsl_MapValue *value = nsl_map_get(map, hash);
+    return value ? value->ptr : NULL;
+}
+
+
+NSL_API void nsl_set_free(nsl_Set* set) {
+    nsl_arena_free_chunk(set->arena, set->items);
+}
+
+NSL_API void nsl_set_resize(nsl_Set *set, usize size) {
+    if (size < set->_cap) {
+        return;
+    }
+    usize old_cap = set->_cap;
+    u64 *old_items = set->items;
+
+    set->_cap = size == 0 ? NSL_SET_DEFAULT_SIZE : nsl_usize_next_pow2(size);
+    set->items = nsl_arena_calloc_chunk(set->arena, set->_cap * sizeof(set->items[0]));
+
+    set->len = 0;
+    set->_del = 0;
+    for (usize i = 0; i < old_cap; ++i) {
+        if (old_items[i] && old_items[i] != NSL_SET_DELETED) {
+            nsl_set_add(set, old_items[i]);
+        }
+    }
+    nsl_arena_free_chunk(set->arena, old_items);
+}
+
+NSL_API void nsl_set_reserve(nsl_Set *map, usize size) {
+    usize target = map->len + size;
+    if (target <= map->_cap) return;
+    nsl_set_resize(map, target);
+}
+
+NSL_API bool nsl_set_remove(nsl_Set *set, u64 hash) {
+    if (set->len == 0) {
+        return false;
+    }
+
+    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_SET_DELETED)) {
+        hash = nsl_u64_hash(hash);
+    }
+
+    usize idx = hash & (set->_cap - 1);
+    for (usize i = 0; i < set->_cap; i++) {
+        if (set->items[idx] == 0) {
+            return false;
+        }
+        if (set->items[idx] && set->items[idx] == hash) {
+            set->items[idx] = NSL_SET_DELETED;
+            set->len--;
+            set->_del++;
+            return true;
+        }
+        idx = (idx + i * i) & (set->_cap - 1);
+    }
+    return false;
+}
+
+NSL_API bool nsl_set_add(nsl_Set *set, u64 hash) {
+    if (set->_cap <= set->len + set->_del) {
+        nsl_set_resize(set, set->_cap * 2);
+    }
+
+    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_SET_DELETED)) {
+        hash = nsl_u64_hash(hash);
+    }
+
+    usize del_idx = (usize)-1;
+    while (true) {
+        usize idx = hash & (set->_cap - 1);
+
+        for (usize i = 0; i < set->_cap; i++) {
+            if (set->items[idx] == 0) {
+                // NOTE: reusing a deleted slot
+                if (del_idx != (usize)-1) {
+                    set->items[del_idx] = hash;
+                    set->len++;
+                    set->_del--;
+                    return true;
+                }
+                set->items[idx] = hash;
+                set->len++;
+                return true;
+            } else if (set->items[idx] == hash) {
+                return false;
+            } else if (set->items[idx] == NSL_SET_DELETED && del_idx == (usize)-1) {
+                del_idx = idx;
+            }
+            idx = (idx + i * i) & (set->_cap - 1);
+        }
+
+        nsl_set_resize(set, set->_cap * 2);
+    }
+
+    NSL_UNREACHABLE("nsl_set_add");
+}
+
+NSL_API bool nsl_set_has(const nsl_Set *map, u64 hash) {
+    if (map->len == 0) {
+        return false;
+    }
+
+    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_SET_DELETED)) {
+        hash = nsl_u64_hash(hash);
+    }
+
+    usize idx = hash & (map->_cap - 1);
+    for (usize i = 0; i < map->_cap; i++) {
+        if (map->items[idx] == 0) {
+            return false;
+        }
+        if (map->items[idx] == hash) {
+            return true;
+        }
+        idx = (idx + i * i) & (map->_cap - 1);
+    }
+
+    return false;
+}
+
+NSL_API void nsl_set_update(nsl_Set* map, const nsl_Set* other) {
+    nsl_set_reserve(map, other->len);
+    for (usize i = 0; i < other->_cap; ++i) {
+        if (other->items[i] && other->items[i] != NSL_SET_DELETED) {
+            nsl_set_add(map, other->items[i]);
+        }
+    }
+}
+
+NSL_API void nsl_set_extend(nsl_Set* set, usize count, const u64* hashes) {
+  nsl_set_reserve(set, count);
+  for (usize i = 0; i < count; i++) {
+    nsl_set_add(set, hashes[i]);
+  }
+}
+
+NSL_API bool nsl_set_eq(const nsl_Set *set, const nsl_Set *other) {
+  if (other->len != set->len) {
+    return false;
+  }
+
+  if (other->_cap < set->_cap) {
+    const nsl_Set *temp = set;
+    set = other;
+    other = temp;
+  }
+  for (usize i = 0; i < set->_cap; i++) {
+    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
+      if (!nsl_set_has(other, set->items[i])) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+NSL_API bool nsl_set_subset(const nsl_Set *set, const nsl_Set *other) {
+  if (other->len < set->len) {
+    return false;
+  }
+  for (usize i = 0; i < set->_cap; i++) {
+    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
+      if (!nsl_set_has(other, set->items[i])) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+NSL_API bool nsl_set_disjoint(const nsl_Set *set, const nsl_Set *other) {
+  if (other->len == 0 || set->len == 0) {
+    return true;
+  }
+
+  if (other->_cap < set->_cap) {
+    const nsl_Set *temp = set;
+    set = other;
+    other = temp;
+  }
+  for (usize i = 0; i < set->_cap; i++) {
+    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
+      if (nsl_set_has(other, set->items[i])) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+NSL_API void nsl_set_intersection(const nsl_Set *set, const nsl_Set *other, nsl_Set* out) {
+  if (other->_cap < set->_cap) {
+    const nsl_Set *temp = set;
+    set = other;
+    other = temp;
+  }
+
+  nsl_set_reserve(out, nsl_usize_min(set->len, other->len) * 2);
+  for (usize i = 0; i < set->_cap; i++) {
+    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
+      if (nsl_set_has(other, set->items[i])) {
+        nsl_set_add(out, set->items[i]);
+      }
+    }
+  }
+}
+
+NSL_API void nsl_set_difference(const nsl_Set *set, const nsl_Set *other, nsl_Set* out) {
+  nsl_set_reserve(out, set->len * 2);
+  for (usize i = 0; i < set->_cap; i++) {
+    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
+      if (!nsl_set_has(other, set->items[i])) {
+        nsl_set_add(out, set->items[i]);
+      }
+    }
+  }
+}
+
+NSL_API void nsl_set_union(const nsl_Set *set, const nsl_Set *other, nsl_Set* out) {
+  for (usize i = 0; i < set->_cap; i++) {
+    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
+      if (!nsl_set_has(other, set->items[i])) {
+        nsl_set_add(out, set->items[i]);
+      }
+    }
+  }
+
+  for (usize i = 0; i < other->_cap; i++) {
+    if (other->items[i] && set->items[i] != NSL_SET_DELETED) {
+      if (!nsl_set_has(set, other->items[i])) {
+        nsl_set_add(out, other->items[i]);
+      }
+    }
+  }
+}
+
+
+#include <stdio.h>
+#include <string.h>
+
+///////////////////////////////////////////////////////////////////////////////
+
+NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data) {
+    return (nsl_Bytes){.size = size, .data = data};
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+NSL_API nsl_Bytes nsl_bytes_copy(nsl_Bytes bytes, nsl_Arena *arena) {
+    u8 *buffer = nsl_arena_alloc(arena, bytes.size);
+    memcpy(buffer, bytes.data, bytes.size);
+    return nsl_bytes_from_parts(bytes.size, buffer);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+NSL_API nsl_Bytes nsl_bytes_slice(nsl_Bytes bytes, usize idx1, usize idx2) {
+    if (idx2 <= idx1 || bytes.size <= idx1 || bytes.size < idx2) {
+        return nsl_bytes_from_parts(0, bytes.data);
+    }
+    return nsl_bytes_from_parts(idx2 - idx1, &bytes.data[idx1]);
+}
+
+NSL_API nsl_Bytes nsl_bytes_take(nsl_Bytes *bytes, usize count) {
+    count = nsl_usize_min(bytes->size, count);
+    nsl_Bytes ret = nsl_bytes_from_parts(count, bytes->data);
+    bytes->size -= count;
+    bytes->data += count;
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+NSL_API bool nsl_bytes_eq(nsl_Bytes b1, nsl_Bytes b2) {
+    if (b1.size != b2.size) return false;
+    return memcmp(b1.data, b2.data, b1.size) == 0;
+}
+
+NSL_API u64 nsl_bytes_hash(nsl_Bytes bytes) {
+    const u64 offset = 2166136261UL;
+    const u64 prime = 16777619;
+    u64 hash = offset;
+    for (usize i = 0; i < bytes.size; i++) {
+        hash ^= (unsigned long)bytes.data[i];
+        hash *= prime;
+    }
+    return hash;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+NSL_API nsl_Str nsl_bytes_to_hex(nsl_Bytes bytes, nsl_Arena *arena) {
+    char *buf = nsl_arena_calloc(arena, bytes.size * 2 + 1);
+    usize idx = 0;
+    for (usize i = 0; i < bytes.size; i++) {
+        idx += (usize)snprintf(&buf[idx], 3, "%0*x", (i != 0) + 1, bytes.data[i]);
+    }
+    return (nsl_Str){.len = idx, .data = buf};
+}
+
+NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena) {
+    if (nsl_str_startswith(s, NSL_STR("0x"))) {
+        s = nsl_str_substring(s, 2, s.len);
+    }
+
+    u8 *buffer = nsl_arena_calloc(arena, (s.len / 2) + (s.len % 2));
+    // to convert strings like "0x101".
+    // in the first iteration:
+    // take 1 or 2 chars depending if s.len is even or odd
+    usize idx = 0;
+    for (nsl_Str ch = {0}; nsl_str_try_take(&s, idx == 0 ? 2 - s.len % 2 : 2, &ch);) {
+        for (usize i = 0; i < ch.len; i++) {
+            buffer[idx] = (u8)(buffer[idx] << 4);
+            if (nsl_char_is_xdigit(ch.data[i])) {
+                buffer[idx] |= nsl_char_hex_to_u8(ch.data[i]);
+            }
+        }
+        idx++;
+    }
+    return nsl_bytes_from_parts(idx, buffer);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+#include <ctype.h>
+
+#define NSL_DBASE 10
+#define NSL_XBASE 16
+
+NSL_API bool nsl_char_is_alnum(char c) { return isalnum(c); }
+NSL_API bool nsl_char_is_alpha(char c) { return isalpha(c); }
+NSL_API bool nsl_char_is_lower(char c) { return islower(c); }
+NSL_API bool nsl_char_is_upper(char c) { return isupper(c); }
+NSL_API bool nsl_char_is_space(char c) { return isspace(c); }
+NSL_API bool nsl_char_is_cntrl(char c) { return iscntrl(c); }
+NSL_API bool nsl_char_is_print(char c) { return isprint(c); }
+NSL_API bool nsl_char_is_graph(char c) { return isgraph(c); }
+NSL_API bool nsl_char_is_blank(char c) { return isblank(c); }
+NSL_API bool nsl_char_is_punct(char c) { return ispunct(c); }
+NSL_API bool nsl_char_is_digit(char c) { return isdigit(c); }
+NSL_API bool nsl_char_is_xdigit(char c) { return isxdigit(c); }
+NSL_API NSL_CONST_FN bool nsl_char_is_path_delimiter(char c) { return c == '/' || c == '\\'; }
+
+NSL_API char nsl_char_to_lower(char c) { return (char)tolower(c); }
+NSL_API char nsl_char_to_upper(char c) { return (char)toupper(c); }
+
+NSL_API u8 nsl_char_to_u8(char c) {
+  NSL_ASSERT(nsl_char_is_digit(c) && "char not convertible");
+  return (u8)(c - '0');
+}
+
+NSL_API u8 nsl_char_hex_to_u8(char c) {
+  NSL_ASSERT(nsl_char_is_xdigit(c) && "char not convertible");
+  if ('0' <= c && c <= '9') {
+    return nsl_char_to_u8(c);
+  }
+  if ('a' <= c && c <= 'f') {
+    return (u8)(NSL_DBASE + c - 'a');
+  }
+  if ('A' <= c && c <= 'F') {
+    return (u8)(NSL_DBASE + c - 'A');
+  }
+  return 0;
+}
+
+NSL_API char nsl_char_from_u8(u8 d) {
+  NSL_ASSERT(d < NSL_DBASE && "char not convertible");
+  return (char)('0' + d);
+}
+
+NSL_API char nsl_char_hex_from_u8(u8 d) {
+  NSL_ASSERT(d < NSL_XBASE && "char not convertible");
+  if (d < NSL_DBASE) {
+    return nsl_char_from_u8(d);
+  }
+  if (d < NSL_XBASE) {
+    return (char)('a' + (d - NSL_DBASE));
+  }
+  return 0;
+}
+
+NSL_API char nsl_char_HEX_from_u8(u8 d) {
+  NSL_ASSERT(d < NSL_XBASE && "char not convertible");
+  if (d < NSL_DBASE) {
+    return nsl_char_from_u8(d);
+  }
+  if (d < NSL_XBASE) {
+    return (char)('A' + (d - NSL_DBASE));
+  }
+  return 0;
+}
+
+
+#include <string.h>
+
+#define BITS(T) (sizeof(T) * 8)
+
+#define INTEGER_IMPL(T)                                                                            \
+    NSL_API T nsl_##T##_reverse_bits(T value) {                                                    \
+        T reversed = 0;                                                                            \
+        for (usize i = 0; i < BITS(T); i++) {                                                      \
+            reversed = (T)(reversed << 1);                                                         \
+            if (value & 1) {                                                                       \
+                reversed = reversed | 1;                                                           \
+            }                                                                                      \
+            value = value >> 1;                                                                    \
+        }                                                                                          \
+        return reversed;                                                                           \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API usize nsl_##T##_leading_ones(T value) {                                                \
+        usize count = 0;                                                                           \
+        for (usize i = 0; i < BITS(T); i++) {                                                      \
+            if (!(value >> (BITS(T) - i - 1) & (T)0x1)) {                                          \
+                break;                                                                             \
+            }                                                                                      \
+            count++;                                                                               \
+        }                                                                                          \
+        return count;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API usize nsl_##T##_trailing_ones(T value) {                                               \
+        usize count = 0;                                                                           \
+        for (usize i = 0; i < BITS(T); i++) {                                                      \
+            if (!(value >> i & (T)0x1)) {                                                          \
+                break;                                                                             \
+            }                                                                                      \
+            count++;                                                                               \
+        }                                                                                          \
+        return count;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API usize nsl_##T##_leading_zeros(T value) {                                               \
+        usize count = 0;                                                                           \
+        for (usize i = 0; i < BITS(T); i++) {                                                      \
+            if (value >> (BITS(T) - i - 1) & (T)0x1) {                                             \
+                break;                                                                             \
+            }                                                                                      \
+            count++;                                                                               \
+        }                                                                                          \
+        return count;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API usize nsl_##T##_trailing_zeros(T value) {                                              \
+        usize count = 0;                                                                           \
+        for (usize i = 0; i < BITS(T); i++) {                                                      \
+            if (value >> i & (T)0x1) {                                                             \
+                break;                                                                             \
+            }                                                                                      \
+            count++;                                                                               \
+        }                                                                                          \
+        return count;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API usize nsl_##T##_count_zeros(T value) {                                                 \
+        usize count = 0;                                                                           \
+        for (usize i = 0; i < BITS(T); i++) {                                                      \
+            if (!(value >> i & (T)0x1)) {                                                          \
+                count++;                                                                           \
+            }                                                                                      \
+        }                                                                                          \
+        return count;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API usize nsl_##T##_count_ones(T value) {                                                  \
+        usize count = 0;                                                                           \
+        for (usize i = 0; i < BITS(T); i++) {                                                      \
+            if (value >> i & (T)0x1) {                                                             \
+                count++;                                                                           \
+            }                                                                                      \
+        }                                                                                          \
+        return count;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_swap_bytes(T value) {                                                      \
+        if (1 < sizeof(T)) {                                                                       \
+            u8 *bytes = (u8 *)&value;                                                              \
+            for (usize i = 0; i < (sizeof(T) + 1) / 2; i++) {                                      \
+                u8 temp = bytes[i];                                                                \
+                bytes[i] = bytes[sizeof(T) - i - 1];                                               \
+                bytes[sizeof(T) - i - 1] = temp;                                                   \
+            }                                                                                      \
+        }                                                                                          \
+        return value;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_to_be(T value) {                                                           \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                                 \
+            return nsl_##T##_swap_bytes(value);                                                    \
+        }                                                                                          \
+        return value;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_from_be(T value) {                                                         \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                                 \
+            return nsl_##T##_swap_bytes(value);                                                    \
+        }                                                                                          \
+        return value;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_from_be_bytes(nsl_Bytes bytes) {                                           \
+        NSL_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                     \
+        T value = 0;                                                                               \
+        memcpy(&value, bytes.data, sizeof(T));                                                     \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                                 \
+            return nsl_##T##_swap_bytes(value);                                                    \
+        }                                                                                          \
+        return value;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_Arena *arena) {                           \
+        u8 *buffer = nsl_arena_alloc(arena, sizeof(value));                                        \
+        u8 *bytes = (u8 *)&value;                                                                  \
+        for (usize i = 0; i < sizeof(value); i++) {                                                \
+            if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                \
+                buffer[i] = bytes[i];                                                              \
+            } else {                                                                               \
+                buffer[sizeof(value) - i - 1] = bytes[i];                                          \
+            }                                                                                      \
+        }                                                                                          \
+        return nsl_bytes_from_parts(sizeof(value), buffer);                                        \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_to_le(T value) {                                                           \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
+            return nsl_##T##_swap_bytes(value);                                                    \
+        }                                                                                          \
+        return value;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_from_le(T value) {                                                         \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
+            return nsl_##T##_swap_bytes(value);                                                    \
+        }                                                                                          \
+        return value;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_from_le_bytes(nsl_Bytes bytes) {                                           \
+        NSL_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                     \
+        T value = 0;                                                                               \
+        memcpy(&value, bytes.data, sizeof(T));                                                     \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
+            return nsl_##T##_swap_bytes(value);                                                    \
+        }                                                                                          \
+        return value;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_Arena *arena) {                           \
+        u8 *buffer = nsl_arena_alloc(arena, sizeof(value));                                        \
+        u8 *bytes = (u8 *)&value;                                                                  \
+        for (usize i = 0; i < sizeof(value); i++) {                                                \
+            if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                             \
+                buffer[i] = bytes[i];                                                              \
+            } else {                                                                               \
+                buffer[sizeof(value) - i - 1] = bytes[i];                                          \
+            }                                                                                      \
+        }                                                                                          \
+        return nsl_bytes_from_parts(sizeof(value), buffer);                                        \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_from_ne_bytes(nsl_Bytes bytes) {                                           \
+        NSL_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                     \
+        T value = 0;                                                                               \
+        memcpy(&value, bytes.data, sizeof(T));                                                     \
+        return value;                                                                              \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API nsl_Bytes nsl_##T##_to_ne_bytes(T value, nsl_Arena *arena) {                           \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
+            return nsl_##T##_to_be_bytes(value, arena);                                            \
+        }                                                                                          \
+        return nsl_##T##_to_le_bytes(value, arena);                                                \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_max(T a, T b) {                                                            \
+        return a < b ? b : a;                                                                      \
+    }                                                                                              \
+    NSL_API T nsl_##T##_min(T a, T b) {                                                            \
+        return a > b ? b : a;                                                                      \
+    }                                                                                              \
+    NSL_API T nsl_##T##_clamp(T min, T max, T value) {                                             \
+        return value < min ? min : max < value ? max : value;                                      \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API u64 nsl_##T##_hash(T value) {                                                          \
+        u64 hash = ((u64)value) + 1;                                                               \
+        hash = (((hash >> 16) ^ hash) % 0x3AA387A8B1) * 0x45d9f3b;                                 \
+        hash = (((hash >> 16) ^ hash) % 0x3AA387A8B1) * 0x45d9f3b;                                 \
+        hash = (hash >> 16) ^ hash;                                                                \
+        return hash;                                                                               \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API void nsl_##T##_swap(T *v1, T *v2) {                                                    \
+        T temp = *v1;                                                                              \
+        *v1 = *v2;                                                                                 \
+        *v2 = temp;                                                                                \
+    }                                                                                              \
+                                                                                                   \
+    NSL_API T nsl_##T##_next_pow2(T n) {                                                           \
+        /* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */                 \
+        if (n == 0) return 1;                                                                      \
+        u64 x = (u64)n;                                                                            \
+        x--;                                                                                       \
+        for (size_t i = 1; i < sizeof(T) * 8; i <<= 1) {                                           \
+            x |= x >> i;                                                                           \
+        }                                                                                          \
+        T max = (((T)-1) > 0) ? (T)-1 : (T)((1ULL << (sizeof(T) * 8 - 1)) - 1);                    \
+        if (x >= (u64)max) return max;                                                             \
+        return (T)(x + 1);                                                                         \
+    }
+
+INTEGER_IMPL(u8)
+INTEGER_IMPL(i8)
+INTEGER_IMPL(u16)
+INTEGER_IMPL(i16)
+INTEGER_IMPL(u32)
+INTEGER_IMPL(i32)
+INTEGER_IMPL(u64)
+INTEGER_IMPL(i64)
+INTEGER_IMPL(usize)
+
+#undef INTEGER_IMPL
+#undef BITS
+
+
+#include <stdio.h>
+#include <string.h>
+
+NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path *parts, nsl_Arena *arena) {
+    if (len == 0) {
+        return NSL_STR("");
+    }
+    if (len == 1) {
+        return nsl_str_copy(parts[0], arena);
+    }
+    nsl_List(char) buffer = {0};
+
+    for (usize i = 0; i < len; i++) {
+        nsl_list_reserve(&buffer, parts[i].len + 2);
+        if (i && buffer.len && !nsl_char_is_path_delimiter(nsl_list_last(&buffer))) {
+            nsl_list_push(&buffer, '/');
+        }
+        for (usize j = 0; j < parts[i].len; j++) {
+            if (nsl_char_is_path_delimiter(parts[i].data[j])) {
+                if (buffer.len && nsl_char_is_path_delimiter(nsl_list_last(&buffer))) {
+                    continue;
+                }
+                nsl_list_push(&buffer, '/');
+            } else {
+                nsl_list_push(&buffer, parts[i].data[j]);
+            }
+        }
+    }
+
+
+    nsl_Str result = nsl_str_copy(nsl_str_from_parts(buffer.len, buffer.items), arena);
+    nsl_list_free(&buffer);
+    return result;
+}
+
+NSL_API nsl_Path nsl_path_normalize(nsl_Path path, nsl_Arena *arena) {
+    nsl_Arena scratch = {0};
+    nsl_List(nsl_Path) parts = {.arena = &scratch};
+    char win_path_prefix_buffer[4] = "C:/";
+
+    nsl_Path prefix = NSL_PATH("");
+    if (nsl_path_is_absolute(path)) {
+        if (path.len && nsl_char_is_path_delimiter(path.data[0])) {
+            prefix = NSL_PATH("/");
+        } else if (path.len > 2) {
+            win_path_prefix_buffer[0] = path.data[0];
+            prefix = nsl_str_from_parts(3, win_path_prefix_buffer);
+            path = nsl_str_substring(path, 3, path.len);
+        }
+    }
+
+    nsl_Path part;
+    while (nsl_str_try_chop_by_predicate(&path, nsl_char_is_path_delimiter, &part)) {
+        if (part.len == 0) {
+            continue;
+        } else if (nsl_str_eq(part, NSL_STR("."))) {
+            continue;
+        } else if (nsl_str_eq(part, NSL_STR(".."))) {
+            if (parts.len) (void)nsl_list_pop(&parts);
+            else if (!prefix.len) nsl_list_push(&parts, part);
+            continue;
+        }
+        nsl_list_push(&parts, part);
+    }
+
+    nsl_Path result = nsl_path_join(parts.len, parts.items, &scratch);
+    result = nsl_str_prepend(result, prefix, arena);
+    nsl_arena_free(&scratch);
+    return result;
+}
+
+NSL_API bool nsl_path_eq(nsl_Path p1, nsl_Path p2) {
+    while (true) {
+        nsl_Path c1 = nsl_str_chop_by_predicate(&p1, nsl_char_is_path_delimiter);
+        nsl_Path c2 = nsl_str_chop_by_predicate(&p2, nsl_char_is_path_delimiter);
+        if (c1.len == 0 && c2.len == 0) break;
+        if (!nsl_str_eq(c1, c2)) return false;;
+    }
+    return true;
+}
+
+NSL_API bool nsl_path_is_absolute(nsl_Path path) {
+    if (path.len == 0)
+        return false;
+    if (nsl_char_is_path_delimiter(path.data[0]))
+        return true;
+    if (path.len >= 3 && path.data[1] == ':' && nsl_char_is_path_delimiter(path.data[2]))
+        return true;
+    return false;
+}
+
+NSL_API bool nsl_path_is_root(nsl_Path path) {
+    if (path.len == 1 && nsl_char_is_path_delimiter(path.data[0]))
+        return true;
+    if (path.len == 3 && path.data[1] == ':' && nsl_char_is_path_delimiter(path.data[2]))
+        return true;
+    return false;
+}
+
+NSL_API nsl_Str nsl_path_name(nsl_Path path) {
+    if (nsl_str_eq(path, NSL_STR("."))) {
+        return NSL_STR("");
+    }
+    return nsl_str_chop_right_by_predicate(&path, nsl_char_is_path_delimiter);
+}
+
+NSL_API nsl_Str nsl_path_suffix(nsl_Path path) {
+    if (nsl_str_eq(path, NSL_STR("."))) {
+        return NSL_STR("");
+    }
+    nsl_Str name = nsl_str_chop_right_by_predicate(&path, nsl_char_is_path_delimiter);
+    usize idx = nsl_str_find_last(name, NSL_STR("."));
+    if (idx == NSL_STR_NOT_FOUND) {
+        return NSL_STR("");
+    }
+    return nsl_str_substring(name, idx, name.len);
+}
+
+NSL_API nsl_Str nsl_path_stem(nsl_Path path) {
+    nsl_Str name = nsl_str_chop_right_by_predicate(&path, nsl_char_is_path_delimiter);
+    usize idx = nsl_str_find_last(name, NSL_STR("."));
+    if (idx == NSL_STR_NOT_FOUND) {
+        return name;
+    }
+    return nsl_str_substring(name, 0, idx);
+}
+
+NSL_API nsl_Path nsl_path_parent(nsl_Path path) {
+    if (path.len == 1 && nsl_char_is_path_delimiter(path.data[0])) return path;
+    if (nsl_str_endswith_predicate(path, nsl_char_is_path_delimiter)) path.len--;
+    usize idx = nsl_str_find_last_by_predicate(path, nsl_char_is_path_delimiter);
+    if (idx == NSL_STR_NOT_FOUND) return NSL_PATH(".");
+    return nsl_str_substring(path, 0, nsl_usize_min(path.len, idx+1));
+}
 
 
 #include <stdarg.h>
@@ -1540,1783 +3316,4 @@ NSL_API u64 nsl_str_hash(nsl_Str s) {
     return hash;
 }
 
-
-#include <stdio.h>
-#include <string.h>
-
-NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path *parts, nsl_Arena *arena) {
-    if (len == 0) {
-        return NSL_STR("");
-    }
-    if (len == 1) {
-        return nsl_str_copy(parts[0], arena);
-    }
-    nsl_List(char) buffer = {0};
-
-    for (usize i = 0; i < len; i++) {
-        nsl_list_reserve(&buffer, parts[i].len + 2);
-        if (i && buffer.len && !nsl_char_is_path_delimiter(nsl_list_last(&buffer))) {
-            nsl_list_push(&buffer, '/');
-        }
-        for (usize j = 0; j < parts[i].len; j++) {
-            if (nsl_char_is_path_delimiter(parts[i].data[j])) {
-                if (buffer.len && nsl_char_is_path_delimiter(nsl_list_last(&buffer))) {
-                    continue;
-                }
-                nsl_list_push(&buffer, '/');
-            } else {
-                nsl_list_push(&buffer, parts[i].data[j]);
-            }
-        }
-    }
-
-
-    nsl_Str result = nsl_str_copy(nsl_str_from_parts(buffer.len, buffer.items), arena);
-    nsl_list_free(&buffer);
-    return result;
-}
-
-NSL_API nsl_Path nsl_path_normalize(nsl_Path path, nsl_Arena *arena) {
-    nsl_Arena scratch = {0};
-    nsl_List(nsl_Path) parts = {.arena = &scratch};
-    char win_path_prefix_buffer[4] = "C:/";
-
-    nsl_Path prefix = NSL_PATH("");
-    if (nsl_path_is_absolute(path)) {
-        if (path.len && nsl_char_is_path_delimiter(path.data[0])) {
-            prefix = NSL_PATH("/");
-        } else if (path.len > 2) {
-            win_path_prefix_buffer[0] = path.data[0];
-            prefix = nsl_str_from_parts(3, win_path_prefix_buffer);
-            path = nsl_str_substring(path, 3, path.len);
-        }
-    }
-
-    nsl_Path part;
-    while (nsl_str_try_chop_by_predicate(&path, nsl_char_is_path_delimiter, &part)) {
-        if (part.len == 0) {
-            continue;
-        } else if (nsl_str_eq(part, NSL_STR("."))) {
-            continue;
-        } else if (nsl_str_eq(part, NSL_STR(".."))) {
-            if (parts.len) (void)nsl_list_pop(&parts);
-            else if (!prefix.len) nsl_list_push(&parts, part);
-            continue;
-        }
-        nsl_list_push(&parts, part);
-    }
-
-    nsl_Path result = nsl_path_join(parts.len, parts.items, &scratch);
-    result = nsl_str_prepend(result, prefix, arena);
-    nsl_arena_free(&scratch);
-    return result;
-}
-
-NSL_API bool nsl_path_eq(nsl_Path p1, nsl_Path p2) {
-    while (true) {
-        nsl_Path c1 = nsl_str_chop_by_predicate(&p1, nsl_char_is_path_delimiter);
-        nsl_Path c2 = nsl_str_chop_by_predicate(&p2, nsl_char_is_path_delimiter);
-        if (c1.len == 0 && c2.len == 0) break;
-        if (!nsl_str_eq(c1, c2)) return false;;
-    }
-    return true;
-}
-
-NSL_API bool nsl_path_is_absolute(nsl_Path path) {
-    if (path.len == 0)
-        return false;
-    if (nsl_char_is_path_delimiter(path.data[0]))
-        return true;
-    if (path.len >= 3 && path.data[1] == ':' && nsl_char_is_path_delimiter(path.data[2]))
-        return true;
-    return false;
-}
-
-NSL_API bool nsl_path_is_root(nsl_Path path) {
-    if (path.len == 1 && nsl_char_is_path_delimiter(path.data[0]))
-        return true;
-    if (path.len == 3 && path.data[1] == ':' && nsl_char_is_path_delimiter(path.data[2]))
-        return true;
-    return false;
-}
-
-NSL_API nsl_Str nsl_path_name(nsl_Path path) {
-    if (nsl_str_eq(path, NSL_STR("."))) {
-        return NSL_STR("");
-    }
-    return nsl_str_chop_right_by_predicate(&path, nsl_char_is_path_delimiter);
-}
-
-NSL_API nsl_Str nsl_path_suffix(nsl_Path path) {
-    if (nsl_str_eq(path, NSL_STR("."))) {
-        return NSL_STR("");
-    }
-    nsl_Str name = nsl_str_chop_right_by_predicate(&path, nsl_char_is_path_delimiter);
-    usize idx = nsl_str_find_last(name, NSL_STR("."));
-    if (idx == NSL_STR_NOT_FOUND) {
-        return NSL_STR("");
-    }
-    return nsl_str_substring(name, idx, name.len);
-}
-
-NSL_API nsl_Str nsl_path_stem(nsl_Path path) {
-    nsl_Str name = nsl_str_chop_right_by_predicate(&path, nsl_char_is_path_delimiter);
-    usize idx = nsl_str_find_last(name, NSL_STR("."));
-    if (idx == NSL_STR_NOT_FOUND) {
-        return name;
-    }
-    return nsl_str_substring(name, 0, idx);
-}
-
-NSL_API nsl_Path nsl_path_parent(nsl_Path path) {
-    if (path.len == 1 && nsl_char_is_path_delimiter(path.data[0])) return path;
-    if (nsl_str_endswith_predicate(path, nsl_char_is_path_delimiter)) path.len--;
-    usize idx = nsl_str_find_last_by_predicate(path, nsl_char_is_path_delimiter);
-    if (idx == NSL_STR_NOT_FOUND) return NSL_PATH(".");
-    return nsl_str_substring(path, 0, nsl_usize_min(path.len, idx+1));
-}
-
-
-#include <string.h>
-
-#define BITS(T) (sizeof(T) * 8)
-
-#define INTEGER_IMPL(T)                                                                            \
-    NSL_API T nsl_##T##_reverse_bits(T value) {                                                    \
-        T reversed = 0;                                                                            \
-        for (usize i = 0; i < BITS(T); i++) {                                                      \
-            reversed = (T)(reversed << 1);                                                         \
-            if (value & 1) {                                                                       \
-                reversed = reversed | 1;                                                           \
-            }                                                                                      \
-            value = value >> 1;                                                                    \
-        }                                                                                          \
-        return reversed;                                                                           \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API usize nsl_##T##_leading_ones(T value) {                                                \
-        usize count = 0;                                                                           \
-        for (usize i = 0; i < BITS(T); i++) {                                                      \
-            if (!(value >> (BITS(T) - i - 1) & (T)0x1)) {                                          \
-                break;                                                                             \
-            }                                                                                      \
-            count++;                                                                               \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API usize nsl_##T##_trailing_ones(T value) {                                               \
-        usize count = 0;                                                                           \
-        for (usize i = 0; i < BITS(T); i++) {                                                      \
-            if (!(value >> i & (T)0x1)) {                                                          \
-                break;                                                                             \
-            }                                                                                      \
-            count++;                                                                               \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API usize nsl_##T##_leading_zeros(T value) {                                               \
-        usize count = 0;                                                                           \
-        for (usize i = 0; i < BITS(T); i++) {                                                      \
-            if (value >> (BITS(T) - i - 1) & (T)0x1) {                                             \
-                break;                                                                             \
-            }                                                                                      \
-            count++;                                                                               \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API usize nsl_##T##_trailing_zeros(T value) {                                              \
-        usize count = 0;                                                                           \
-        for (usize i = 0; i < BITS(T); i++) {                                                      \
-            if (value >> i & (T)0x1) {                                                             \
-                break;                                                                             \
-            }                                                                                      \
-            count++;                                                                               \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API usize nsl_##T##_count_zeros(T value) {                                                 \
-        usize count = 0;                                                                           \
-        for (usize i = 0; i < BITS(T); i++) {                                                      \
-            if (!(value >> i & (T)0x1)) {                                                          \
-                count++;                                                                           \
-            }                                                                                      \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API usize nsl_##T##_count_ones(T value) {                                                  \
-        usize count = 0;                                                                           \
-        for (usize i = 0; i < BITS(T); i++) {                                                      \
-            if (value >> i & (T)0x1) {                                                             \
-                count++;                                                                           \
-            }                                                                                      \
-        }                                                                                          \
-        return count;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_swap_bytes(T value) {                                                      \
-        if (1 < sizeof(T)) {                                                                       \
-            u8 *bytes = (u8 *)&value;                                                              \
-            for (usize i = 0; i < (sizeof(T) + 1) / 2; i++) {                                      \
-                u8 temp = bytes[i];                                                                \
-                bytes[i] = bytes[sizeof(T) - i - 1];                                               \
-                bytes[sizeof(T) - i - 1] = temp;                                                   \
-            }                                                                                      \
-        }                                                                                          \
-        return value;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_to_be(T value) {                                                           \
-        if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                                 \
-            return nsl_##T##_swap_bytes(value);                                                    \
-        }                                                                                          \
-        return value;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_from_be(T value) {                                                         \
-        if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                                 \
-            return nsl_##T##_swap_bytes(value);                                                    \
-        }                                                                                          \
-        return value;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_from_be_bytes(nsl_Bytes bytes) {                                           \
-        NSL_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                     \
-        T value = 0;                                                                               \
-        memcpy(&value, bytes.data, sizeof(T));                                                     \
-        if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                                 \
-            return nsl_##T##_swap_bytes(value);                                                    \
-        }                                                                                          \
-        return value;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_Arena *arena) {                           \
-        u8 *buffer = nsl_arena_alloc(arena, sizeof(value));                                        \
-        u8 *bytes = (u8 *)&value;                                                                  \
-        for (usize i = 0; i < sizeof(value); i++) {                                                \
-            if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                \
-                buffer[i] = bytes[i];                                                              \
-            } else {                                                                               \
-                buffer[sizeof(value) - i - 1] = bytes[i];                                          \
-            }                                                                                      \
-        }                                                                                          \
-        return nsl_bytes_from_parts(sizeof(value), buffer);                                        \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_to_le(T value) {                                                           \
-        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
-            return nsl_##T##_swap_bytes(value);                                                    \
-        }                                                                                          \
-        return value;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_from_le(T value) {                                                         \
-        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
-            return nsl_##T##_swap_bytes(value);                                                    \
-        }                                                                                          \
-        return value;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_from_le_bytes(nsl_Bytes bytes) {                                           \
-        NSL_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                     \
-        T value = 0;                                                                               \
-        memcpy(&value, bytes.data, sizeof(T));                                                     \
-        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
-            return nsl_##T##_swap_bytes(value);                                                    \
-        }                                                                                          \
-        return value;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_Arena *arena) {                           \
-        u8 *buffer = nsl_arena_alloc(arena, sizeof(value));                                        \
-        u8 *bytes = (u8 *)&value;                                                                  \
-        for (usize i = 0; i < sizeof(value); i++) {                                                \
-            if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                             \
-                buffer[i] = bytes[i];                                                              \
-            } else {                                                                               \
-                buffer[sizeof(value) - i - 1] = bytes[i];                                          \
-            }                                                                                      \
-        }                                                                                          \
-        return nsl_bytes_from_parts(sizeof(value), buffer);                                        \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_from_ne_bytes(nsl_Bytes bytes) {                                           \
-        NSL_ASSERT(sizeof(T) == bytes.size && "expected " #T);                                     \
-        T value = 0;                                                                               \
-        memcpy(&value, bytes.data, sizeof(T));                                                     \
-        return value;                                                                              \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API nsl_Bytes nsl_##T##_to_ne_bytes(T value, nsl_Arena *arena) {                           \
-        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
-            return nsl_##T##_to_be_bytes(value, arena);                                            \
-        }                                                                                          \
-        return nsl_##T##_to_le_bytes(value, arena);                                                \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_max(T a, T b) {                                                            \
-        return a < b ? b : a;                                                                      \
-    }                                                                                              \
-    NSL_API T nsl_##T##_min(T a, T b) {                                                            \
-        return a > b ? b : a;                                                                      \
-    }                                                                                              \
-    NSL_API T nsl_##T##_clamp(T min, T max, T value) {                                             \
-        return value < min ? min : max < value ? max : value;                                      \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API u64 nsl_##T##_hash(T value) {                                                          \
-        u64 hash = ((u64)value) + 1;                                                               \
-        hash = (((hash >> 16) ^ hash) % 0x3AA387A8B1) * 0x45d9f3b;                                 \
-        hash = (((hash >> 16) ^ hash) % 0x3AA387A8B1) * 0x45d9f3b;                                 \
-        hash = (hash >> 16) ^ hash;                                                                \
-        return hash;                                                                               \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API void nsl_##T##_swap(T *v1, T *v2) {                                                    \
-        T temp = *v1;                                                                              \
-        *v1 = *v2;                                                                                 \
-        *v2 = temp;                                                                                \
-    }                                                                                              \
-                                                                                                   \
-    NSL_API T nsl_##T##_next_pow2(T n) {                                                           \
-        /* https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2 */                 \
-        if (n == 0) return 1;                                                                      \
-        u64 x = (u64)n;                                                                            \
-        x--;                                                                                       \
-        for (size_t i = 1; i < sizeof(T) * 8; i <<= 1) {                                           \
-            x |= x >> i;                                                                           \
-        }                                                                                          \
-        T max = (((T)-1) > 0) ? (T)-1 : (T)((1ULL << (sizeof(T) * 8 - 1)) - 1);                    \
-        if (x >= (u64)max) return max;                                                             \
-        return (T)(x + 1);                                                                         \
-    }
-
-INTEGER_IMPL(u8)
-INTEGER_IMPL(i8)
-INTEGER_IMPL(u16)
-INTEGER_IMPL(i16)
-INTEGER_IMPL(u32)
-INTEGER_IMPL(i32)
-INTEGER_IMPL(u64)
-INTEGER_IMPL(i64)
-INTEGER_IMPL(usize)
-
-#undef INTEGER_IMPL
-#undef BITS
-
-#include <ctype.h>
-
-#define DBASE 10
-#define XBASE 16
-
-///////////////////////////////////////////////////////////////////////////////
-
-NSL_API bool nsl_char_is_alnum(char c) { return isalnum(c); }
-NSL_API bool nsl_char_is_alpha(char c) { return isalpha(c); }
-NSL_API bool nsl_char_is_lower(char c) { return islower(c); }
-NSL_API bool nsl_char_is_upper(char c) { return isupper(c); }
-NSL_API bool nsl_char_is_space(char c) { return isspace(c); }
-NSL_API bool nsl_char_is_cntrl(char c) { return iscntrl(c); }
-NSL_API bool nsl_char_is_print(char c) { return isprint(c); }
-NSL_API bool nsl_char_is_graph(char c) { return isgraph(c); }
-NSL_API bool nsl_char_is_blank(char c) { return isblank(c); }
-NSL_API bool nsl_char_is_punct(char c) { return ispunct(c); }
-NSL_API bool nsl_char_is_digit(char c) { return isdigit(c); }
-NSL_API bool nsl_char_is_xdigit(char c) { return isxdigit(c); }
-NSL_API NSL_CONST_FN bool nsl_char_is_path_delimiter(char c) { return c == '/' || c == '\\'; }
-
-///////////////////////////////////////////////////////////////////////////////
-
-NSL_API char nsl_char_to_lower(char c) { return (char)tolower(c); }
-NSL_API char nsl_char_to_upper(char c) { return (char)toupper(c); }
-
-NSL_API u8 nsl_char_to_u8(char c) {
-  NSL_ASSERT(nsl_char_is_digit(c) && "char not convertible");
-  return (u8)(c - '0');
-}
-
-NSL_API u8 nsl_char_hex_to_u8(char c) {
-  NSL_ASSERT(nsl_char_is_xdigit(c) && "char not convertible");
-  if ('0' <= c && c <= '9') {
-    return nsl_char_to_u8(c);
-  }
-  if ('a' <= c && c <= 'f') {
-    return (u8)(DBASE + c - 'a');
-  }
-  if ('A' <= c && c <= 'F') {
-    return (u8)(DBASE + c - 'A');
-  }
-  return 0;
-}
-
-NSL_API char nsl_char_from_u8(u8 d) {
-  NSL_ASSERT(d < DBASE && "char not convertible");
-  return (char)('0' + d);
-}
-
-NSL_API char nsl_char_hex_from_u8(u8 d) {
-  NSL_ASSERT(d < XBASE && "char not convertible");
-  if (d < DBASE) {
-    return nsl_char_from_u8(d);
-  }
-  if (d < XBASE) {
-    return (char)('a' + (d - DBASE));
-  }
-  return 0;
-}
-
-NSL_API char nsl_char_HEX_from_u8(u8 d) {
-  NSL_ASSERT(d < XBASE && "char not convertible");
-  if (d < DBASE) {
-    return nsl_char_from_u8(d);
-  }
-  if (d < XBASE) {
-    return (char)('A' + (d - DBASE));
-  }
-  return 0;
-}
-
-
-#include <stdio.h>
-#include <string.h>
-
-///////////////////////////////////////////////////////////////////////////////
-
-NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data) {
-    return (nsl_Bytes){.size = size, .data = data};
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-NSL_API nsl_Bytes nsl_bytes_copy(nsl_Bytes bytes, nsl_Arena *arena) {
-    u8 *buffer = nsl_arena_alloc(arena, bytes.size);
-    memcpy(buffer, bytes.data, bytes.size);
-    return nsl_bytes_from_parts(bytes.size, buffer);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-NSL_API nsl_Bytes nsl_bytes_slice(nsl_Bytes bytes, usize idx1, usize idx2) {
-    if (idx2 <= idx1 || bytes.size <= idx1 || bytes.size < idx2) {
-        return nsl_bytes_from_parts(0, bytes.data);
-    }
-    return nsl_bytes_from_parts(idx2 - idx1, &bytes.data[idx1]);
-}
-
-NSL_API nsl_Bytes nsl_bytes_take(nsl_Bytes *bytes, usize count) {
-    count = nsl_usize_min(bytes->size, count);
-    nsl_Bytes ret = nsl_bytes_from_parts(count, bytes->data);
-    bytes->size -= count;
-    bytes->data += count;
-    return ret;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-NSL_API bool nsl_bytes_eq(nsl_Bytes b1, nsl_Bytes b2) {
-    if (b1.size != b2.size) return false;
-    return memcmp(b1.data, b2.data, b1.size) == 0;
-}
-
-NSL_API u64 nsl_bytes_hash(nsl_Bytes bytes) {
-    const u64 offset = 2166136261UL;
-    const u64 prime = 16777619;
-    u64 hash = offset;
-    for (usize i = 0; i < bytes.size; i++) {
-        hash ^= (unsigned long)bytes.data[i];
-        hash *= prime;
-    }
-    return hash;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-NSL_API nsl_Str nsl_bytes_to_hex(nsl_Bytes bytes, nsl_Arena *arena) {
-    char *buf = nsl_arena_calloc(arena, bytes.size * 2 + 1);
-    usize idx = 0;
-    for (usize i = 0; i < bytes.size; i++) {
-        idx += (usize)snprintf(&buf[idx], 3, "%0*x", (i != 0) + 1, bytes.data[i]);
-    }
-    return (nsl_Str){.len = idx, .data = buf};
-}
-
-NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena) {
-    if (nsl_str_startswith(s, NSL_STR("0x"))) {
-        s = nsl_str_substring(s, 2, s.len);
-    }
-
-    u8 *buffer = nsl_arena_calloc(arena, (s.len / 2) + (s.len % 2));
-    // to convert strings like "0x101".
-    // in the first iteration:
-    // take 1 or 2 chars depending if s.len is even or odd
-    usize idx = 0;
-    for (nsl_Str ch = {0}; nsl_str_try_take(&s, idx == 0 ? 2 - s.len % 2 : 2, &ch);) {
-        for (usize i = 0; i < ch.len; i++) {
-            buffer[idx] = (u8)(buffer[idx] << 4);
-            if (nsl_char_is_xdigit(ch.data[i])) {
-                buffer[idx] |= nsl_char_hex_to_u8(ch.data[i]);
-            }
-        }
-        idx++;
-    }
-    return nsl_bytes_from_parts(idx, buffer);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-
-NSL_API void nsl_set_free(nsl_Set* set) {
-    nsl_arena_free_chunk(set->arena, set->items);
-}
-
-NSL_API void nsl_set_resize(nsl_Set *set, usize size) {
-    if (size < set->_cap) {
-        return;
-    }
-    usize old_cap = set->_cap;
-    u64 *old_items = set->items;
-
-    set->_cap = size == 0 ? NSL_SET_DEFAULT_SIZE : nsl_usize_next_pow2(size);
-    set->items = nsl_arena_calloc_chunk(set->arena, set->_cap * sizeof(set->items[0]));
-
-    set->len = 0;
-    set->_del = 0;
-    for (usize i = 0; i < old_cap; ++i) {
-        if (old_items[i] && old_items[i] != NSL_SET_DELETED) {
-            nsl_set_add(set, old_items[i]);
-        }
-    }
-    nsl_arena_free_chunk(set->arena, old_items);
-}
-
-NSL_API void nsl_set_reserve(nsl_Set *map, usize size) {
-    usize target = map->len + size;
-    if (target <= map->_cap) return;
-    nsl_set_resize(map, target);
-}
-
-NSL_API bool nsl_set_remove(nsl_Set *set, u64 hash) {
-    if (set->len == 0) {
-        return false;
-    }
-
-    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
-    if (NSL_UNLIKELY(hash == 0 || hash == NSL_SET_DELETED)) {
-        hash = nsl_u64_hash(hash);
-    }
-
-    usize idx = hash & (set->_cap - 1);
-    for (usize i = 0; i < set->_cap; i++) {
-        if (set->items[idx] == 0) {
-            return false;
-        }
-        if (set->items[idx] && set->items[idx] == hash) {
-            set->items[idx] = NSL_SET_DELETED;
-            set->len--;
-            set->_del++;
-            return true;
-        }
-        idx = (idx + i * i) & (set->_cap - 1);
-    }
-    return false;
-}
-
-NSL_API bool nsl_set_add(nsl_Set *set, u64 hash) {
-    if (set->_cap <= set->len + set->_del) {
-        nsl_set_resize(set, set->_cap * 2);
-    }
-
-    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
-    if (NSL_UNLIKELY(hash == 0 || hash == NSL_SET_DELETED)) {
-        hash = nsl_u64_hash(hash);
-    }
-
-    usize del_idx = (usize)-1;
-    while (true) {
-        usize idx = hash & (set->_cap - 1);
-
-        for (usize i = 0; i < set->_cap; i++) {
-            if (set->items[idx] == 0) {
-                // NOTE: reusing a deleted slot
-                if (del_idx != (usize)-1) {
-                    set->items[del_idx] = hash;
-                    set->len++;
-                    set->_del--;
-                    return true;
-                }
-                set->items[idx] = hash;
-                set->len++;
-                return true;
-            } else if (set->items[idx] == hash) {
-                return false;
-            } else if (set->items[idx] == NSL_SET_DELETED && del_idx == (usize)-1) {
-                del_idx = idx;
-            }
-            idx = (idx + i * i) & (set->_cap - 1);
-        }
-
-        nsl_set_resize(set, set->_cap * 2);
-    }
-
-    NSL_UNREACHABLE("nsl_set_add");
-}
-
-NSL_API bool nsl_set_has(const nsl_Set *map, u64 hash) {
-    if (map->len == 0) {
-        return false;
-    }
-
-    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
-    if (NSL_UNLIKELY(hash == 0 || hash == NSL_SET_DELETED)) {
-        hash = nsl_u64_hash(hash);
-    }
-
-    usize idx = hash & (map->_cap - 1);
-    for (usize i = 0; i < map->_cap; i++) {
-        if (map->items[idx] == 0) {
-            return false;
-        }
-        if (map->items[idx] == hash) {
-            return true;
-        }
-        idx = (idx + i * i) & (map->_cap - 1);
-    }
-
-    return false;
-}
-
-NSL_API void nsl_set_update(nsl_Set* map, const nsl_Set* other) {
-    nsl_set_reserve(map, other->len);
-    for (usize i = 0; i < other->_cap; ++i) {
-        if (other->items[i] && other->items[i] != NSL_SET_DELETED) {
-            nsl_set_add(map, other->items[i]);
-        }
-    }
-}
-
-NSL_API void nsl_set_extend(nsl_Set* set, usize count, const u64* hashes) {
-  nsl_set_reserve(set, count);
-  for (usize i = 0; i < count; i++) {
-    nsl_set_add(set, hashes[i]);
-  }
-}
-
-NSL_API bool nsl_set_eq(const nsl_Set *set, const nsl_Set *other) {
-  if (other->len != set->len) {
-    return false;
-  }
-
-  if (other->_cap < set->_cap) {
-    const nsl_Set *temp = set;
-    set = other;
-    other = temp;
-  }
-  for (usize i = 0; i < set->_cap; i++) {
-    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
-      if (!nsl_set_has(other, set->items[i])) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-NSL_API bool nsl_set_subset(const nsl_Set *set, const nsl_Set *other) {
-  if (other->len < set->len) {
-    return false;
-  }
-  for (usize i = 0; i < set->_cap; i++) {
-    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
-      if (!nsl_set_has(other, set->items[i])) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-NSL_API bool nsl_set_disjoint(const nsl_Set *set, const nsl_Set *other) {
-  if (other->len == 0 || set->len == 0) {
-    return true;
-  }
-
-  if (other->_cap < set->_cap) {
-    const nsl_Set *temp = set;
-    set = other;
-    other = temp;
-  }
-  for (usize i = 0; i < set->_cap; i++) {
-    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
-      if (nsl_set_has(other, set->items[i])) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-NSL_API void nsl_set_intersection(const nsl_Set *set, const nsl_Set *other, nsl_Set* out) {
-  if (other->_cap < set->_cap) {
-    const nsl_Set *temp = set;
-    set = other;
-    other = temp;
-  }
-
-  nsl_set_reserve(out, nsl_usize_min(set->len, other->len) * 2);
-  for (usize i = 0; i < set->_cap; i++) {
-    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
-      if (nsl_set_has(other, set->items[i])) {
-        nsl_set_add(out, set->items[i]);
-      }
-    }
-  }
-}
-
-NSL_API void nsl_set_difference(const nsl_Set *set, const nsl_Set *other, nsl_Set* out) {
-  nsl_set_reserve(out, set->len * 2);
-  for (usize i = 0; i < set->_cap; i++) {
-    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
-      if (!nsl_set_has(other, set->items[i])) {
-        nsl_set_add(out, set->items[i]);
-      }
-    }
-  }
-}
-
-NSL_API void nsl_set_union(const nsl_Set *set, const nsl_Set *other, nsl_Set* out) {
-  for (usize i = 0; i < set->_cap; i++) {
-    if (set->items[i] && set->items[i] != NSL_SET_DELETED) {
-      if (!nsl_set_has(other, set->items[i])) {
-        nsl_set_add(out, set->items[i]);
-      }
-    }
-  }
-
-  for (usize i = 0; i < other->_cap; i++) {
-    if (other->items[i] && set->items[i] != NSL_SET_DELETED) {
-      if (!nsl_set_has(set, other->items[i])) {
-        nsl_set_add(out, other->items[i]);
-      }
-    }
-  }
-}
-
-
-#include <string.h>
-
-static void nsl_map_insert(nsl_Map *map, u64 hash, nsl_MapValue value) {
-    if (map->cap <= map->len + map->del) {
-        nsl_map_resize(map, map->cap * 2);
-    }
-
-    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
-    if (NSL_UNLIKELY(hash == 0 || hash == NSL_MAP_DELETED)) {
-        hash = nsl_u64_hash(hash);
-    }
-
-    usize del_idx = (usize)-1;
-    while (true) {
-        usize idx = hash & (map->cap - 1);
-
-        for (usize i = 0; i < map->cap; i++) {
-            if (map->items[idx].hash == 0) {
-                // NOTE: reusing a deleted slot
-                if (del_idx != (usize)-1) {
-                    map->items[del_idx] = (nsl_MapItem){.hash = hash, .value = value};
-                    map->len++;
-                    map->del--;
-                    return;
-                }
-                map->items[idx] = (nsl_MapItem){.hash = hash, .value = value};
-                map->len++;
-                return;
-            } else if (map->items[idx].hash == hash) {
-                map->items[idx].value = value;
-                return;
-            } else if (map->items[idx].hash == NSL_MAP_DELETED && del_idx == (usize)-1) {
-                del_idx = idx;
-            }
-            idx = (idx + i * i) & (map->cap - 1);
-        }
-
-        nsl_map_resize(map, map->cap * 2);
-    }
-
-    NSL_UNREACHABLE("nsl_map_insert");
-}
-
-static nsl_MapValue *nsl_map_get(const nsl_Map *map, u64 hash) {
-    if (map->len == 0) {
-        return NULL;
-    }
-
-    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
-    if (NSL_UNLIKELY(hash == 0 || hash == NSL_MAP_DELETED)) {
-        hash = nsl_u64_hash(hash);
-    }
-
-    usize idx = hash & (map->cap - 1);
-    for (usize i = 0; i < map->cap; i++) {
-        if (map->items[idx].hash == 0) {
-            return NULL;
-        }
-        if (map->items[idx].hash == hash) {
-            return &map->items[idx].value;
-        }
-        idx = (idx + i * i) & (map->cap - 1);
-    }
-
-    return NULL;
-}
-
-NSL_API void nsl_map_free(nsl_Map *map) {
-    nsl_arena_free_chunk(map->arena, map->items);
-}
-
-NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other) {
-    nsl_map_reserve(map, other->len);
-    for (usize i = 0; i < other->cap; ++i) {
-        if (other->items[i].hash && other->items[i].hash != NSL_MAP_DELETED) {
-            nsl_map_insert(map, other->items[i].hash, other->items[i].value);
-        }
-    }
-}
-
-NSL_API void nsl_map_extend(nsl_Map* map, usize count, nsl_MapItem* items) {
-    nsl_map_reserve(map, count);
-    for (usize i = 0; i < count; i++) {
-        nsl_map_insert(map, items[i].hash, items[i].value);
-    }
-}
-
-NSL_API void nsl_map_clear(nsl_Map* map) {
-    map->len = 0;
-    map->del = 0;
-    memset(map->items, 0, sizeof(map->items[0]) * map->cap);
-}
-
-NSL_API void nsl_map_resize(nsl_Map *map, usize size) {
-    if (size < map->cap) {
-        return;
-    }
-    usize old_cap = map->cap;
-    nsl_MapItem *old_items = map->items;
-
-    map->cap = size == 0 ? NSL_MAP_DEFAULT_SIZE : nsl_usize_next_pow2(size);
-    map->items = nsl_arena_calloc_chunk(map->arena, map->cap * sizeof(map->items[0]));
-
-    map->len = 0;
-    map->del = 0;
-    for (usize i = 0; i < old_cap; ++i) {
-        if (old_items[i].hash && old_items[i].hash != NSL_MAP_DELETED) {
-            nsl_map_insert(map, old_items[i].hash, old_items[i].value);
-        }
-    }
-    nsl_arena_free_chunk(map->arena, old_items);
-}
-
-NSL_API void nsl_map_reserve(nsl_Map *map, usize size) {
-    usize target = map->len + size;
-    if (target <= map->cap) return;
-    nsl_map_resize(map, target);
-}
-
-NSL_API bool nsl_map_remove(nsl_Map *map, u64 hash) {
-    if (map->len == 0) {
-        return false;
-    }
-
-    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
-    if (NSL_UNLIKELY(hash == 0 || hash == NSL_MAP_DELETED)) {
-        hash = nsl_u64_hash(hash);
-    }
-
-    usize idx = hash & (map->cap - 1);
-    for (usize i = 0; i < map->cap; i++) {
-        if (map->items[idx].hash == 0) {
-            return false;
-        }
-        if (map->items[idx].hash && map->items[idx].hash == hash) {
-            map->items[idx].hash = NSL_MAP_DELETED;
-            map->len--;
-            map->del++;
-            return true;
-        }
-        idx = (idx + i * i) & (map->cap - 1);
-    }
-    return false;
-}
-
-NSL_API void nsl_map_insert_i64(nsl_Map *map, u64 hash, i64 value) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_I64);
-    nsl_map_insert(map, hash, (nsl_MapValue){.i64 = value});
-}
-
-NSL_API void nsl_map_insert_u64(nsl_Map *map, u64 hash, u64 value) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_U64);
-    nsl_map_insert(map, hash, (nsl_MapValue){.u64 = value});
-}
-
-NSL_API void nsl_map_insert_f64(nsl_Map *map, u64 hash, f64 value) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_F64);
-    nsl_map_insert(map, hash, (nsl_MapValue){.f64 = value});
-}
-
-NSL_API void nsl_map_insert_ptr(nsl_Map *map, u64 hash, void *value) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_PTR);
-    nsl_map_insert(map, hash, (nsl_MapValue){.ptr = value});
-}
-
-NSL_API i64 *nsl_map_get_i64(nsl_Map *map, u64 hash) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_I64);
-    return (i64 *)nsl_map_get(map, hash);
-}
-
-NSL_API u64 *nsl_map_get_u64(nsl_Map *map, u64 hash) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_U64);
-    return (u64 *)nsl_map_get(map, hash);
-}
-
-NSL_API f64 *nsl_map_get_f64(nsl_Map *map, u64 hash) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_F64);
-    return (f64 *)nsl_map_get(map, hash);
-}
-
-NSL_API void *nsl_map_get_ptr(nsl_Map *map, u64 hash) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_PTR);
-    nsl_MapValue *value = nsl_map_get(map, hash);
-    return value ? value->ptr : NULL;
-}
-
-NSL_API const i64 *nsl_map_get_i64_const(const nsl_Map *map, u64 hash) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_I64);
-    return (const i64 *)nsl_map_get(map, hash);
-}
-
-NSL_API const u64 *nsl_map_get_u64_const(const nsl_Map *map, u64 hash) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_U64);
-    return (const u64 *)nsl_map_get(map, hash);
-}
-
-NSL_API const f64 *nsl_map_get_f64_const(const nsl_Map *map, u64 hash) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_F64);
-    return (const f64 *)nsl_map_get(map, hash);
-}
-
-NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash) {
-    assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_PTR);
-    nsl_MapValue *value = nsl_map_get(map, hash);
-    return value ? value->ptr : NULL;
-}
-#if defined(_WIN32)
-
-
-#include <windows.h>
-#include <string.h>
-#include <errno.h>
-
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
-    nsl_Error result = NSL_NO_ERROR;
-
-    nsl_Arena arena = {0};
-
-    if (config.parents) {
-        if (nsl_path_is_root(path)) NSL_DEFER(NSL_NO_ERROR);
-        if (path.len == 1 && path.data[0] == '.') NSL_DEFER(NSL_NO_ERROR);
-        nsl_OsDirConfig c = config;
-        c.exists_ok = true;
-        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
-        if (recursive_error) NSL_DEFER(recursive_error);
-    }
-
-    nsl_Str filepath = nsl_str_copy(path, &arena);
-
-    if (CreateDirectoryA(filepath.data, NULL) != 0) {
-        DWORD ec = GetLastError();
-        if (config.exists_ok && ec == ERROR_ALREADY_EXISTS) {
-            DWORD attrs = GetFileAttributes(filepath.data);
-            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
-                NSL_DEFER(NSL_NO_ERROR);
-            }
-        }
-        if (ec == ERROR_ALREADY_EXISTS)     NSL_DEFER(NSL_ERROR_ALREADY_EXISTS);
-        if (ec == ERROR_ACCESS_DENIED)      NSL_DEFER(NSL_ERROR_ACCESS_DENIED);
-        if (ec == ERROR_PRIVILEGE_NOT_HELD) NSL_DEFER(NSL_ERROR_ACCESS_DENIED);
-        if (ec == ERROR_PATH_NOT_FOUND)     NSL_DEFER(NSL_ERROR_FILE_NOT_FOUND);
-        if (ec == ERROR_DIRECTORY)          NSL_DEFER(NSL_ERROR_NOT_DIRECTORY);
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-defer:
-    nsl_arena_free(&arena);
-    return result;
-}
-
-NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
-    NSL_ASSERT(path.len >= MAX_PATH - 1 && "Filename is too long for windows to handle");
-
-    char pathname[MAX_PATH] = {0};
-    memcpy(pathname, path.data, path.len);
-
-    if (!SetCurrentDirectoryA(pathname)) {
-        DWORD ec = GetLastError();
-        if (ec == ERROR_ALREADY_EXISTS)     return NSL_ERROR_ALREADY_EXISTS;
-        if (ec == ERROR_ACCESS_DENIED)      return NSL_ERROR_ACCESS_DENIED;
-        if (ec == ERROR_SHARING_VIOLATION)  return NSL_ERROR_ACCESS_DENIED;
-        if (ec == ERROR_PATH_NOT_FOUND)     return NSL_ERROR_FILE_NOT_FOUND;
-        if (ec == ERROR_DIRECTORY)          return NSL_ERROR_NOT_DIRECTORY;
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
-    DWORD size = GetCurrentDirectoryA(0, NULL);
-    if (size == 0) {
-        DWORD ec = GetLastError();
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    LPTSTR buffer = nsl_arena_alloc(arena, size);
-    GetCurrentDirectoryA(size, buffer);
-    return nsl_str_from_parts(size, buffer);
-}
-
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena) {
-    nsl_Arena scratch = {0};
-
-    DWORD size = GetEnvironmentVariableA(env, NULL, 0);
-    if (size == 0) {
-        DWORD ec = GetLastError();
-        if (ec == ERROR_ENVVAR_NOT_FOUND) return (nsl_Str){0};
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    char *buffer = nsl_arena_calloc(&scratch, size);
-    GetEnvironmentVariableA(env, buffer, size);
-
-    nsl_Str result = nsl_str_copy(nsl_str_from_parts(size, buffer), arena);
-    nsl_arena_free(&scratch);
-    return result;
-}
-#endif // _WIN32
-
-#if defined(_WIN32)
-
-
-#include <windows.h>
-#include <io.h>
-#include <string.h>
-
-typedef struct nsl_FsNode {
-    struct nsl_FsNode *next;
-    HANDLE handle;
-    char name[];
-} nsl_FsNode;
-
-NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive) {
-    *it = (nsl_FsIter){.recursive = recursive};
-
-    const usize len = directory.len + (sizeof("/*") - 1);
-    const usize size = sizeof(nsl_FsNode) + len + 1;
-    nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
-    memcpy(node->name, directory.data, directory.len);
-    it->_handle = node;
-
-    nsl_Path path = nsl_path_join(2, (nsl_Path[]){directory, NSL_STR("/*")}, &it->scratch);
-    WIN32_FIND_DATA findFileData;
-    node->handle = FindFirstFile(path.data, &findFileData);
-    if (node->handle == INVALID_HANDLE_VALUE) {
-        it->error = NSL_ERROR;
-        nsl_arena_free(&it->scratch);
-        return it->error;
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API void nsl_fs_end(nsl_FsIter *it) {
-    while (it->_handle != NULL) {
-        nsl_FsNode *current = it->_handle;
-        it->_handle = current->next;
-        if (current->handle != INVALID_HANDLE_VALUE) FindClose(current->handle);
-    }
-    nsl_arena_free(&it->scratch);
-}
-
-NSL_API nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
-    if (it->error) return NULL;
-    while (it->_handle != NULL) {
-        nsl_arena_reset(&it->scratch);
-        nsl_FsNode *current = it->_handle;
-
-        WIN32_FIND_DATA findFileData;
-        if (!FindNextFile(current->handle, &findFileData)) {
-            FindClose(current->handle);
-            it->_handle = current->next;
-            nsl_arena_free_chunk(&it->scratch, current);
-            continue;
-        }
-
-        // skip "." and ".." directories
-        if (strcmp(findFileData.cFileName, ".") == 0 || strcmp(findFileData.cFileName, "..") == 0) {
-            continue;
-        }
-
-        nsl_FsEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_FsEntry));
-        nsl_Path parts[] = {
-            nsl_str_from_cstr(current->name),
-            nsl_str_from_cstr(findFileData.cFileName),
-        };
-        e->path = nsl_path_join(NSL_ARRAY_LEN(parts), parts, &it->scratch);
-
-        e->is_dir = (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-        e->size = ((u64)findFileData.nFileSizeHigh << 32) | findFileData.nFileSizeLow;
-        e->mtime = ((u64)findFileData.ftLastWriteTime.dwHighDateTime << 32) | findFileData.ftLastWriteTime.dwLowDateTime;
-
-        if (e->is_dir && it->recursive) {
-            nsl_Path path = nsl_path_join(2, (nsl_Path[]){e->path, NSL_STR("/*")}, &it->scratch);
-            HANDLE handle = FindFirstFile(path.data, &findFileData);
-            if (handle == INVALID_HANDLE_VALUE) {
-                continue;
-            }
-
-            const usize size = sizeof(nsl_FsNode) + e->path.len + 1;
-            nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
-            memcpy(node->name, e->path.data, e->path.len);
-
-            node->handle = handle;
-            node->next = it->_handle;
-            it->_handle = node;
-        }
-
-        return e;
-    }
-
-    return NULL;
-}
-#endif // _WIN32
-
-#if defined(_WIN32)
-
-
-#include <windows.h>
-
-static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
-    // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
-    for (usize i = 0; i < argc; i++) {
-        if (0 < i) nsl_list_push(sb, ' ');
-        const char *arg = argv[i];
-
-        nsl_list_push(sb, '\"');
-        usize backslashes = 0;
-        while (*arg) {
-            char c = *arg;
-            if (c == '\\') {
-                backslashes += 1;
-            } else {
-                if (c == '\"') {
-                    for (size_t k = 0; k < 1 + backslashes; k++) {
-                        nsl_list_push(sb, '\\');
-                    }
-                }
-                backslashes = 0;
-            }
-            nsl_list_push(sb, c);
-            arg++;
-        }
-
-        for (usize k = 0; k < backslashes; k++) {
-            nsl_list_push(sb, '\\');
-        }
-
-        nsl_list_push(sb, '\"');
-    }
-}
-
-NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
-    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
-
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-
-    DWORD result = 0;
-
-    nsl_StrBuilder sb = {0};
-
-    _nc_cmd_win32_wrap(argc, argv, &sb);
-    nsl_list_push(&sb, '\0');
-
-    if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
-        DWORD ec = GetLastError();
-        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) NSL_DEFER(NSL_ERROR_FILE_NOT_FOUND);
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    WaitForSingleObject(pi.hProcess, INFINITE);
-    if (!GetExitCodeProcess(pi.hProcess, &result)) {
-        DWORD ec = GetLastError();
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-defer:
-    nsl_list_free(&sb);
-    return (nsl_Error)result;
-}
-
-
-#endif // _WIN32
-
-#if !defined(_WIN32)
-
-
-#include <string.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <unistd.h>
-
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
-    if (config.parents) {
-        if (nsl_path_is_root(path)) return NSL_NO_ERROR;
-        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
-        nsl_OsDirConfig c = config;
-        c.exists_ok = true;
-        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
-        if (recursive_error) return recursive_error;
-    }
-
-    errno = 0;
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-    if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
-        if (config.exists_ok && errno == EEXIST) {
-            struct stat info;
-            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return NSL_NO_ERROR;
-        }
-        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
-        if (errno == EEXIST) return NSL_ERROR_ALREADY_EXISTS;
-        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
-        NSL_PANIC(strerror(errno));
-    }
-    return NSL_NO_ERROR;
-}
-
-NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
-    errno = 0;
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-    if (chdir(filepath) != 0) {
-        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
-        if (errno == ENOENT)  return NSL_ERROR_FILE_NOT_FOUND;
-        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
-        NSL_PANIC(strerror(errno));
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
-    errno = 0;
-    char *temp_path = getcwd(NULL, 0);
-    if (temp_path == NULL) {
-        NSL_PANIC(strerror(errno));
-    }
-    nsl_Path path = nsl_str_copy(nsl_str_from_cstr(temp_path), arena);
-    free(temp_path);
-    return path;
-}
-
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena* arena) {
-    const char *var = getenv(env);
-    return var ? nsl_str_copy(nsl_str_from_cstr(var), arena) : (nsl_Str){0};
-}
-
-#endif // !_WIN32
-
-#if !defined(_WIN32)
-
-
-#include <dirent.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <errno.h>
-
-typedef struct nsl_FsNode {
-    struct nsl_FsNode *next;
-    DIR *handle;
-    char name[];
-} nsl_FsNode;
-
-NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive) {
-    it->recursive = recursive;
-
-    const usize size = sizeof(nsl_FsNode) + directory.len + 1;
-    nsl_FsNode* node = nsl_arena_calloc_chunk(&it->scratch, size);
-    memcpy(node->name, directory.data, directory.len);
-    it->_handle = node;
-
-    node->handle = opendir(node->name);
-    if (node->handle == NULL) {
-        it->error = NSL_ERROR;
-        nsl_arena_free(&it->scratch);
-        return NSL_ERROR;
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API void nsl_fs_end(nsl_FsIter *it) {
-    while (it->_handle != NULL) {
-        nsl_FsNode* node = it->_handle;
-        if (node->handle) closedir(node->handle);
-        it->_handle = node->next;
-    }
-    nsl_arena_free(&it->scratch);
-}
-
-NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
-    if (it->error) return NULL;
-    while (it->_handle != NULL) {
-        nsl_arena_reset(&it->scratch);
-        nsl_FsNode *current = it->_handle;
-
-        struct dirent *entry = readdir(current->handle);
-        if (entry == NULL) {
-            closedir(current->handle);
-            it->_handle = current->next;
-            nsl_arena_free_chunk(&it->scratch, current);
-            continue;
-        }
-
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-
-        nsl_FsEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_FsEntry));
-        nsl_Path parts[] = {
-            nsl_str_from_cstr(current->name), nsl_str_from_cstr(entry->d_name),
-        };
-        e->path = nsl_path_join(NSL_ARRAY_LEN(parts), parts, &it->scratch);
-
-        struct stat entry_info;
-        if (stat(e->path.data, &entry_info) == -1) continue;
-
-        e->is_dir = S_ISDIR(entry_info.st_mode);
-        e->size = (usize)entry_info.st_size;
-        e->mtime = (u64)entry_info.st_mtime;
-
-        if (it->recursive && e->is_dir) {
-            DIR *handle = opendir(e->path.data);
-            if (handle == NULL) continue;
-            const usize size = sizeof(nsl_FsNode) + e->path.len + 1;
-            nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
-            node->handle = handle;
-            memcpy(node->name, e->path.data, e->path.len);
-            node->next = it->_handle;
-            it->_handle = node;
-        }
-
-        return e;
-    }
-    return NULL;
-}
-#endif // !_WIN32
-
-#if !defined(_WIN32)
-
-
-#include <string.h>
-
-#include <dlfcn.h>
-
-nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
-    if (!nsl_fs_exists(path)) {
-        return NSL_ERROR_FILE_NOT_FOUND;
-    }
-    char lib_path[FILENAME_MAX] = {0};
-    memcpy(lib_path, path.data, nsl_usize_min(path.len, FILENAME_MAX));
-
-    dll->handle = dlopen(lib_path, RTLD_LAZY);
-    if (dll->handle == NULL) {
-        return NSL_ERROR;
-    }
-
-    return NSL_NO_ERROR;
-}
-
-void dll_close(nsl_Dll *dll) {
-    dlclose(dll->handle);
-}
-
-Function dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
-    Function result = NULL;
-    nsl_Arena arena = {0};
-
-    const char* s = nsl_str_to_cstr(symbol, &arena);
-    *(void **)(&result) = dlsym(handle, s);
-
-    nsl_arena_free(&arena);
-    return result;
-}
-#endif // !_WIN32
-
-#if !defined(_WIN32)
-
-
-#include <string.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
-NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
-    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
-
-    errno = 0;
-    pid_t pid = fork();
-    if (pid == -1) {
-        NSL_PANIC("fork failed");
-    } else if (pid == 0) {
-        nsl_List(const char *) args = {0};
-
-        nsl_list_extend(&args, argc, argv);
-        nsl_list_push(&args, NULL);
-        execvp(args.items[0], (char *const *)(void *)args.items);
-
-        nsl_list_free(&args);
-        exit(127);
-    }
-
-    int status = 0;
-    waitpid(pid, &status, 0);
-    if (WIFEXITED(status)) {
-        nsl_Error exit_code = WEXITSTATUS(status);
-        return exit_code == 127 ? NSL_ERROR_FILE_NOT_FOUND : exit_code;
-    }
-
-    return NSL_NO_ERROR;
-}
-#endif // !_WIN32
-
-
-
-#include <string.h>
-#include <sys/stat.h>
-
-#if defined(_WIN32)
-#    include <direct.h>
-#    include <io.h>
-#    define stat _stat
-#    define access(path, mode) _access(path, mode)
-#    define unlink(path) _unlink(path)
-#else
-#    include <unistd.h>
-#endif
-
-NSL_API bool nsl_fs_exists(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-    return access(filepath, 0) == 0;
-}
-
-NSL_API bool nsl_fs_is_dir(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-
-    struct stat info;
-    if (stat(filepath, &info) == -1) {
-        return false;
-    }
-
-    return S_ISDIR(info.st_mode);
-}
-
-NSL_API bool nsl_fs_remove(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-    return (unlink(filepath) != 0);
-}
-
-
-#include <errno.h>
-#include <string.h>
-#include <stdarg.h>
-
-NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode) {
-    errno = 0;
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-
-    FILE *file = fopen(filepath, mode);
-    if (file == NULL) {
-        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
-        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
-        NSL_PANIC(strerror(errno));
-    }
-
-    *out = file;
-    return NSL_NO_ERROR;
-}
-
-NSL_API void nsl_file_close(FILE *file) {
-    fclose(file);
-}
-
-NSL_API usize nsl_file_size(FILE* file) {
-    long current = ftell(file);
-    fseek(file, 0, SEEK_END);
-    usize size = (usize)ftell(file);
-    fseek(file, current, SEEK_SET);
-    return size;
-}
-
-NSL_API nsl_Str nsl_file_read_str(FILE* file, nsl_Arena* arena) {
-    usize size = nsl_file_size(file);
-    char* data = nsl_arena_calloc(arena, size+1);
-    size = fread(data, 1, size, file);
-    return nsl_str_from_parts(size, data);
-}
-
-NSL_API nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
-    usize size = nsl_file_size(file);
-    nsl_list_reserve(sb, size);
-    char* start = &nsl_list_last(sb);
-    size = fread(start, 1, size, file);
-    sb->len += size;
-    return nsl_str_from_parts(size, start);
-}
-
-NSL_API nsl_Str nsl_file_read_line(FILE* file, nsl_StrBuilder* sb) {
-    usize off = sb->len;
-    i32 c = 0;
-    while (!feof(file) && c != '\n') {
-        c = fgetc(file);
-        nsl_list_push(sb, (char)c);
-    }
-    return nsl_str_from_parts(sb->len - off, &sb->items[off]);
-}
-
-NSL_API nsl_Bytes nsl_file_read_bytes(FILE* file, usize size, u8* buffer) {
-    size = fread(buffer, 1, size, file);
-    return nsl_bytes_from_parts(size, buffer);
-}
-
-NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...) {
-    va_list va;
-    va_start(va, fmt);
-    vfprintf(file, fmt, va);
-    va_end(va);
-}
-
-NSL_API void nsl_file_write_str(FILE* file, nsl_Str content) {
-    fwrite(content.data, 1, content.len, file);
-}
-
-NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
-    fwrite(content.data, 1, content.size, file);
-}
-
-NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd *cmd) {
-    return nsl_cmd_exec(cmd->len, cmd->items);
-}
-
-
-#include <stdlib.h>
-#include <string.h>
-
-// 4 kb
-#define CHUNK_DEFAULT_SIZE 4096
-
-struct nsl_Chunk {
-    nsl_Chunk *next, *prev;
-    usize cap;
-    usize allocated;
-    u8 data[];
-};
-
-static nsl_Chunk *chunk_allocate(usize size) {
-    nsl_Chunk *chunk = malloc(sizeof(nsl_Chunk) + size);
-    NSL_ASSERT(chunk != NULL && "Memory allocation failed");
-    chunk->cap = size;
-    chunk->allocated = 0;
-    chunk->next = chunk->prev = 0;
-    return chunk;
-}
-
-static void chunk_free(nsl_Chunk *chunk) { 
-    free(chunk); 
-}
-
-NSL_CONST_FN static usize align(usize size) {
-    const usize mask = sizeof(void *) - 1;
-    return (size + mask) & ~mask;
-}
-
-NSL_API void nsl_arena_free(nsl_Arena *arena) {
-    nsl_Chunk *next = arena->begin;
-    while (next != NULL) {
-        nsl_Chunk *temp = next;
-        next = next->next;
-        chunk_free(temp);
-    }
-    arena->begin = NULL;
-}
-
-NSL_API void nsl_arena_reset(nsl_Arena *arena) {
-    for (nsl_Chunk *next = arena->begin; next != NULL; next = next->next) {
-        if (next->cap != 0) {
-            next->allocated = 0;
-        }
-    }
-}
-
-NSL_API usize nsl_arena_size(nsl_Arena *arena) {
-    usize size = 0;
-    for (nsl_Chunk *chunk = arena->begin; chunk != NULL; chunk = chunk->next) {
-        size += chunk->allocated;
-    }
-    return size;
-}
-
-NSL_API usize nsl_arena_real_size(nsl_Arena *arena) {
-    usize size = 0;
-    for (nsl_Chunk *chunk = arena->begin; chunk != NULL; chunk = chunk->next) {
-        size += chunk->cap ? chunk->cap : chunk->allocated;
-    }
-    return size;
-}
-
-NSL_API void *nsl_arena_alloc(nsl_Arena *arena, usize size) {
-    size = align(size);
-    nsl_Chunk *chunk = arena->begin;
-    for (; chunk != NULL; chunk = chunk->next) {
-        NSL_ASSERT(size <= SIZE_MAX - chunk->allocated && "integer overflow");
-        if (chunk->allocated + size < chunk->cap) {
-            break;
-        }
-    }
-    if (chunk == NULL) {
-        const usize chunk_size =
-            size >= CHUNK_DEFAULT_SIZE ? size : CHUNK_DEFAULT_SIZE;
-        chunk = chunk_allocate(chunk_size);
-        chunk->next = arena->begin;
-        if (arena->begin) {
-            arena->begin->prev = chunk;
-        }
-        arena->begin = chunk;
-    }
-    void *ptr = &chunk->data[chunk->allocated];
-    chunk->allocated += size;
-    return ptr;
-}
-
-NSL_API void *nsl_arena_calloc(nsl_Arena *arena, usize size) {
-    void *ptr = nsl_arena_alloc(arena, size);
-    memset(ptr, 0, size);
-    return ptr;
-}
-
-NSL_API void *nsl_arena_alloc_chunk(nsl_Arena *arena, usize size) {
-    nsl_Chunk *chunk = chunk_allocate(size);
-    if (arena == NULL) return chunk->data;
-    chunk->cap = 0;
-    chunk->allocated = size;
-    chunk->next = arena->begin;
-    if (arena->begin) {
-        arena->begin->prev = chunk;
-    }
-    arena->begin = chunk;
-    return chunk->data;
-}
-
-NSL_API void *nsl_arena_calloc_chunk(nsl_Arena *arena, usize size) {
-    void *data = nsl_arena_alloc_chunk(arena, size);
-    memset(data, 0, size);
-    return data;
-}
-
-NSL_API void *nsl_arena_realloc_chunk(nsl_Arena *arena, void *ptr, usize size) {
-    if (ptr == NULL) return nsl_arena_alloc_chunk(arena, size);
-
-    nsl_Chunk *chunk = (nsl_Chunk *)((usize)ptr - sizeof(nsl_Chunk));
-
-    if (size < chunk->allocated) return chunk->data;
-
-    nsl_Chunk *new_chunk = realloc(chunk, sizeof(nsl_Chunk) + size);
-
-    if (arena == NULL) return new_chunk->data;
-
-    if (new_chunk->prev)       new_chunk->prev->next = new_chunk;
-    if (new_chunk->next)       new_chunk->next->prev = new_chunk;
-    if (arena->begin == chunk) arena->begin = new_chunk;
-
-    return new_chunk->data;
-}
-
-NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr) {
-    if (ptr == NULL) return;
-
-    nsl_Chunk *chunk = (nsl_Chunk *)((usize)ptr - sizeof(nsl_Chunk));
-    if (arena) {
-        if (chunk == arena->begin) arena->begin = chunk->next;
-        if (chunk->prev)           chunk->prev->next = chunk->next;
-        if (chunk->next)           chunk->next->prev = chunk->prev;
-    }
-
-    free(chunk);
-}
 #endif // NSL_IMPLEMENTATION

@@ -103,7 +103,7 @@ static i32 path_compare(const void *s1, const void *s2) {
     const nsl_Path *p2 = s2;
     if (nsl_str_contains(*p1, NSL_STR("defines.h"))) return -1;
     if (nsl_str_contains(*p2, NSL_STR("defines.h"))) return 1;
-    return strncmp(p2->data, p1->data, nsl_usize_min(p1->len, p2->len));
+    return strncmp(p1->data, p2->data, nsl_usize_min(p1->len, p2->len));
 }
 
 static void copy_to_file(FILE *out, nsl_Path path) {
@@ -168,7 +168,7 @@ static bool build_header_file(void) {
     nsl_list_for_each(nsl_Path *, path, &src) {
         copy_to_file(nsl, *path);
     }
-    nsl_file_write_fmt(nsl, "#endif // NSL_IMPLEMENTATION\n");
+    nsl_file_write_fmt(nsl, "\n#endif // NSL_IMPLEMENTATION\n");
 
     nsl_file_close(nsl);
     nsl = NULL;

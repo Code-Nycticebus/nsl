@@ -2,10 +2,8 @@
 
 #include <ctype.h>
 
-#define DBASE 10
-#define XBASE 16
-
-///////////////////////////////////////////////////////////////////////////////
+#define NSL_DBASE 10
+#define NSL_XBASE 16
 
 NSL_API bool nsl_char_is_alnum(char c) { return isalnum(c); }
 NSL_API bool nsl_char_is_alpha(char c) { return isalpha(c); }
@@ -21,8 +19,6 @@ NSL_API bool nsl_char_is_digit(char c) { return isdigit(c); }
 NSL_API bool nsl_char_is_xdigit(char c) { return isxdigit(c); }
 NSL_API NSL_CONST_FN bool nsl_char_is_path_delimiter(char c) { return c == '/' || c == '\\'; }
 
-///////////////////////////////////////////////////////////////////////////////
-
 NSL_API char nsl_char_to_lower(char c) { return (char)tolower(c); }
 NSL_API char nsl_char_to_upper(char c) { return (char)toupper(c); }
 
@@ -37,37 +33,37 @@ NSL_API u8 nsl_char_hex_to_u8(char c) {
     return nsl_char_to_u8(c);
   }
   if ('a' <= c && c <= 'f') {
-    return (u8)(DBASE + c - 'a');
+    return (u8)(NSL_DBASE + c - 'a');
   }
   if ('A' <= c && c <= 'F') {
-    return (u8)(DBASE + c - 'A');
+    return (u8)(NSL_DBASE + c - 'A');
   }
   return 0;
 }
 
 NSL_API char nsl_char_from_u8(u8 d) {
-  NSL_ASSERT(d < DBASE && "char not convertible");
+  NSL_ASSERT(d < NSL_DBASE && "char not convertible");
   return (char)('0' + d);
 }
 
 NSL_API char nsl_char_hex_from_u8(u8 d) {
-  NSL_ASSERT(d < XBASE && "char not convertible");
-  if (d < DBASE) {
+  NSL_ASSERT(d < NSL_XBASE && "char not convertible");
+  if (d < NSL_DBASE) {
     return nsl_char_from_u8(d);
   }
-  if (d < XBASE) {
-    return (char)('a' + (d - DBASE));
+  if (d < NSL_XBASE) {
+    return (char)('a' + (d - NSL_DBASE));
   }
   return 0;
 }
 
 NSL_API char nsl_char_HEX_from_u8(u8 d) {
-  NSL_ASSERT(d < XBASE && "char not convertible");
-  if (d < DBASE) {
+  NSL_ASSERT(d < NSL_XBASE && "char not convertible");
+  if (d < NSL_DBASE) {
     return nsl_char_from_u8(d);
   }
-  if (d < XBASE) {
-    return (char)('A' + (d - DBASE));
+  if (d < NSL_XBASE) {
+    return (char)('A' + (d - NSL_DBASE));
   }
   return 0;
 }
