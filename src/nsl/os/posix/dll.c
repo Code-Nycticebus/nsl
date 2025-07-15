@@ -3,14 +3,14 @@
 #include "nsl/core/error.h"
 #include "nsl/types/int.h"
 #include "nsl/types/str.h"
-#include "nsl/os/fs.h"
+#include "nsl/os/os.h"
 
 #include <string.h>
 
 #include <dlfcn.h>
 
 NSL_API nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
-    if (!nsl_fs_exists(path)) {
+    if (!nsl_os_exists(path)) {
         return NSL_ERROR_FILE_NOT_FOUND;
     }
     char lib_path[FILENAME_MAX] = {0};

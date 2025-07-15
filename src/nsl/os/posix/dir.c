@@ -1,4 +1,4 @@
-#include "nsl/os/fs.h"
+#include "nsl/os/dir.h"
 
 #include "nsl/core/error.h"
 #include "nsl/structs/list.h"
@@ -11,44 +11,43 @@
 #include <unistd.h>
 #include <errno.h>
 
-typedef struct nsl_FsNode {
-    struct nsl_FsNode *next;
+typedef struct nsl_DirNode {
+    struct nsl_DirNode *next;
     DIR *handle;
     char name[];
-} nsl_FsNode;
+} nsl_DirNode;
 
-NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive) {
-    it->recursive = recursive;
+NSL_API nsl_DirIter nsl_dir_begin(nsl_Path directory, bool recursive) {
+    nsl_DirIter it = {.recursive = recursive};
 
-    const usize size = sizeof(nsl_FsNode) + directory.len + 1;
-    nsl_FsNode* node = nsl_arena_calloc_chunk(&it->scratch, size);
+    const usize size = sizeof(nsl_DirNode) + directory.len + 1;
+    nsl_DirNode* node = nsl_arena_calloc_chunk(&it.scratch, size);
     memcpy(node->name, directory.data, directory.len);
-    it->_handle = node;
+    it._handle = node;
 
     node->handle = opendir(node->name);
     if (node->handle == NULL) {
-        it->error = NSL_ERROR;
-        nsl_arena_free(&it->scratch);
-        return NSL_ERROR;
+        nsl_arena_free(&it.scratch);
+        it.done = true;
     }
 
-    return NSL_NO_ERROR;
+    return it;
 }
 
-NSL_API void nsl_fs_end(nsl_FsIter *it) {
+NSL_API void nsl_dir_end(nsl_DirIter *it) {
     while (it->_handle != NULL) {
-        nsl_FsNode* node = it->_handle;
+        nsl_DirNode* node = it->_handle;
         if (node->handle) closedir(node->handle);
         it->_handle = node->next;
     }
     nsl_arena_free(&it->scratch);
 }
 
-NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
-    if (it->error) return NULL;
+NSL_API nsl_DirEntry *nsl_dir_next(nsl_DirIter *it) {
+    it->done = true;
     while (it->_handle != NULL) {
         nsl_arena_reset(&it->scratch);
-        nsl_FsNode *current = it->_handle;
+        nsl_DirNode *current = it->_handle;
 
         struct dirent *entry = readdir(current->handle);
         if (entry == NULL) {
@@ -60,7 +59,7 @@ NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
 
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
-        nsl_FsEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_FsEntry));
+        nsl_DirEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_DirEntry));
         nsl_Path parts[] = {
             nsl_str_from_cstr(current->name), nsl_str_from_cstr(entry->d_name),
         };
@@ -76,8 +75,8 @@ NSL_API nsl_FsEntry *nsl_fs_next(nsl_FsIter *it) {
         if (it->recursive && e->is_dir) {
             DIR *handle = opendir(e->path.data);
             if (handle == NULL) continue;
-            const usize size = sizeof(nsl_FsNode) + e->path.len + 1;
-            nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
+            const usize size = sizeof(nsl_DirNode) + e->path.len + 1;
+            nsl_DirNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
             node->handle = handle;
             memcpy(node->name, e->path.data, e->path.len);
             node->next = it->_handle;

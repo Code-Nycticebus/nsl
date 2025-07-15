@@ -66,3 +66,26 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena* arena) {
     return var ? nsl_str_copy(nsl_str_from_cstr(var), arena) : (nsl_Str){0};
 }
 
+NSL_API bool nsl_os_exists(nsl_Path path) {
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    return access(filepath, 0) == 0;
+}
+
+NSL_API bool nsl_os_is_dir(nsl_Path path) {
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+
+    struct stat info;
+    if (stat(filepath, &info) == -1) {
+        return false;
+    }
+
+    return S_ISDIR(info.st_mode);
+}
+
+NSL_API bool nsl_os_remove(nsl_Path path) {
+    char filepath[FILENAME_MAX] = {0};
+    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    return (unlink(filepath) != 0);
+}

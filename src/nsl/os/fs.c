@@ -1,4 +1,4 @@
-#include "nsl/os/fs.h"
+#include "nsl/os/dir.h"
 
 #include "nsl/core/error.h"
 #include "nsl/types/int.h"
@@ -17,26 +17,3 @@
 #    include <unistd.h>
 #endif
 
-NSL_API bool nsl_fs_exists(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-    return access(filepath, 0) == 0;
-}
-
-NSL_API bool nsl_fs_is_dir(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-
-    struct stat info;
-    if (stat(filepath, &info) == -1) {
-        return false;
-    }
-
-    return S_ISDIR(info.st_mode);
-}
-
-NSL_API bool nsl_fs_remove(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
-    return (unlink(filepath) != 0);
-}

@@ -1,4 +1,4 @@
-#include "nsl/os/fs.h"
+#include "nsl/os/dir.h"
 
 #include "nsl/core/error.h"
 #include "nsl/types/str.h"
@@ -8,47 +8,46 @@
 #include <io.h>
 #include <string.h>
 
-typedef struct nsl_FsNode {
-    struct nsl_FsNode *next;
+typedef struct nsl_DirNode {
+    struct nsl_DirNode *next;
     HANDLE handle;
     char name[];
-} nsl_FsNode;
+} nsl_DirNode;
 
-NSL_API nsl_Error nsl_fs_begin(nsl_FsIter* it, nsl_Path directory, bool recursive) {
-    *it = (nsl_FsIter){.recursive = recursive};
+NSL_API nsl_DirIter nsl_dir_begin(nsl_Path directory, bool recursive) {
+    nsl_DirIter it = {.recursive = recursive};
 
     const usize len = directory.len + (sizeof("/*") - 1);
-    const usize size = sizeof(nsl_FsNode) + len + 1;
-    nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
+    const usize size = sizeof(nsl_DirNode) + len + 1;
+    nsl_DirNode *node = nsl_arena_calloc_chunk(&it.scratch, size);
     memcpy(node->name, directory.data, directory.len);
-    it->_handle = node;
+    it._handle = node;
 
-    nsl_Path path = nsl_path_join(2, (nsl_Path[]){directory, NSL_STR("/*")}, &it->scratch);
+    nsl_Path path = nsl_path_join(2, (nsl_Path[]){directory, NSL_STR("/*")}, &it.scratch);
     WIN32_FIND_DATA findFileData;
     node->handle = FindFirstFile(path.data, &findFileData);
     if (node->handle == INVALID_HANDLE_VALUE) {
-        it->error = NSL_ERROR;
-        nsl_arena_free(&it->scratch);
-        return it->error;
+        nsl_arena_free(&it.scratch);
+        it.done = true;
     }
 
-    return NSL_NO_ERROR;
+    return it;
 }
 
-NSL_API void nsl_fs_end(nsl_FsIter *it) {
+NSL_API void nsl_dir_end(nsl_DirIter *it) {
     while (it->_handle != NULL) {
-        nsl_FsNode *current = it->_handle;
+        nsl_DirNode *current = it->_handle;
         it->_handle = current->next;
         if (current->handle != INVALID_HANDLE_VALUE) FindClose(current->handle);
     }
     nsl_arena_free(&it->scratch);
 }
 
-NSL_API nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
-    if (it->error) return NULL;
+NSL_API nsl_DirEntry* nsl_dir_next(nsl_DirIter *it) {
+    it->done = true;
     while (it->_handle != NULL) {
         nsl_arena_reset(&it->scratch);
-        nsl_FsNode *current = it->_handle;
+        nsl_DirNode *current = it->_handle;
 
         WIN32_FIND_DATA findFileData;
         if (!FindNextFile(current->handle, &findFileData)) {
@@ -63,7 +62,7 @@ NSL_API nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
             continue;
         }
 
-        nsl_FsEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_FsEntry));
+        nsl_DirEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_DirEntry));
         nsl_Path parts[] = {
             nsl_str_from_cstr(current->name),
             nsl_str_from_cstr(findFileData.cFileName),
@@ -81,8 +80,8 @@ NSL_API nsl_FsEntry* nsl_fs_next(nsl_FsIter *it) {
                 continue;
             }
 
-            const usize size = sizeof(nsl_FsNode) + e->path.len + 1;
-            nsl_FsNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
+            const usize size = sizeof(nsl_DirNode) + e->path.len + 1;
+            nsl_DirNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
             memcpy(node->name, e->path.data, e->path.len);
 
             node->handle = handle;

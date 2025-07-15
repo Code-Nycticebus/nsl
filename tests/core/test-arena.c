@@ -1,5 +1,7 @@
 #include "nsl.h"
 
+#include <string.h>
+
 typedef struct TestChunk {
     struct TestChunk *next, *prev;
     usize cap;

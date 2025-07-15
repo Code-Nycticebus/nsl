@@ -24,15 +24,10 @@ static void collect_flags(nsl_Cmd *cmd) {
 }
 
 static bool collect_files(Files *files, nsl_Path path) {
-    nsl_FsIter it = {0}; 
-    if (nsl_fs_begin(&it, path, true)) return true;
-
-    for (nsl_FsEntry *file = NULL; (file = nsl_fs_next(&it));) {
+    nsl_dir_walk(file, path, true) {
         if (file->is_dir) continue;
         nsl_list_push(files, nsl_str_copy(file->path, files->arena));
     }
-
-    nsl_fs_end(&it);
 
     return false;
 }
@@ -50,13 +45,10 @@ static bool compile_commands(void) {
 
     nsl_Path cwd = nsl_os_cwd(&arena);
 
-    nsl_FsIter it = {0}; 
-    if (nsl_fs_begin(&it, NSL_PATH("src/nsl"), true)) NSL_DEFER(true);
-
     bool first = true;
 
     nsl_file_write_fmt(bc, "[");
-    for (nsl_FsEntry *file = NULL; (file = nsl_fs_next(&it));) {
+    nsl_dir_walk(file, NSL_PATH("src/nsl"), true) {
         if (file->is_dir) continue;
 #if defined(_WIN32)
         if (nsl_str_contains(file->path, NSL_STR("posix"))) continue;
@@ -87,10 +79,9 @@ static bool compile_commands(void) {
 
         nsl_list_clear(&cmd);
     }
-    nsl_fs_end(&it);
     nsl_file_write_fmt(bc, "]");
 
-    nsl_fs_remove(NSL_PATH("test.o"));
+    nsl_os_remove(NSL_PATH("test.o"));
 
 defer:
     if (bc) nsl_file_close(bc);

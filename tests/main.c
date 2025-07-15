@@ -1,12 +1,8 @@
 // tests
 
-#define NSL_IMPLEMENTATION
-#include "nsl.h"
-#undef NSL_IMPLEMENTATION
-
 #include "core/test-arena.c"
 
-#include "os/test-fs.c"
+#include "os/test-dir.c"
 #include "os/test-file.c"
 #include "os/test-cmd.c"
 
@@ -20,12 +16,16 @@
 #include "types/test-str.c"
 #include "types/test-path.c"
 
+#define NSL_IMPLEMENTATION
+#include "nsl.h"
+#undef NSL_IMPLEMENTATION
+
 int main(void) {
     // core
     run_test_arena();
 
     // os
-    run_test_fs();
+    run_test_dir();
     run_test_file();
     run_test_cmd();
 
