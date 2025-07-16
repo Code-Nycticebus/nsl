@@ -332,10 +332,10 @@ typedef struct {
 
 typedef void (*Function)(void);
 
-NSL_API nsl_Error dll_load(nsl_Dll* dll, nsl_Path path);
-NSL_API void dll_close(nsl_Dll *dll);
+NSL_API nsl_Error nsl_dll_load(nsl_Dll* dll, nsl_Path path);
+NSL_API void nsl_dll_close(nsl_Dll *dll);
 
-NSL_API Function dll_symbol(nsl_Dll *dll, nsl_Str symbol);
+NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol);
 
 #endif // _NSL_DLL_
 
@@ -1189,7 +1189,7 @@ NSL_API nsl_DirEntry *nsl_dir_next(nsl_DirIter *it) {
 
 #include <dlfcn.h>
 
-NSL_API nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
+NSL_API nsl_Error nsl_dll_load(nsl_Dll* dll, nsl_Path path) {
     if (!nsl_os_exists(path)) {
         return NSL_ERROR_FILE_NOT_FOUND;
     }
@@ -1204,11 +1204,11 @@ NSL_API nsl_Error dll_load(nsl_Dll* dll, nsl_Path path) {
     return NSL_NO_ERROR;
 }
 
-NSL_API void dll_close(nsl_Dll *dll) {
+NSL_API void nsl_dll_close(nsl_Dll *dll) {
     dlclose(dll->handle);
 }
 
-NSL_API Function dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
+NSL_API Function nsl_dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
     Function result = NULL;
     nsl_Arena arena = {0};
 
@@ -1511,7 +1511,7 @@ NSL_API nsl_DirEntry* nsl_dir_next(nsl_DirIter *it) {
 
 #include <string.h>
 
-NSL_API nsl_Error dll_load(nsl_Dll *dll, nsl_Path path) {
+NSL_API nsl_Error nsl_dll_load(nsl_Dll *dll, nsl_Path path) {
     if (!nsl_os_exists(path)) {
         return NSL_ERROR_FILE_NOT_FOUND;
     }
@@ -1545,14 +1545,14 @@ NSL_API nsl_Error dll_load(nsl_Dll *dll, nsl_Path path) {
     return NSL_NO_ERROR;
 }
 
-NSL_API void dll_close(nsl_Dll *dll) {
+NSL_API void nsl_dll_close(nsl_Dll *dll) {
   char temp_file_name[MAX_PATH];
   GetModuleFileNameA(dll->handle, temp_file_name, MAX_PATH);
   FreeLibrary(dll->handle);
   DeleteFileA(temp_file_name);
 }
 
-NSL_API Function dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
+NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
   nsl_Arena arena = {0};
   const char* s = nsl_str_to_cstr(symbol, &arena);
   Function fn = (Function)GetProcAddress(dll->handle, s);
