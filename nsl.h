@@ -31,9 +31,7 @@ This mirrors the Unix convention where a non-zero exit code indicates an error.
 The `nsl_List`, `nsl_Map`, and `nsl_Set` data structures are valid when zero-initialized and can be used without any setup:
 ```c
 nsl_Map map = {0};
-
 // map operations
-
 nsl_map_free(&map);
 ```
 
@@ -41,9 +39,7 @@ Or, you can allocate all internal memory from a `nsl_Arena`.
 ```c
 nsl_Arena arena = {0};
 nsl_Map map = {.arena = &arena};
-
 // map operations
-
 nsl_arena_free(&arena);
 ```
 
@@ -53,8 +49,7 @@ Here's whats left to do:
 - [x] make `nsl_arena_allocate_chunk()` allocate with malloc when `nsl_Arena*` is `NULL`
 - [x] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
 - [x] depricate ds init functions
-- [ ] more cmd functions like: async, run and reset, CMD macro usw
-- [ ] dll loading
+- [x] dll loading
 
 */
 
@@ -1506,6 +1501,63 @@ NSL_API nsl_DirEntry* nsl_dir_next(nsl_DirIter *it) {
     }
 
     return NULL;
+}
+#endif // _WIN32
+
+#if defined(_WIN32)
+
+
+#include <windows.h>
+
+#include <string.h>
+
+NSL_API nsl_Error dll_load(nsl_Dll *dll, nsl_Path path) {
+    if (!nsl_os_exists(path)) {
+        return NSL_ERROR_FILE_NOT_FOUND;
+    }
+    char lib_path[MAX_PATH] = {0};
+    memcpy(lib_path, path.data, nsl_usize_max(path.len, FILENAME_MAX));
+
+    char temp_path[MAX_PATH];
+    GetTempPath(MAX_PATH, temp_path);
+
+    char temp_file_name[MAX_PATH];
+    GetTempFileName(temp_path, TEXT("lib"), 0, temp_file_name);
+    CopyFile(lib_path, temp_file_name, 0);
+
+    dll->handle = LoadLibraryA(temp_file_name);
+    if (dll->handle == NULL) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_FILE_NOT_FOUND) return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_PATH_NOT_FOUND) return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_ACCESS_DENIED)  return NSL_ERROR_ACCESS_DENIED;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API void dll_close(nsl_Dll *dll) {
+  char temp_file_name[MAX_PATH];
+  GetModuleFileNameA(dll->handle, temp_file_name, MAX_PATH);
+  FreeLibrary(dll->handle);
+  DeleteFileA(temp_file_name);
+}
+
+NSL_API Function dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
+  nsl_Arena arena = {0};
+  const char* s = nsl_str_to_cstr(symbol, &arena);
+  Function fn = (Function)GetProcAddress(dll->handle, s);
+  nsl_arena_free(&arena);
+  return fn;
 }
 #endif // _WIN32
 

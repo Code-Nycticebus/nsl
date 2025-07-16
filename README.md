@@ -30,9 +30,7 @@ This mirrors the Unix convention where a non-zero exit code indicates an error.
 The `nsl_List`, `nsl_Map`, and `nsl_Set` data structures are valid when zero-initialized and can be used without any setup:
 ```c
 nsl_Map map = {0};
-
 // map operations
-
 nsl_map_free(&map);
 ```
 
@@ -40,9 +38,7 @@ Or, you can allocate all internal memory from a `nsl_Arena`.
 ```c
 nsl_Arena arena = {0};
 nsl_Map map = {.arena = &arena};
-
 // map operations
-
 nsl_arena_free(&arena);
 ```
 
@@ -52,6 +48,5 @@ Here's whats left to do:
 - [x] make `nsl_arena_allocate_chunk()` allocate with malloc when `nsl_Arena*` is `NULL`
 - [x] make a zero initialized datastructure also valid (`Map`, `Set`, `List`)
 - [x] depricate ds init functions
-- [ ] more cmd functions like: async, run and reset, CMD macro usw
-- [ ] dll loading
+- [x] dll loading
 
