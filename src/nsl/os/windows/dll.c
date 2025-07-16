@@ -17,10 +17,10 @@ NSL_API nsl_Error dll_load(nsl_Dll *dll, nsl_Path path) {
     memcpy(lib_path, path.data, nsl_usize_max(path.len, FILENAME_MAX));
 
     char temp_path[MAX_PATH];
-    GetTempPath(MAX_PATH, temp_path);
+    GetTempPathA(MAX_PATH, temp_path);
 
     char temp_file_name[MAX_PATH];
-    GetTempFileName(temp_path, TEXT("lib"), 0, temp_file_name);
+    GetTempFileNameA(temp_path, TEXT("lib"), 0, temp_file_name);
     CopyFile(lib_path, temp_file_name, 0);
 
     dll->handle = LoadLibraryA(temp_file_name);
