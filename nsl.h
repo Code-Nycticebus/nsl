@@ -322,8 +322,6 @@ NSL_API nsl_DirIter nsl_dir_begin(nsl_Path directory, bool recursive);
 NSL_API void nsl_dir_end(nsl_DirIter *it);
 NSL_API nsl_DirEntry *nsl_dir_next(nsl_DirIter *it);
 
-#ifndef _NSL_DLL_
-#define _NSL_DLL_
 
 
 typedef struct {
@@ -337,7 +335,6 @@ NSL_API void nsl_dll_close(nsl_Dll *dll);
 
 NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol);
 
-#endif // _NSL_DLL_
 
 
 NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode);

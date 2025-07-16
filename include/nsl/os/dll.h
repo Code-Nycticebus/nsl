@@ -1,5 +1,5 @@
-#ifndef _NSL_DLL_
-#define _NSL_DLL_
+#ifndef _NSL_DLL_H_
+#define _NSL_DLL_H_
 
 #include "nsl/defines.h"
 
@@ -14,4 +14,4 @@ NSL_API void nsl_dll_close(nsl_Dll *dll);
 
 NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol);
 
-#endif // _NSL_DLL_
+#endif // _NSL_DLL_H_
