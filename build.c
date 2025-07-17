@@ -134,11 +134,16 @@ static bool build_header_file(void) {
     FILE *nsl = NULL;
     if (nsl_file_open(&nsl, NSL_PATH("nsl.h"), "w")) NSL_DEFER(true);
 
+    nsl_file_write_fmt(nsl, "/*\n");
+    nsl_file_write_fmt(nsl, "nsl.h - v0.9.0 - MIT license - https://github.com/Code-Nycticebus/nsl\n\n");
+
     FILE *r = NULL;
     if (nsl_file_open(&r, NSL_PATH("README.md"), "r")) NSL_DEFER(true);
     nsl_Str readme = nsl_file_read_str(r, &arena);
-    nsl_file_write_fmt(nsl, "/*\n" NSL_STR_FMT "*/\n\n", NSL_STR_ARG(readme));
+    nsl_file_write_fmt(nsl, NSL_STR_FMT "\n", NSL_STR_ARG(readme));
     nsl_file_close(r);
+
+    nsl_file_write_fmt(nsl, "*/\n\n");
 
     Files headers = {.arena = &arena};
     if (collect_files(&headers, NSL_PATH("include/nsl/"))) NSL_DEFER(true);
