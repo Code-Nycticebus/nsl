@@ -6,10 +6,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define NSL_ERROR_FMT "%s:%d: %s():"
-#define NSL_ERROR_ARG __FILE__, __LINE__, __func__
+#define NSL_ERROR_FMT "%s:%d:"
+#define NSL_ERROR_ARG __FILE__, __LINE__
 
-// nsl_Error
+// defines.h
+// typedef i64 nsl_Error;
 enum {
     NSL_ERROR = -1,
     NSL_NO_ERROR = 0,
