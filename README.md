@@ -2,7 +2,7 @@
 A single-header standard library for C, heavily inspired by [nob.h](https://github.com/tsoding/nob.h).
 
 It aims to make programming in C better suited to my preferences, 
-providing a common interface between Windows and Linux,
+providing a common interface between Windows and Linux
 and some extra tools like arena allocators, string utilities, and commonly used data structures.
 
 Its a complete rewrite of [cebus](https://github.com/Code-Nycticebus/cebus).
