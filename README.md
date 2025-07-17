@@ -1,5 +1,9 @@
-# Nycticebus Standard Library
-nsl is a single-header standard library for C, heavily inspired by [nob.h](https://github.com/tsoding/nob.h).
+# Nycticebus Standard Library (nsl)
+A single-header standard library for C, heavily inspired by [nob.h](https://github.com/tsoding/nob.h).
+
+It aims to make programming in C better suited to my preferences, 
+providing a common interface between Windows and Linux,
+and some extra tools like arena allocators, string utilities, and commonly used data structures.
 
 Its a complete rewrite of [cebus](https://github.com/Code-Nycticebus/cebus).
 
@@ -11,14 +15,16 @@ Its a complete rewrite of [cebus](https://github.com/Code-Nycticebus/cebus).
 #include "nsl.h"
 
 int main(void) {
+    int result = 0;
     nsl_Arena arena = {0};
 
     nsl_Path file = NSL_PATH("main.c");
     const char* out = nsl_str_to_cstr(nsl_path_stem(file), &arena);
-    if (NSL_CMD("gcc", "-o", out, "-Wall", file.data)) return 1;
+    if (NSL_CMD("gcc", "-o", out, "-Wall", file.data)) NSL_DEFER(-1);
 
+defer:
     nsl_arena_free(&arena);
-    return 0;
+    return result;
 }
 ```
 
