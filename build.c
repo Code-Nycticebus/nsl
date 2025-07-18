@@ -20,16 +20,7 @@ static void collect_flags(nsl_Cmd *cmd) {
     nsl_cmd_push(cmd, "-Wcast-qual", "-Wcast-align", "-Wwrite-strings");
     nsl_cmd_push(cmd, "-Wstrict-aliasing=2", "-Wno-unused-parameter");
     nsl_cmd_push(cmd, "-std=c99");
-    nsl_cmd_push(cmd, "-Iinclude");
-}
-
-static bool collect_files(Files *files, nsl_Path path) {
-    nsl_dir_walk(file, path, true) {
-        if (file->is_dir) continue;
-        nsl_list_push(files, nsl_str_copy(file->path, files->arena));
-    }
-
-    return false;
+    nsl_cmd_push(cmd, "-Isrc");
 }
 
 static bool compile_commands(void) {
@@ -146,7 +137,12 @@ static bool build_header_file(void) {
     nsl_file_write_fmt(nsl, "*/\n\n");
 
     Files headers = {.arena = &arena};
-    if (collect_files(&headers, NSL_PATH("include/nsl/"))) NSL_DEFER(true);
+    nsl_dir_walk(file, NSL_PATH("src/nsl/"), true) {
+        if (file->is_dir) continue;
+        if (!nsl_str_endswith(file->path, NSL_STR(".h"))) continue;
+        nsl_list_push(&headers, nsl_str_copy(file->path, &arena));
+    }
+
     nsl_list_sort(&headers, path_compare);
 
     nsl_file_write_fmt(nsl, "#ifndef _NSL_H_\n");
@@ -157,7 +153,11 @@ static bool build_header_file(void) {
     nsl_file_write_fmt(nsl, "#endif // _NSL_H_\n\n");
 
     Files src = {.arena = &arena};
-    if (collect_files(&src, NSL_PATH("src/nsl/"))) NSL_DEFER(true);
+    nsl_dir_walk(file, NSL_PATH("src/nsl/"), true) {
+        if (file->is_dir) continue;
+        if (!nsl_str_endswith(file->path, NSL_STR(".c"))) continue;
+        nsl_list_push(&src, nsl_str_copy(file->path, &arena));
+    }
     nsl_list_sort(&src, path_compare);
 
     nsl_file_write_fmt(nsl, "#ifdef NSL_IMPLEMENTATION\n");
