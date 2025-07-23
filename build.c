@@ -165,6 +165,7 @@ static bool build_header_file(void) {
         copy_to_file(nsl, *path);
     }
     nsl_file_write_fmt(nsl, "\n#endif // NSL_IMPLEMENTATION\n");
+    nsl_file_write_fmt(nsl, "#undef NSL_IMPLEMENTATION\n");
 
     nsl_file_close(nsl);
     nsl = NULL;

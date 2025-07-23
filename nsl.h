@@ -3388,3 +3388,4 @@ NSL_API u64 nsl_str_hash(nsl_Str s) {
 }
 
 #endif // NSL_IMPLEMENTATION
+#undef NSL_IMPLEMENTATION
