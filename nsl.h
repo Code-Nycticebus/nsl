@@ -1589,7 +1589,7 @@ NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
 
     nsl_Str filepath = nsl_str_copy(path, &arena);
 
-    if (CreateDirectoryA(filepath.data, NULL) != 0) {
+    if (!CreateDirectoryA(filepath.data, NULL)) {
         DWORD ec = GetLastError();
         if (config.exists_ok && ec == ERROR_ALREADY_EXISTS) {
             DWORD attrs = GetFileAttributes(filepath.data);
