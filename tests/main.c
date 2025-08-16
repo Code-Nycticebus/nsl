@@ -1,8 +1,4 @@
 // tests
-
-#define NSL_IMPLEMENTATION
-#include "nsl.h"
-
 #include "core/test-arena.c"
 
 #include "os/test-dir.c"

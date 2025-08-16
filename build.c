@@ -183,7 +183,7 @@ defer:
 }
 
 static bool build_tests(void) {
-    if (NSL_CMD(CC, "-o", "build/test", "-I.", "-fsanitize=address,undefined", "-fPIE", "tests/main.c") != 0) return true;
+    if (NSL_CMD(CC, "-o", "build/test", "-DNSL_IMPLEMENTATION", "-I.", "-fsanitize=address,undefined", "-fPIE", "tests/main.c") != 0) return true;
     if (NSL_CMD("./build/test") != 0) return true;
     return false;
 }
