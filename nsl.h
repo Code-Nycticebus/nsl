@@ -833,7 +833,8 @@ NSL_API u64 nsl_str_hash(nsl_Str s);
 
 #endif // _NSL_H_
 
-#ifdef NSL_IMPLEMENTATION
+#if defined(NSL_IMPLEMENTATION) && !defined(_NSL_IMPLEMENTED)
+#define _NSL_IMPLEMENTED
 
 #include <stdlib.h>
 #include <string.h>
@@ -3388,4 +3389,3 @@ NSL_API u64 nsl_str_hash(nsl_Str s) {
 }
 
 #endif // NSL_IMPLEMENTATION
-#undef NSL_IMPLEMENTATION

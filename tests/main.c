@@ -1,5 +1,8 @@
 // tests
 
+#define NSL_IMPLEMENTATION
+#include "nsl.h"
+
 #include "core/test-arena.c"
 
 #include "os/test-dir.c"
@@ -15,10 +18,6 @@
 #include "types/test-int.c"
 #include "types/test-str.c"
 #include "types/test-path.c"
-
-#define NSL_IMPLEMENTATION
-#include "nsl.h"
-#undef NSL_IMPLEMENTATION
 
 int main(void) {
     // core

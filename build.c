@@ -160,12 +160,12 @@ static bool build_header_file(void) {
     }
     nsl_list_sort(&src, path_compare);
 
-    nsl_file_write_fmt(nsl, "#ifdef NSL_IMPLEMENTATION\n");
+    nsl_file_write_fmt(nsl, "#if defined(NSL_IMPLEMENTATION) && !defined(_NSL_IMPLEMENTED)\n");
+    nsl_file_write_fmt(nsl, "#define _NSL_IMPLEMENTED\n");
     nsl_list_for_each(nsl_Path *, path, &src) {
         copy_to_file(nsl, *path);
     }
     nsl_file_write_fmt(nsl, "\n#endif // NSL_IMPLEMENTATION\n");
-    nsl_file_write_fmt(nsl, "#undef NSL_IMPLEMENTATION\n");
 
     nsl_file_close(nsl);
     nsl = NULL;
