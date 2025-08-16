@@ -381,11 +381,11 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path);
 
 #include <stdlib.h>
 
-#define nsl_list_first(list) (list)->items[0]
-#define nsl_list_last(list) (list)->items[(list)->len - 1]
-#define nsl_list_pop(list) (list)->items[--(list)->len]
-#define nsl_list_is_empty(list) (!(list)->len)
+#define nsl_list_first(list) (NSL_ASSERT((list)->len > 0), (list)->items[0])
+#define nsl_list_last(list)  (NSL_ASSERT((list)->len > 0), (list)->items[(list)->len - 1])
+#define nsl_list_pop(list)   (NSL_ASSERT((list)->len > 0), (list)->items[--(list)->len])
 
+#define nsl_list_is_empty(list) (!(list)->len)
 #define nsl_list_clear(list) ((list)->len = 0)
 
 #define nsl_list_free(list)                                                    \
@@ -530,7 +530,7 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path);
 
 #define nsl_list_for_each(T, iter, da)                                         \
   if ((da)->len)                                                               \
-    for (T iter = &nsl_list_first(da); iter <= &nsl_list_last(da); iter++)
+    for (T iter = (da)->items; iter <= &(da)->items[(da)->len - 1]; iter++)
 
 
 
@@ -1029,7 +1029,7 @@ NSL_API nsl_Str nsl_file_read_str(FILE* file, nsl_Arena* arena) {
 NSL_API nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
     usize size = nsl_file_size(file);
     nsl_list_reserve(sb, size);
-    char* start = &nsl_list_last(sb);
+    char* start = sb->len ? &sb->items[sb->len - 1] : sb->items;
     size = fread(start, 1, size, file);
     sb->len += size;
     return nsl_str_from_parts(size, start);

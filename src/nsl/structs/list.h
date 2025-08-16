@@ -6,11 +6,11 @@
 
 #include <stdlib.h>
 
-#define nsl_list_first(list) (list)->items[0]
-#define nsl_list_last(list) (list)->items[(list)->len - 1]
-#define nsl_list_pop(list) (list)->items[--(list)->len]
-#define nsl_list_is_empty(list) (!(list)->len)
+#define nsl_list_first(list) (NSL_ASSERT((list)->len > 0), (list)->items[0])
+#define nsl_list_last(list)  (NSL_ASSERT((list)->len > 0), (list)->items[(list)->len - 1])
+#define nsl_list_pop(list)   (NSL_ASSERT((list)->len > 0), (list)->items[--(list)->len])
 
+#define nsl_list_is_empty(list) (!(list)->len)
 #define nsl_list_clear(list) ((list)->len = 0)
 
 #define nsl_list_free(list)                                                    \
@@ -155,6 +155,6 @@
 
 #define nsl_list_for_each(T, iter, da)                                         \
   if ((da)->len)                                                               \
-    for (T iter = &nsl_list_first(da); iter <= &nsl_list_last(da); iter++)
+    for (T iter = (da)->items; iter <= &(da)->items[(da)->len - 1]; iter++)
 
 #endif // _NSL_LIST_H_

@@ -48,7 +48,7 @@ NSL_API nsl_Str nsl_file_read_str(FILE* file, nsl_Arena* arena) {
 NSL_API nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
     usize size = nsl_file_size(file);
     nsl_list_reserve(sb, size);
-    char* start = &nsl_list_last(sb);
+    char* start = sb->len ? &sb->items[sb->len - 1] : sb->items;
     size = fread(start, 1, size, file);
     sb->len += size;
     return nsl_str_from_parts(size, start);
