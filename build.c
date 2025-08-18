@@ -29,7 +29,7 @@ static bool compile_commands(void) {
     bool result = false;
     FILE *bc = NULL;
 
-    if (nsl_os_mkdir(NSL_PATH("build"), (nsl_OsDirConfig){.exists_ok = true})) NSL_DEFER(true);
+    if (nsl_os_mkdir(NSL_PATH("build"), .exists_ok = true)) NSL_DEFER(true);
 
     if (nsl_file_open(&bc, NSL_PATH("build/compile_commands.json"), "w")) NSL_DEFER(true);
 

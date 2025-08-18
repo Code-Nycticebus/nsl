@@ -5,10 +5,12 @@
 
 typedef struct {
     u32 mode;       // set the directory mode (default = 0755)
-    bool exists_ok; // error when the directory exists
+    bool exists_ok; // no error when the directory exists
     bool parents;   // create parent paths
 } nsl_OsDirConfig;
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config);
+
+#define nsl_os_mkdir(path, ...) nsl_os_mkdir_(path, (nsl_OsDirConfig){ __VA_ARGS__ }) 
+NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config);
 
 NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
 NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena);

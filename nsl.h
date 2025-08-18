@@ -90,6 +90,9 @@ nsl_arena_free(&arena);
 #    define NSL_ASSERT assert
 #endif
 
+// used when a function has default arguments. I design every config to be zero initialized by default
+#define NSL_DEFAULT 0
+
 #define NSL_BOOL_FMT "%s"
 #define NSL_BOOL_ARG(b) (b ? "true" : "false")
 
@@ -364,10 +367,12 @@ NSL_API void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
 
 typedef struct {
     u32 mode;       // set the directory mode (default = 0755)
-    bool exists_ok; // error when the directory exists
+    bool exists_ok; // no error when the directory exists
     bool parents;   // create parent paths
 } nsl_OsDirConfig;
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config);
+
+#define nsl_os_mkdir(path, ...) nsl_os_mkdir_(path, (nsl_OsDirConfig){ __VA_ARGS__ }) 
+NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config);
 
 NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
 NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena);
@@ -1234,13 +1239,13 @@ NSL_API Function nsl_dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
 #include <errno.h>
 #include <unistd.h>
 
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
+NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config) {
     if (config.parents) {
         if (nsl_path_is_root(path)) return NSL_NO_ERROR;
         if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
         nsl_OsDirConfig c = config;
         c.exists_ok = true;
-        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
+        nsl_Error recursive_error = nsl_os_mkdir_(nsl_path_parent(path), c);
         if (recursive_error) return recursive_error;
     }
 
@@ -1574,7 +1579,7 @@ NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
 #include <string.h>
 #include <errno.h>
 
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
+NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config) {
     nsl_Error result = NSL_NO_ERROR;
 
     nsl_Arena arena = {0};
@@ -1584,7 +1589,7 @@ NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
         if (path.len == 1 && path.data[0] == '.') NSL_DEFER(NSL_NO_ERROR);
         nsl_OsDirConfig c = config;
         c.exists_ok = true;
-        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
+        nsl_Error recursive_error = nsl_os_mkdir_(nsl_path_parent(path), c);
         if (recursive_error) NSL_DEFER(recursive_error);
     }
 

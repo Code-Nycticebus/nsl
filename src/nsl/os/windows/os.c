@@ -9,7 +9,7 @@
 #include <string.h>
 #include <errno.h>
 
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
+NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config) {
     nsl_Error result = NSL_NO_ERROR;
 
     nsl_Arena arena = {0};
@@ -19,7 +19,7 @@ NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
         if (path.len == 1 && path.data[0] == '.') NSL_DEFER(NSL_NO_ERROR);
         nsl_OsDirConfig c = config;
         c.exists_ok = true;
-        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
+        nsl_Error recursive_error = nsl_os_mkdir_(nsl_path_parent(path), c);
         if (recursive_error) NSL_DEFER(recursive_error);
     }
 

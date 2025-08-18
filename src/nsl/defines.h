@@ -27,6 +27,9 @@
 #    define NSL_ASSERT assert
 #endif
 
+// used when a function has default arguments. I design every config to be zero initialized by default
+#define NSL_DEFAULT 0
+
 #define NSL_BOOL_FMT "%s"
 #define NSL_BOOL_ARG(b) (b ? "true" : "false")
 

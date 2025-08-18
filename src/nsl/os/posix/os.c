@@ -10,13 +10,13 @@
 #include <errno.h>
 #include <unistd.h>
 
-NSL_API nsl_Error nsl_os_mkdir(nsl_Path path, nsl_OsDirConfig config) {
+NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config) {
     if (config.parents) {
         if (nsl_path_is_root(path)) return NSL_NO_ERROR;
         if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
         nsl_OsDirConfig c = config;
         c.exists_ok = true;
-        nsl_Error recursive_error = nsl_os_mkdir(nsl_path_parent(path), c);
+        nsl_Error recursive_error = nsl_os_mkdir_(nsl_path_parent(path), c);
         if (recursive_error) return recursive_error;
     }
 
