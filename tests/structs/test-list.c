@@ -24,7 +24,7 @@ static void test_list_init(void) {
     nsl_list_extend_static(&list, (usize[]){1, 2, 3, 4, 5});
 
     NSL_ASSERT(list.len == 5 && "Did not set len correctly");
-    NSL_ASSERT(list.cap == 5 && "Did not set cap correctly");
+    NSL_ASSERT(list.cap == NSL_LIST_INITIAL_CAPACITY && "Did not set cap correctly");
 
     NSL_ASSERT(list.items[0] == 1 && "Did not init correctly");
     NSL_ASSERT(list.items[2] == 3 && "Did not init correctly");
