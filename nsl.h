@@ -1,5 +1,5 @@
 /*
-nsl.h - v0.9.0 - MIT license - https://github.com/Code-Nycticebus/nsl
+nsl.h - v0.9.1 - MIT license - https://github.com/Code-Nycticebus/nsl
 
 # Nycticebus Standard Library (nsl)
 A single-header standard library for C, heavily inspired by [nob.h](https://github.com/tsoding/nob.h).

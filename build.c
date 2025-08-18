@@ -1,6 +1,8 @@
 #define NSL_IMPLEMENTATION
 #include "nsl.h"
 
+#define NSL_VERSION "v0.9.1"
+
 #ifdef WINDOWS
 #    define _WIN32
 #    define CC "x86_64-w64-mingw32-gcc"
@@ -126,7 +128,7 @@ static bool build_header_file(void) {
     if (nsl_file_open(&nsl, NSL_PATH("nsl.h"), "w")) NSL_DEFER(true);
 
     nsl_file_write_fmt(nsl, "/*\n");
-    nsl_file_write_fmt(nsl, "nsl.h - v0.9.0 - MIT license - https://github.com/Code-Nycticebus/nsl\n\n");
+    nsl_file_write_fmt(nsl, "nsl.h - " NSL_VERSION " - MIT license - https://github.com/Code-Nycticebus/nsl\n\n");
 
     FILE *r = NULL;
     if (nsl_file_open(&r, NSL_PATH("README.md"), "r")) NSL_DEFER(true);
