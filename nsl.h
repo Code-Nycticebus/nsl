@@ -391,6 +391,9 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path);
 #define nsl_list_free(list)                                                    \
   do {                                                                         \
     nsl_arena_free_chunk((list)->arena, (list)->items);                        \
+    (list)->items = NULL;                                                      \
+    (list)->len = 0;                                                           \
+    (list)->cap = 0;                                                           \
   } while (0)
 
 #define nsl_list_copy(src, dest)                                               \
