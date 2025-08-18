@@ -13,15 +13,13 @@ i32 cmp(const void *a, const void *b) {
 
 int main(int argc, const char **argv) {
     // using 'NSL_STR' for string literals and 'nsl_str_from_cstr' for 'char *'
-    nsl_Str filename = argc < 2 ?
-        NSL_STR(__FILE__) :
-        nsl_str_from_cstr(argv[1]);
+    nsl_Str filename = argc < 2 ? NSL_STR(__FILE__) : nsl_str_from_cstr(argv[1]);
 
     // preparing the memory arena
     nsl_Arena arena = {0};
 
     // reading the entire file
-    FILE* file;
+    FILE *file;
     if (nsl_file_open(&file, filename, "r")) NSL_PANIC("could not open file!");
     nsl_Str content = nsl_file_read_str(file, &arena);
     nsl_file_close(file);
