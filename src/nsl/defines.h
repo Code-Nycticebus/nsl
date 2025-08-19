@@ -166,18 +166,8 @@ typedef nsl_List(u8) nsl_ByteBuffer;
 #    define NSL_FMT(fmt_idx)
 #endif
 
-#ifdef NSL_STATIC
-#    define NSL_API static
-#elif defined(_WIN32)
-#    if defined(NSL_DLL_BUILD)
-#        define NSL_API __declspec(dllexport)
-#    elif defined(NSL_DLL_LOAD)
-#        define NSL_API __declspec(dllimport)
-#    else
-#        define NSL_API
-#    endif
-#else
-#    define NSL_API __attribute__((visibility("default")))
+#ifndef NSL_API
+#    define NSL_API
 #endif
 
 #if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && defined(__ORDER_LITTLE_ENDIAN__)

@@ -1,5 +1,5 @@
 #define NSL_IMPLEMENTATION
-#define NSL_STATIC
+#define NSL_API static
 #include "../nsl.h"
 
 typedef struct {
