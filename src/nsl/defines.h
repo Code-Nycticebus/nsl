@@ -71,8 +71,18 @@ typedef struct {
     nsl_Chunk *begin, *end;
 } nsl_Arena;
 
-// Error codes
-typedef i64 nsl_Error;
+typedef enum {
+    NSL_NO_ERROR = 0,
+    // 1-255 reserved for process return values
+    NSL_ERROR_FILE_NOT_FOUND = 256,
+    NSL_ERROR_ACCESS_DENIED,
+    NSL_ERROR_ALREADY_EXISTS,
+    NSL_ERROR_NOT_DIRECTORY,
+    NSL_ERROR_IS_DIRECTORY,
+    NSL_ERROR_FILE_BUSY,
+
+    NSL_ERROR = -1,
+} nsl_Error;
 
 #define nsl_List(T)                                                                                \
     struct {                                                                                       \

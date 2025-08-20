@@ -134,8 +134,18 @@ typedef struct {
     nsl_Chunk *begin, *end;
 } nsl_Arena;
 
-// Error codes
-typedef i64 nsl_Error;
+typedef enum {
+    NSL_NO_ERROR = 0,
+    // 1-255 reserved for process return values
+    NSL_ERROR_FILE_NOT_FOUND = 256,
+    NSL_ERROR_ACCESS_DENIED,
+    NSL_ERROR_ALREADY_EXISTS,
+    NSL_ERROR_NOT_DIRECTORY,
+    NSL_ERROR_IS_DIRECTORY,
+    NSL_ERROR_FILE_BUSY,
+
+    NSL_ERROR = -1,
+} nsl_Error;
 
 #define nsl_List(T)                                                                                \
     struct {                                                                                       \
@@ -260,27 +270,6 @@ NSL_API void *nsl_arena_alloc_chunk(nsl_Arena *arena, usize size);
 NSL_API void *nsl_arena_calloc_chunk(nsl_Arena *arena, usize size);
 NSL_API void *nsl_arena_realloc_chunk(nsl_Arena *arena, void *ptr, usize size);
 NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr);
-
-
-
-#include <stdlib.h>
-#include <stdio.h>
-
-#define NSL_ERROR_FMT "%s:%d:"
-#define NSL_ERROR_ARG __FILE__, __LINE__
-
-// defines.h
-// typedef i64 nsl_Error;
-enum {
-    NSL_ERROR = -1,
-    NSL_NO_ERROR = 0,
-    NSL_ERROR_FILE_NOT_FOUND = 256,
-    NSL_ERROR_ACCESS_DENIED,
-    NSL_ERROR_ALREADY_EXISTS,
-    NSL_ERROR_NOT_DIRECTORY,
-    NSL_ERROR_IS_DIRECTORY,
-    NSL_ERROR_FILE_BUSY,
-};
 
 
 

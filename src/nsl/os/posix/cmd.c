@@ -1,7 +1,6 @@
 #include "nsl/os/cmd.h"
 
 #include "nsl/core/arena.h"
-#include "nsl/core/error.h"
 #include "nsl/structs/list.h"
 
 #include <string.h>

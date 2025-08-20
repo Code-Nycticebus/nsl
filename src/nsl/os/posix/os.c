@@ -1,6 +1,5 @@
 #include "nsl/os/os.h"
 
-#include "nsl/core/error.h"
 #include "nsl/types/int.h"
 #include "nsl/types/path.h"
 #include "nsl/types/str.h"
