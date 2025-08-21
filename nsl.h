@@ -33,10 +33,10 @@ defer:
 
 ## Errors
 Functions that can fail return a `0` or `NSL_NO_ERROR` on success and a non-zero (truthy) value on failure.
-This mirrors the Unix convention where a non-zero exit code indicates an error.
+This mirrors the Unix convention where a non-zero exit code indicates an error. `nsl_Error` values range 1-255 are reserved for process return codes returned by `nsl_cmd_exec`.
 
 ```c
-nsl_Error error = nsl_os_mkdir(NSL_PATH("path/to/directory"));
+nsl_Error error = nsl_os_mkdir(NSL_PATH("path/to/directory"), NSL_DEFAULT);
 if (error) {
     // handle error or crash
 }
