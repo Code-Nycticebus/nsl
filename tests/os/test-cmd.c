@@ -5,7 +5,7 @@ void run_test_cmd(void) {
     nsl_Cmd cmd = {0};
 
 #if defined(_WIN32)
-    nsl_cmd_push(&cmd, "cmd.exe", "/c", "exit", "0");
+    nsl_cmd_push(&cmd, "timeout.exe", "/t", "0");
 #else
     nsl_cmd_push(&cmd, "true");
 #endif
