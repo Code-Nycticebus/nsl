@@ -9,8 +9,8 @@ typedef struct {
     bool parents;   // create parent paths
 } nsl_OsDirConfig;
 
-#define nsl_os_mkdir(path, ...) nsl_os_mkdir_(path, (nsl_OsDirConfig){ __VA_ARGS__ }) 
-NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config);
+#define nsl_os_mkdir(path, ...) nsl_os_mkdir_conf(path, (nsl_OsDirConfig){ __VA_ARGS__ }) 
+NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config);
 
 NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
 NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena);
