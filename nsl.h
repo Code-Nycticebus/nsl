@@ -10,7 +10,16 @@ and some extra tools like arena allocators, string utilities, and commonly used 
 
 Its a complete rewrite of [cebus](https://github.com/Code-Nycticebus/cebus).
 
+## Usage
+Download the `nsl.h` file and include it with `NSL_IMPLEMENTATION` defined.
+
+```c
+#define NSL_IMPLEMENTATION
+#include "nsl.h"
+```
+
 ## Example
+You can create a simple build script with it.
 
 ```c
 // build.c
@@ -18,16 +27,7 @@ Its a complete rewrite of [cebus](https://github.com/Code-Nycticebus/cebus).
 #include "nsl.h"
 
 int main(void) {
-    int result = 0;
-    nsl_Arena arena = {0};
-
-    nsl_Path file = NSL_PATH("main.c");
-    const char* out = nsl_str_to_cstr(nsl_path_stem(file), &arena);
-    if (NSL_CMD("gcc", "-o", out, "-Wall", file.data)) NSL_DEFER(-1);
-
-defer:
-    nsl_arena_free(&arena);
-    return result;
+    if (NSL_CMD("gcc", "-o", "main", "-Wall", "main.c")) return 1;
 }
 ```
 
