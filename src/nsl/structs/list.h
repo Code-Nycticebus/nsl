@@ -143,7 +143,7 @@
 #define nsl_list_sort(src, sort) qsort((src)->items, (src)->len, sizeof((src)->items[0]), sort)
 
 #define nsl_list_reverse(list)                                                                     \
-    do {                                                                                           \
+    if ((list)->len) do {                                                                                           \
         nsl_list_reserve((list), 1);                                                               \
         for (usize __r_i = 0; __r_i < (list)->len - __r_i - 1; __r_i++) {                          \
             usize __last_idx = (list)->len - __r_i - 1;                                            \
