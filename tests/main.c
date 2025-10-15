@@ -8,6 +8,7 @@
 #include "structs/test-list.c"
 #include "structs/test-map.c"
 #include "structs/test-set.c"
+#include "structs/test-builder.c"
 
 #include "types/test-char.c"
 #include "types/test-byte.c"
@@ -16,20 +17,21 @@
 #include "types/test-path.c"
 
 int main(void) {
-    // core
+    printf("test core\n"); fflush(stdout);
     run_test_arena();
 
-    // os
+    printf("os\n"); fflush(stdout);
     run_test_dir();
     run_test_file();
     run_test_cmd();
 
-    // structs
+    printf("structs\n"); fflush(stdout);
     run_test_list();
     run_test_map();
     run_test_set();
+    run_test_builder();
 
-    // types
+    printf("types\n"); fflush(stdout);
     run_test_char();
     run_test_bytes();
     run_test_int();
