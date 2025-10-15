@@ -551,11 +551,10 @@ typedef struct nsl_Map {
 #define NSL_MAP_DELETED ((u64)0xdeaddeaddeaddead)
 
 NSL_API void nsl_map_free(nsl_Map *map);
+NSL_API void nsl_map_clear(nsl_Map *map);
 
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);
 NSL_API void nsl_map_extend(nsl_Map *map, usize count, nsl_MapItem *items);
-
-NSL_API void nsl_map_clear(nsl_Map *map);
 
 NSL_API void nsl_map_resize(nsl_Map *map, usize size);
 NSL_API void nsl_map_reserve(nsl_Map *map, usize size);
@@ -591,6 +590,7 @@ typedef struct {
 #define NSL_SET_DELETED ((u64)0xdeaddeaddeaddead)
 
 NSL_API void nsl_set_free(nsl_Set* set);
+NSL_API void nsl_set_clear(nsl_Set* set);
 
 NSL_API void nsl_set_resize(nsl_Set *set, usize size);
 NSL_API void nsl_set_reserve(nsl_Set *set, usize size);
@@ -1796,6 +1796,12 @@ NSL_API void nsl_map_free(nsl_Map *map) {
     nsl_arena_free_chunk(map->arena, map->items);
 }
 
+NSL_API void nsl_map_clear(nsl_Map* map) {
+    map->len = 0;
+    map->del = 0;
+    memset(map->items, 0, sizeof(map->items[0]) * map->cap);
+}
+
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other) {
     nsl_map_reserve(map, other->len);
     for (usize i = 0; i < other->cap; ++i) {
@@ -1810,12 +1816,6 @@ NSL_API void nsl_map_extend(nsl_Map* map, usize count, nsl_MapItem* items) {
     for (usize i = 0; i < count; i++) {
         nsl_map_insert(map, items[i].hash, items[i].value);
     }
-}
-
-NSL_API void nsl_map_clear(nsl_Map* map) {
-    map->len = 0;
-    map->del = 0;
-    memset(map->items, 0, sizeof(map->items[0]) * map->cap);
 }
 
 NSL_API void nsl_map_resize(nsl_Map *map, usize size) {
@@ -1933,8 +1933,16 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash) {
 }
 
 
+#include <string.h>
+
 NSL_API void nsl_set_free(nsl_Set* set) {
     nsl_arena_free_chunk(set->arena, set->items);
+}
+
+NSL_API void nsl_set_clear(nsl_Set* set) {
+    set->len = 0;
+    set->_del = 0;
+    memset(set->items, 0, sizeof(set->items[0]) * set->_cap);
 }
 
 NSL_API void nsl_set_resize(nsl_Set *set, usize size) {

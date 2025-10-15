@@ -73,6 +73,12 @@ NSL_API void nsl_map_free(nsl_Map *map) {
     nsl_arena_free_chunk(map->arena, map->items);
 }
 
+NSL_API void nsl_map_clear(nsl_Map* map) {
+    map->len = 0;
+    map->del = 0;
+    memset(map->items, 0, sizeof(map->items[0]) * map->cap);
+}
+
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other) {
     nsl_map_reserve(map, other->len);
     for (usize i = 0; i < other->cap; ++i) {
@@ -87,12 +93,6 @@ NSL_API void nsl_map_extend(nsl_Map* map, usize count, nsl_MapItem* items) {
     for (usize i = 0; i < count; i++) {
         nsl_map_insert(map, items[i].hash, items[i].value);
     }
-}
-
-NSL_API void nsl_map_clear(nsl_Map* map) {
-    map->len = 0;
-    map->del = 0;
-    memset(map->items, 0, sizeof(map->items[0]) * map->cap);
 }
 
 NSL_API void nsl_map_resize(nsl_Map *map, usize size) {

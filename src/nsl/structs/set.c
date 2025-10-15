@@ -2,8 +2,16 @@
 
 #include "nsl/types/int.h"
 
+#include <string.h>
+
 NSL_API void nsl_set_free(nsl_Set* set) {
     nsl_arena_free_chunk(set->arena, set->items);
+}
+
+NSL_API void nsl_set_clear(nsl_Set* set) {
+    set->len = 0;
+    set->_del = 0;
+    memset(set->items, 0, sizeof(set->items[0]) * set->_cap);
 }
 
 NSL_API void nsl_set_resize(nsl_Set *set, usize size) {
