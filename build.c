@@ -25,68 +25,11 @@ static void collect_flags(nsl_Cmd *cmd) {
     nsl_cmd_push(cmd, "-Isrc");
 }
 
-static bool compile_commands(void) {
-    bool result = false;
-    FILE *bc = NULL;
-
-    if (nsl_os_mkdir(NSL_PATH("build"), .exists_ok = true)) NSL_DEFER(true);
-
-    if (nsl_file_open(&bc, NSL_PATH("build/compile_commands.json"), "w")) NSL_DEFER(true);
-
-    nsl_Arena arena = {0};
-    nsl_Cmd cmd = {.arena = &arena};
-
-    nsl_Path cwd = nsl_os_cwd(&arena);
-
-    bool first = true;
-
-    nsl_file_write_fmt(bc, "[");
-    nsl_dir_walk(file, NSL_PATH("src/nsl"), true) {
-        if (file->is_dir) continue;
-#if defined(_WIN32)
-        if (nsl_str_contains(file->path, NSL_STR("posix"))) continue;
-#else
-        if (nsl_str_contains(file->path, NSL_STR("windows"))) continue;
-#endif
-
-        nsl_cmd_push(&cmd, CC, "-c", "-o", "test.o", file->path.data);
-        collect_flags(&cmd);
-
-        if (!nsl_cmd_exec_list(&cmd)) {
-            if (!first) nsl_file_write_fmt(bc, ", ");
-            nsl_file_write_fmt(bc, "{");
-            nsl_file_write_fmt(bc, "\"file\": \"" NSL_STR_FMT "\", ", NSL_STR_ARG(file->path));
-            nsl_file_write_fmt(bc, "\"directory\": \"" NSL_STR_FMT "\", ", NSL_STR_ARG(cwd));
-
-            nsl_file_write_fmt(bc, "\"arguments\": [");
-            nsl_list_for_each(const char **, c, &cmd) {
-                if (c != cmd.items) nsl_file_write_fmt(bc, ", ");
-                nsl_file_write_fmt(bc, "\"%s\"", *c);
-            }
-            nsl_file_write_fmt(bc, "]");
-
-            nsl_file_write_fmt(bc, "}");
-        } else {
-            result = false;
-        }
-
-        nsl_list_clear(&cmd);
-    }
-    nsl_file_write_fmt(bc, "]");
-
-    nsl_os_remove(NSL_PATH("test.o"));
-
-defer:
-    if (bc) nsl_file_close(bc);
-    nsl_arena_free(&arena);
-    return result;
-}
-
 static i32 path_compare(const void *s1, const void *s2) {
     const nsl_Path *p1 = s1;
     const nsl_Path *p2 = s2;
     if (nsl_str_contains(*p1, NSL_STR("defines.h"))) return -1;
-    if (nsl_str_contains(*p2, NSL_STR("defines.h"))) return 1;
+    if (nsl_str_contains(*p2, NSL_STR("defines.h"))) return  1;
     return strncmp(p1->data, p2->data, nsl_usize_min(p1->len, p2->len));
 }
 
@@ -138,36 +81,37 @@ static bool build_header_file(void) {
 
     nsl_file_write_fmt(nsl, "*/\n\n");
 
-    Files headers = {.arena = &arena};
+    Files files = {.arena = &arena};
     nsl_dir_walk(file, NSL_PATH("src/nsl/"), true) {
         if (file->is_dir) continue;
         if (!nsl_str_endswith(file->path, NSL_STR(".h"))) continue;
-        nsl_list_push(&headers, nsl_str_copy(file->path, &arena));
+        nsl_list_push(&files, nsl_str_copy(file->path, &arena));
     }
 
-    nsl_list_sort(&headers, path_compare);
+    nsl_list_sort(&files, path_compare);
 
     nsl_file_write_fmt(nsl, "#ifndef _NSL_H_\n");
     nsl_file_write_fmt(nsl, "#define _NSL_H_\n\n");
-    nsl_list_for_each(nsl_Path *, path, &headers) {
+    nsl_list_for_each(nsl_Path *, path, &files) {
         copy_to_file(nsl, *path);
     }
     nsl_file_write_fmt(nsl, "#endif // _NSL_H_\n\n");
+    files.len = 0;
 
-    Files src = {.arena = &arena};
     nsl_dir_walk(file, NSL_PATH("src/nsl/"), true) {
         if (file->is_dir) continue;
         if (!nsl_str_endswith(file->path, NSL_STR(".c"))) continue;
-        nsl_list_push(&src, nsl_str_copy(file->path, &arena));
+        nsl_list_push(&files, nsl_str_copy(file->path, &arena));
     }
-    nsl_list_sort(&src, path_compare);
+    nsl_list_sort(&files, path_compare);
 
     nsl_file_write_fmt(nsl, "#if defined(NSL_IMPLEMENTATION) && !defined(_NSL_IMPLEMENTED)\n");
     nsl_file_write_fmt(nsl, "#define _NSL_IMPLEMENTED\n");
-    nsl_list_for_each(nsl_Path *, path, &src) {
+    nsl_list_for_each(nsl_Path *, path, &files) {
         copy_to_file(nsl, *path);
     }
     nsl_file_write_fmt(nsl, "\n#endif // NSL_IMPLEMENTATION\n");
+    files.len = 0;
 
     nsl_file_close(nsl);
     nsl = NULL;
@@ -191,8 +135,6 @@ static bool build_tests(void) {
 }
 
 int main(int argc, const char **argv) {
-    if (compile_commands()) return 1;
-
     if (argc < 2 || strcmp("build", argv[1]) == 0 || strcmp("test", argv[1]) == 0) {
         if (build_header_file()) return 2;
     }
