@@ -149,17 +149,34 @@ static void test_str_number_converting(void) {
     nsl_Str n = nsl_str_append(number, NSL_STR(" bytes"), &arena);
     NSL_ASSERT(nsl_str_eq(n, NSL_STR("64 bytes")));
 
-    NSL_ASSERT(nsl_str_u64(n) == 64);
-    NSL_ASSERT(nsl_str_chop_u64(&n) == 64);
+    u64 u = 0;
+    NSL_ASSERT(nsl_str_u64(n, &u) == NSL_ERROR_PARSE);
+    NSL_ASSERT(nsl_str_chop_u64(&n, &u) == NSL_NO_ERROR);
+    NSL_ASSERT(u == 64);
     NSL_ASSERT(n.len == 6);
     NSL_ASSERT(nsl_str_eq(n, NSL_STR(" bytes")));
 
-    nsl_Str f = NSL_STR("420.69");
-    NSL_ASSERT(nsl_str_f64(f) == 420.69);
+    nsl_Str e = NSL_STR("420");
+    NSL_ASSERT(nsl_str_u64(e, &u) == NSL_NO_ERROR);
+    NSL_ASSERT(u == 420);
 
-    NSL_ASSERT(nsl_str_chop_f64(&f) == 420.69);
+    nsl_Str i = NSL_STR("-420");
+    i64 ii = 0;
+    NSL_ASSERT(nsl_str_i64(i, &ii) == NSL_NO_ERROR);
+    NSL_ASSERT(ii == -420);
+    NSL_ASSERT(nsl_str_chop_i64(&i, &ii) == NSL_NO_ERROR);
+    NSL_ASSERT(ii == -420);
+    NSL_ASSERT(i.len == 0);
+
+    nsl_Str f = NSL_STR("420.69");
+
+    f64 ff;
+    NSL_ASSERT(nsl_str_f64(f, &ff) == NSL_NO_ERROR);
+    NSL_ASSERT(ff == 420.69);
+
+    NSL_ASSERT(nsl_str_chop_f64(&f, &ff) == NSL_NO_ERROR);
+    NSL_ASSERT(ff == 420.69);
     NSL_ASSERT(f.len == 0);
-    NSL_ASSERT(nsl_str_eq(f, NSL_STR("")));
 
     nsl_arena_free(&arena);
 }

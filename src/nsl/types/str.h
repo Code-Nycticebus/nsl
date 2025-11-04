@@ -78,14 +78,14 @@ NSL_API bool nsl_str_try_take_right(nsl_Str *s, usize count, nsl_Str *chunk);
 
 NSL_API nsl_Str nsl_str_substring(nsl_Str s, usize start, usize end);
 
-NSL_API u64 nsl_str_u64(nsl_Str s);
-NSL_API u64 nsl_str_chop_u64(nsl_Str *s);
+NSL_API nsl_Error nsl_str_u64(nsl_Str s, u64 *out);
+NSL_API nsl_Error nsl_str_chop_u64(nsl_Str *s, u64 *out);
 
-NSL_API i64 nsl_str_i64(nsl_Str s);
-NSL_API i64 nsl_str_chop_i64(nsl_Str *s);
+NSL_API nsl_Error nsl_str_i64(nsl_Str s, i64 *out);
+NSL_API nsl_Error nsl_str_chop_i64(nsl_Str *s, i64 *out);
 
-NSL_API f64 nsl_str_f64(nsl_Str s);
-NSL_API f64 nsl_str_chop_f64(nsl_Str *s);
+NSL_API nsl_Error nsl_str_f64(nsl_Str s, f64 *out);
+NSL_API nsl_Error nsl_str_chop_f64(nsl_Str *s, f64 *out);
 
 // Returns 'STR_NOT_FOUND' if 'needle' was not found.
 NSL_API usize nsl_str_find(nsl_Str haystack, nsl_Str needle);

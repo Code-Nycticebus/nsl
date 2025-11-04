@@ -543,75 +543,122 @@ NSL_API bool nsl_str_try_take_right(nsl_Str *s, usize count, nsl_Str *chunk) {
     return true;
 }
 
-NSL_API u64 nsl_str_u64(nsl_Str s) {
-    const int radix = 10;
+NSL_API nsl_Error nsl_str_u64(nsl_Str s, u64 *out) {
+    nsl_Error result = NSL_NO_ERROR;
     nsl_Arena arena = {0};
+
+    if (s.len == 0) NSL_DEFER(NSL_ERROR_PARSE);
+
     nsl_Str owned = nsl_str_copy(s, &arena);
-    u64 value = strtoull(owned.data, NULL, radix);
+    char *end;
+    *out = strtoull(owned.data, &end, 0);
+
+    if (owned.data == end) NSL_DEFER(NSL_ERROR_PARSE);
+    if (!(owned.data[0] != '\0' && *end == '\0')) NSL_DEFER(NSL_ERROR_PARSE);
+
+defer:
     nsl_arena_free(&arena);
-    return value;
+    return result;
 }
 
-NSL_API u64 nsl_str_chop_u64(nsl_Str *s) {
-    const int radix = 10;
+NSL_API nsl_Error nsl_str_chop_u64(nsl_Str *s, u64 *out) {
+    nsl_Error result = NSL_NO_ERROR;
     nsl_Arena arena = {0};
+
+    if (s->len == 0) NSL_DEFER(NSL_ERROR_PARSE);
+
     nsl_Str owned = nsl_str_copy(*s, &arena);
     char *endptr;
-    u64 value = strtoull(owned.data, &endptr, radix);
+    *out = strtoull(owned.data, &endptr, 0);
+
+    if (owned.data == endptr) NSL_DEFER(NSL_ERROR_PARSE);
 
     const usize size = (usize)(endptr - owned.data);
     s->data += size;
     s->len -= size;
 
+defer:
     nsl_arena_free(&arena);
-    return value;
+    return result;
 }
 
-NSL_API i64 nsl_str_i64(nsl_Str s) {
-    const int radix = 10;
+NSL_API nsl_Error nsl_str_i64(nsl_Str s, i64 *out) {
+    nsl_Error result = NSL_NO_ERROR;
     nsl_Arena arena = {0};
+
+    if (s.len == 0) NSL_DEFER(NSL_ERROR_PARSE);
+
     nsl_Str owned = nsl_str_copy(s, &arena);
-    i64 value = strtoll(owned.data, NULL, radix);
+    char *end;
+    *out = strtoll(owned.data, &end, 0);
+
+    if (owned.data == end) NSL_DEFER(NSL_ERROR_PARSE);
+    if (!(owned.data[0] != '\0' && *end == '\0')) NSL_DEFER(NSL_ERROR_PARSE);
+
+defer:
     nsl_arena_free(&arena);
-    return value;
+    return result;
 }
 
-NSL_API i64 nsl_str_chop_i64(nsl_Str *s) {
-    const int radix = 10;
+NSL_API nsl_Error nsl_str_chop_i64(nsl_Str *s, i64 *out) {
+    nsl_Error result = NSL_NO_ERROR;
     nsl_Arena arena = {0};
+
+    if (s->len == 0) NSL_DEFER(NSL_ERROR_PARSE);
+
     nsl_Str owned = nsl_str_copy(*s, &arena);
     char *endptr;
-    i64 value = strtoll(owned.data, &endptr, radix);
+    *out = strtoll(owned.data, &endptr, 0);
+
+    if (owned.data == endptr) NSL_DEFER(NSL_ERROR_PARSE);
 
     const usize size = (usize)(endptr - owned.data);
     s->data += size;
     s->len -= size;
 
+defer:
     nsl_arena_free(&arena);
-    return value;
+    return result;
 }
 
-NSL_API f64 nsl_str_f64(nsl_Str s) {
+NSL_API nsl_Error nsl_str_f64(nsl_Str s, f64 *out) {
+    nsl_Error result = NSL_NO_ERROR;
     nsl_Arena arena = {0};
+
+    if (s.len == 0) NSL_DEFER(NSL_ERROR_PARSE);
+
     nsl_Str owned = nsl_str_copy(s, &arena);
-    double value = strtod(owned.data, NULL);
+    char *end = NULL;
+    *out = strtod(owned.data, &end);
+
+    if (owned.data == end) NSL_DEFER(NSL_ERROR_PARSE);
+    if (!(owned.data[0] != '\0' && *end == '\0')) NSL_DEFER(NSL_ERROR_PARSE);
+
+defer:
     nsl_arena_free(&arena);
-    return value;
+    return result;
 }
 
-NSL_API f64 nsl_str_chop_f64(nsl_Str *s) {
+NSL_API nsl_Error nsl_str_chop_f64(nsl_Str *s, f64 *out) {
+    nsl_Error result = NSL_NO_ERROR;
     nsl_Arena arena = {0};
+
+    if (s->len == 0) NSL_DEFER(NSL_ERROR_PARSE);
+
     nsl_Str owned = nsl_str_copy(*s, &arena);
 
-    char *endptr;
-    f64 value = strtod(owned.data, &endptr);
+    char *endptr = NULL;
+    *out = strtod(owned.data, &endptr);
+
+    if (owned.data == endptr) NSL_DEFER(NSL_ERROR_PARSE);
 
     const usize size = (usize)(endptr - owned.data);
     s->data += size;
     s->len -= size;
 
+defer:
     nsl_arena_free(&arena);
-    return value;
+    return result;
 }
 
 NSL_API usize nsl_str_find(nsl_Str haystack, nsl_Str needle) {
