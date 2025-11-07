@@ -1,7 +1,7 @@
 #define NSL_IMPLEMENTATION
 #include "nsl.h"
 
-#define NSL_VERSION "v0.9.1"
+#define NSL_VERSION "v0.9.1 - dev"
 
 #ifdef WINDOWS
 #    define _WIN32
@@ -16,11 +16,6 @@ typedef nsl_List(nsl_Path) Files;
 
 static void collect_flags(nsl_Cmd *cmd) {
     nsl_cmd_push(cmd, "-Wall", "-Werror", "-Wextra", "-Wpedantic");
-    nsl_cmd_push(cmd, "-Wmissing-prototypes", "-Wmissing-declarations");
-    nsl_cmd_push(cmd, "-Wconversion", "-Wsign-conversion", "-Warith-conversion");
-    nsl_cmd_push(cmd, "-Wshadow", "-Wpointer-arith", "-Wstrict-prototypes");
-    nsl_cmd_push(cmd, "-Wcast-qual", "-Wcast-align", "-Wwrite-strings");
-    nsl_cmd_push(cmd, "-Wstrict-aliasing=2", "-Wno-unused-parameter");
     nsl_cmd_push(cmd, "-std=c99");
     nsl_cmd_push(cmd, "-Isrc");
 }
