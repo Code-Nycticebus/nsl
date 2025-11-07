@@ -30,4 +30,4 @@
 - [ ] arena
     - temp buffer?
 
-- [ ] platform idependant threads?
+- [ ] platform indipendent threads?
