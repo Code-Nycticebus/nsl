@@ -571,8 +571,10 @@ typedef struct nsl_Map {
 NSL_API void nsl_map_free(nsl_Map *map);
 NSL_API void nsl_map_clear(nsl_Map *map);
 
+NSL_API bool nsl_map_has(const nsl_Map *map, u64 hash);
+
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);
-NSL_API void nsl_map_extend(nsl_Map *map, usize count, nsl_MapItem *items);
+NSL_API void nsl_map_extend(nsl_Map *map, usize count, const nsl_MapItem *items);
 
 NSL_API void nsl_map_resize(nsl_Map *map, usize size);
 NSL_API void nsl_map_reserve(nsl_Map *map, usize size);
@@ -593,6 +595,14 @@ NSL_API const i64 *nsl_map_get_i64_const(const nsl_Map *map, u64 hash);
 NSL_API const u64 *nsl_map_get_u64_const(const nsl_Map *map, u64 hash);
 NSL_API const f64 *nsl_map_get_f64_const(const nsl_Map *map, u64 hash);
 NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
+
+NSL_API bool nsl_map_eq(const nsl_Map *map, const nsl_Map *other);
+NSL_API bool nsl_map_subset(const nsl_Map *map, const nsl_Map *other);
+NSL_API bool nsl_map_disjoint(const nsl_Map *map, const nsl_Map *other);
+
+NSL_API void nsl_map_intersection(const nsl_Map *map, const nsl_Map *other, nsl_Map *out);
+NSL_API void nsl_map_difference(const nsl_Map *map, const nsl_Map *other, nsl_Map *out);
+NSL_API void nsl_map_union(const nsl_Map *map, const nsl_Map *other, nsl_Map *out);
 
 
 
@@ -1820,6 +1830,30 @@ NSL_API void nsl_map_clear(nsl_Map* map) {
     memset(map->items, 0, sizeof(map->items[0]) * map->cap);
 }
 
+NSL_API bool nsl_map_has(const nsl_Map *map, u64 hash) {
+    if (map->len == 0) {
+        return false;
+    }
+
+    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_SET_DELETED)) {
+        hash = nsl_u64_hash(hash);
+    }
+
+    usize idx = hash & (map->cap - 1);
+    for (usize i = 0; i < map->cap; i++) {
+        if (map->items[idx].hash == 0) {
+            return false;
+        }
+        if (map->items[idx].hash == hash) {
+            return true;
+        }
+        idx = (idx + i * i) & (map->cap - 1);
+    }
+
+    return false;
+}
+
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other) {
     nsl_map_reserve(map, other->len);
     for (usize i = 0; i < other->cap; ++i) {
@@ -1829,7 +1863,7 @@ NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other) {
     }
 }
 
-NSL_API void nsl_map_extend(nsl_Map* map, usize count, nsl_MapItem* items) {
+NSL_API void nsl_map_extend(nsl_Map* map, usize count, const nsl_MapItem* items) {
     nsl_map_reserve(map, count);
     for (usize i = 0; i < count; i++) {
         nsl_map_insert(map, items[i].hash, items[i].value);
@@ -1948,6 +1982,106 @@ NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash) {
     assert(map->type == NSL_MAP_DYNAMIC || map->type == NSL_MAP_PTR);
     nsl_MapValue *value = nsl_map_get(map, hash);
     return value ? value->ptr : NULL;
+}
+
+NSL_API bool nsl_map_eq(const nsl_Map *map, const nsl_Map *other) {
+  if (other->len != map->len) {
+    return false;
+  }
+
+  if (other->cap < map->cap) {
+    const nsl_Map *temp = map;
+    map = other;
+    other = temp;
+  }
+  for (usize i = 0; i < map->cap; i++) {
+    if (map->items[i].hash && map->items[i].hash != NSL_MAP_DELETED) {
+      if (!nsl_map_has(other, map->items[i].hash)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+NSL_API bool nsl_map_subset(const nsl_Map *map, const nsl_Map *other) {
+  if (other->len < map->len) {
+    return false;
+  }
+  for (usize i = 0; i < map->cap; i++) {
+    if (map->items[i].hash && map->items[i].hash != NSL_MAP_DELETED) {
+      if (!nsl_map_has(other, map->items[i].hash)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+NSL_API bool nsl_map_disjoint(const nsl_Map *map, const nsl_Map *other) {
+  if (other->len == 0 || map->len == 0) {
+    return true;
+  }
+
+  if (other->cap < map->cap) {
+    const nsl_Map *temp = map;
+    map = other;
+    other = temp;
+  }
+  for (usize i = 0; i < map->cap; i++) {
+    if (map->items[i].hash && map->items[i].hash != NSL_MAP_DELETED) {
+      if (nsl_map_has(other, map->items[i].hash)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+NSL_API void nsl_map_intersection(const nsl_Map *map, const nsl_Map *other, nsl_Map *out) {
+  if (other->cap < map->cap) {
+    const nsl_Map *temp = map;
+    map = other;
+    other = temp;
+  }
+
+  nsl_map_reserve(out, nsl_usize_min(map->len, other->len) * 2);
+  for (usize i = 0; i < map->cap; i++) {
+    if (map->items[i].hash && map->items[i].hash != NSL_MAP_DELETED) {
+      if (nsl_map_has(other, map->items[i].hash)) {
+        nsl_map_insert(out, map->items[i].hash, other->items[i].value);
+      }
+    }
+  }
+}
+
+NSL_API void nsl_map_difference(const nsl_Map *map, const nsl_Map *other, nsl_Map *out) {
+  nsl_map_reserve(out, map->len * 2);
+  for (usize i = 0; i < map->cap; i++) {
+    if (map->items[i].hash && map->items[i].hash != NSL_MAP_DELETED) {
+      if (!nsl_map_has(other, map->items[i].hash)) {
+        nsl_map_insert(out, map->items[i].hash, other->items[i].value);
+      }
+    }
+  }
+}
+
+NSL_API void nsl_map_union(const nsl_Map *map, const nsl_Map *other, nsl_Map *out) {
+  for (usize i = 0; i < map->cap; i++) {
+    if (map->items[i].hash && map->items[i].hash != NSL_MAP_DELETED) {
+      if (!nsl_map_has(other, map->items[i].hash)) {
+        nsl_map_insert(out, map->items[i].hash, other->items[i].value);
+      }
+    }
+  }
+
+  for (usize i = 0; i < other->cap; i++) {
+    if (other->items[i].hash && map->items[i].hash != NSL_MAP_DELETED) {
+      if (!nsl_map_has(map, other->items[i].hash)) {
+        nsl_map_insert(out, other->items[i].hash, other->items[i].value);
+      }
+    }
+  }
 }
 
 
