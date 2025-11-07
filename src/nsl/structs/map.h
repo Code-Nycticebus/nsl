@@ -39,8 +39,10 @@ typedef struct nsl_Map {
 NSL_API void nsl_map_free(nsl_Map *map);
 NSL_API void nsl_map_clear(nsl_Map *map);
 
+NSL_API bool nsl_map_has(const nsl_Map *map, u64 hash);
+
 NSL_API void nsl_map_update(nsl_Map *map, nsl_Map *other);
-NSL_API void nsl_map_extend(nsl_Map *map, usize count, nsl_MapItem *items);
+NSL_API void nsl_map_extend(nsl_Map *map, usize count, const nsl_MapItem *items);
 
 NSL_API void nsl_map_resize(nsl_Map *map, usize size);
 NSL_API void nsl_map_reserve(nsl_Map *map, usize size);
@@ -61,5 +63,13 @@ NSL_API const i64 *nsl_map_get_i64_const(const nsl_Map *map, u64 hash);
 NSL_API const u64 *nsl_map_get_u64_const(const nsl_Map *map, u64 hash);
 NSL_API const f64 *nsl_map_get_f64_const(const nsl_Map *map, u64 hash);
 NSL_API const void *nsl_map_get_ptr_const(const nsl_Map *map, u64 hash);
+
+NSL_API bool nsl_map_eq(const nsl_Map *map, const nsl_Map *other);
+NSL_API bool nsl_map_subset(const nsl_Map *map, const nsl_Map *other);
+NSL_API bool nsl_map_disjoint(const nsl_Map *map, const nsl_Map *other);
+
+NSL_API void nsl_map_intersection(const nsl_Map *map, const nsl_Map *other, nsl_Map *out);
+NSL_API void nsl_map_difference(const nsl_Map *map, const nsl_Map *other, nsl_Map *out);
+NSL_API void nsl_map_union(const nsl_Map *map, const nsl_Map *other, nsl_Map *out);
 
 #endif // _NSL_MAP_H_
