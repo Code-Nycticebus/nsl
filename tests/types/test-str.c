@@ -160,6 +160,11 @@ static void test_str_number_converting(void) {
     NSL_ASSERT(nsl_str_u64(e, &u) == NSL_NO_ERROR);
     NSL_ASSERT(u == 420);
 
+    nsl_Str x = NSL_STR("0xAA");
+    u64 xx = 0;
+    NSL_ASSERT(nsl_str_u64(x, &xx) == NSL_NO_ERROR);
+    NSL_ASSERT(xx == 0xAA);
+
     nsl_Str i = NSL_STR("-420");
     i64 ii = 0;
     NSL_ASSERT(nsl_str_i64(i, &ii) == NSL_NO_ERROR);
