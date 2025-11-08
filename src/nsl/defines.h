@@ -81,6 +81,7 @@ typedef enum {
     NSL_ERROR_IS_DIRECTORY,
     NSL_ERROR_FILE_BUSY,
     NSL_ERROR_PARSE,
+    NSL_ERROR_PATH_TOO_LONG,
 
     NSL_ERROR = -1,
 } nsl_Error;

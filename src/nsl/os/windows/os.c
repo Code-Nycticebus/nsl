@@ -8,28 +8,32 @@
 #include <string.h>
 #include <errno.h>
 
+#define NSL_OS_PATH_MAX PATH_MAX
+
 NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config) {
-    nsl_Error result = NSL_NO_ERROR;
+    if (path.len >= NSL_OS_PATH_MAX) return NSL_ERROR_PATH_TOO_LONG;
 
     nsl_Arena arena = {0};
 
     if (config.parents) {
-        if (nsl_path_is_root(path)) NSL_DEFER(NSL_NO_ERROR);
-        if (path.len == 1 && path.data[0] == '.') NSL_DEFER(NSL_NO_ERROR);
+        if (nsl_path_is_root(path))               return NSL_NO_ERROR;
+        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;
         nsl_OsDirConfig c = config;
         c.exists_ok = true;
         nsl_Error recursive_error = nsl_os_mkdir_(nsl_path_parent(path), c);
-        if (recursive_error) NSL_DEFER(recursive_error);
+        if (recursive_error) return recursive_error;
     }
 
-    nsl_Str filepath = nsl_str_copy(path, &arena);
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
 
-    if (!CreateDirectoryA(filepath.data, NULL)) {
+    if (!CreateDirectoryA(filepath, NULL)) {
         DWORD ec = GetLastError();
         if (config.exists_ok && ec == ERROR_ALREADY_EXISTS) {
-            DWORD attrs = GetFileAttributes(filepath.data);
+            DWORD attrs = GetFileAttributes(filepath);
             if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
-                NSL_DEFER(NSL_NO_ERROR);
+                return NSL_NO_ERROR;
             }
         }
         if (ec == ERROR_ALREADY_EXISTS)     NSL_DEFER(NSL_ERROR_ALREADY_EXISTS);
@@ -48,16 +52,15 @@ NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config) {
         NSL_PANIC(msg);
     }
 
-defer:
-    nsl_arena_free(&arena);
-    return result;
+    return NSL_NO_ERROR;
 }
 
 NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
-    NSL_ASSERT(path.len >= MAX_PATH - 1 && "Filename is too long for windows to handle");
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
 
-    char pathname[MAX_PATH] = {0};
+    char pathname[NSL_OS_PATH_MAX] = {0};
     memcpy(pathname, path.data, path.len);
+    pathname[path.len] = '\0';
 
     if (!SetCurrentDirectoryA(pathname)) {
         DWORD ec = GetLastError();
@@ -126,9 +129,9 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena) {
 }
 
 NSL_API bool nsl_os_exists(nsl_Path path) {
-    NSL_ASSERT(path.len < MAX_PATH && "pathname is too long for windows to handle");
+    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
 
-    char filepath[MAX_PATH] = {0};
+    char filepath[NSL_OS_PATH_MAX] = {0};
     memcpy(filepath, path.data, path.len);
     DWORD dwAttrib = GetFileAttributesA(filepath);
 
@@ -136,20 +139,23 @@ NSL_API bool nsl_os_exists(nsl_Path path) {
 }
 
 NSL_API bool nsl_os_is_dir(nsl_Path path) {
-    NSL_ASSERT(path.len < MAX_PATH && "pathname is too long for windows to handle");
+    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
 
-    char filepath[MAX_PATH] = {0};
+    char filepath[NSL_OS_PATH_MAX] = {0};
     memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
     DWORD dwAttrib = GetFileAttributesA(filepath);
 
     return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
 NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
-    NSL_ASSERT(path.len < MAX_PATH && "pathname is too long for windows to handle");
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
 
-    char filepath[MAX_PATH] = {0};
+    char filepath[NSL_OS_PATH_MAX] = {0};
     memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
     if (DeleteFileA(filepath) == 0) {
         DWORD ec = GetLastError();
         if (ec == ERROR_ACCESS_DENIED)     return NSL_ERROR_ACCESS_DENIED;
@@ -172,11 +178,11 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
 }
 
 NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
-    char filepath[MAX_PATH] = {0};
+    char filepath[NSL_OS_PATH_MAX] = {0};
     FILETIME ft[2] = {0};
     HANDLE hFile[2] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE};
 
-    if (p1.len > MAX_PATH || p2.len > MAX_PATH) return false;
+    if (p1.len > NSL_OS_PATH_MAX || p2.len > NSL_OS_PATH_MAX) return false;
 
     memcpy(filepath, p1.data, p1.len);
     filepath[p1.len] = '\0';

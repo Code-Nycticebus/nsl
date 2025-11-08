@@ -3,6 +3,8 @@
 ## 0.9.2 - release
 - [x] os
     - file is older than other file
+    - clean up os functions
+    - introduce `NSL_ERROR_PATH_TOO_LONG`
 - [x] merge set and hashmap functions
     - if you need a set just create a hashmap and store a bool (stolen from godot)
     - i need to save the values :( (found out i don't)
@@ -23,6 +25,7 @@
     - procs
 - [ ] arena
     - temp buffer?
+    - scratch buffers? scratch can be begin,end so i can allocate in between? then i can just extract the scratch from the arena
 - [ ] platform indipendent threads?
 - [ ] documentation
     - map duplicate hash issue

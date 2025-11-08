@@ -9,9 +9,13 @@
 #include <errno.h>
 #include <unistd.h>
 
+#define NSL_OS_PATH_MAX FILENAME_MAX
+
 NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
     if (config.parents) {
-        if (nsl_path_is_root(path)) return NSL_NO_ERROR;
+        if (nsl_path_is_root(path))               return NSL_NO_ERROR;
         if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
         nsl_OsDirConfig c = config;
         c.exists_ok = true;
@@ -20,25 +24,34 @@ NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config) {
     }
 
     errno = 0;
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
     if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
         if (config.exists_ok && errno == EEXIST) {
             struct stat info;
             if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return NSL_NO_ERROR;
         }
-        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
-        if (errno == EEXIST) return NSL_ERROR_ALREADY_EXISTS;
+        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
+        if (errno == EEXIST)  return NSL_ERROR_ALREADY_EXISTS;
         if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
         NSL_PANIC(strerror(errno));
     }
+
     return NSL_NO_ERROR;
 }
 
 NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
     errno = 0;
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
     if (chdir(filepath) != 0) {
         if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
         if (errno == ENOENT)  return NSL_ERROR_FILE_NOT_FOUND;
@@ -66,14 +79,21 @@ NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena* arena) {
 }
 
 NSL_API bool nsl_os_exists(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
     return access(filepath, 0) == 0;
 }
 
 NSL_API bool nsl_os_is_dir(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
 
     struct stat info;
     if (stat(filepath, &info) == -1) {
@@ -84,8 +104,11 @@ NSL_API bool nsl_os_is_dir(nsl_Path path) {
 }
 
 NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
-    char filepath[FILENAME_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, FILENAME_MAX - 1));
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
 
     errno = 0;
     if (unlink(filepath) != 0) {
@@ -100,10 +123,10 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
 }
 
 NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
-    char filepath[FILENAME_MAX] = {0};
-    struct stat info[2];
+    if (p1.len >= NSL_OS_PATH_MAX - 1 || p1.len >= NSL_OS_PATH_MAX - 1) return false;
 
-    if (p1.len >= FILENAME_MAX || p2.len >= FILENAME_MAX) return false;
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    struct stat info[2];
 
     memcpy(filepath, p1.data, p1.len);
     filepath[p1.len] = '\0';
