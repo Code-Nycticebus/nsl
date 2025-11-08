@@ -1,5 +1,5 @@
 /*
-nsl.h - v0.9.1 - dev - MIT license - https://github.com/Code-Nycticebus/nsl
+nsl.h - v0.9.2 - dev - MIT license - https://github.com/Code-Nycticebus/nsl
 
 # Nycticebus Standard Library (nsl)
 A single-header standard library for C, heavily inspired by [nob.h](https://github.com/tsoding/nob.h).
@@ -1229,18 +1229,22 @@ NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config) {
     }
 
     errno = 0;
+
     char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, NSL_OS_PATH_MAX - 1));
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
     if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
         if (config.exists_ok && errno == EEXIST) {
             struct stat info;
             if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return NSL_NO_ERROR;
         }
-        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
-        if (errno == EEXIST) return NSL_ERROR_ALREADY_EXISTS;
+        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
+        if (errno == EEXIST)  return NSL_ERROR_ALREADY_EXISTS;
         if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
         NSL_PANIC(strerror(errno));
     }
+
     return NSL_NO_ERROR;
 }
 
@@ -1248,8 +1252,11 @@ NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
     if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
 
     errno = 0;
+
     char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, NSL_OS_PATH_MAX - 1));
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
     if (chdir(filepath) != 0) {
         if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
         if (errno == ENOENT)  return NSL_ERROR_FILE_NOT_FOUND;
@@ -1280,7 +1287,9 @@ NSL_API bool nsl_os_exists(nsl_Path path) {
     if (path.len >= NSL_OS_PATH_MAX - 1) return false;
 
     char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, NSL_OS_PATH_MAX - 1));
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
     return access(filepath, 0) == 0;
 }
 
@@ -1288,7 +1297,8 @@ NSL_API bool nsl_os_is_dir(nsl_Path path) {
     if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
 
     char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, NSL_OS_PATH_MAX - 1));
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
 
     struct stat info;
     if (stat(filepath, &info) == -1) {
@@ -1302,7 +1312,8 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
     if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
 
     char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, nsl_usize_min(path.len, NSL_OS_PATH_MAX - 1));
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
 
     errno = 0;
     if (unlink(filepath) != 0) {
