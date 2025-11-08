@@ -41,6 +41,7 @@ int main(int argc, const char **argv) {
             nsl_map_insert_u64(&map, hash, occurences.len);
             nsl_list_push(&occurences, (Occurences){.word = word, .count = 1});
         } else {
+            NSL_ASSERT(nsl_str_eq(occurences.items[*idx].word, word) && "duplicate hash");
             // if idx was found, increase the count of occurence
             occurences.items[*idx].count++;
         }
