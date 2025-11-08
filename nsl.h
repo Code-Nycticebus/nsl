@@ -362,6 +362,8 @@ NSL_API bool nsl_os_exists(nsl_Path path);
 NSL_API bool nsl_os_is_dir(nsl_Path path);
 NSL_API nsl_Error nsl_os_remove(nsl_Path path);
 
+NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2);
+
 
 
 #define nsl_sb_push_c(sb, c) nsl_list_push(sb, c)
@@ -1300,6 +1302,23 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
 
     return NSL_NO_ERROR;
 }
+
+NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
+    char filepath[FILENAME_MAX] = {0};
+    struct stat info[2];
+
+    if (p1.len > FILENAME_MAX || p2.len > FILENAME_MAX) return false;
+
+    memcpy(filepath, p1.data, p1.len);
+    filepath[p1.len] = '\0';
+    if (stat(filepath, &info[0]) == -1) return false;
+
+    memcpy(filepath, p1.data, p1.len);
+    filepath[p2.len] = '\0';
+    if (stat(filepath, &info[1]) == -1) return false;
+
+    return info[0].st_mtime < info[1].st_mtime;
+}
 #endif // !_WIN32
 
 #if defined(_WIN32)
@@ -1714,6 +1733,31 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
     return NSL_NO_ERROR;
 }
 
+NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
+    char filepath[MAX_PATH] = {0};
+    FILETIME ft[2] = {0};
+    HANDLE hFile[2] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE};
+
+    if (p1.len > MAX_PATH || p2.len > MAX_PATH) return false;
+
+    memcpy(filepath, p1.data, p1.len);
+    filepath[p1.len] = '\0';
+    hFile[0] = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile[0] == INVALID_HANDLE_VALUE)           NSL_DEFER(false);
+    if (GetFileTimeA(hFile[0], NULL, NULL, &ft[0])) NSL_DEFER(false);
+
+    memcpy(filepath, p2.data, p2.len);
+    filepath[p2.len] = '\0';
+    hFile[1] = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile[1] == INVALID_HANDLE_VALUE)           NSL_DEFER(false);
+    if (GetFileTimeA(hFile[1], NULL, NULL, &ft[1])) NSL_DEFER(false);
+
+    result = CompareFileTime(&ft[0], &ft[1]) == 1;
+defer:
+    if (hFile[0] != INVALID_HANDLE_VALUE) CloseHandle(hFile[0]);
+    if (hFile[1] != INVALID_HANDLE_VALUE) CloseHandle(hFile[1]);
+    return result;
+}
 #endif // _WIN32
 
 

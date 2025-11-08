@@ -98,3 +98,20 @@ NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
 
     return NSL_NO_ERROR;
 }
+
+NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
+    char filepath[FILENAME_MAX] = {0};
+    struct stat info[2];
+
+    if (p1.len >= FILENAME_MAX || p2.len >= FILENAME_MAX) return false;
+
+    memcpy(filepath, p1.data, p1.len);
+    filepath[p1.len] = '\0';
+    if (stat(filepath, &info[0]) == -1) return false;
+
+    memcpy(filepath, p1.data, p1.len);
+    filepath[p2.len] = '\0';
+    if (stat(filepath, &info[1]) == -1) return false;
+
+    return info[0].st_mtime < info[1].st_mtime;
+}

@@ -20,4 +20,6 @@ NSL_API bool nsl_os_exists(nsl_Path path);
 NSL_API bool nsl_os_is_dir(nsl_Path path);
 NSL_API nsl_Error nsl_os_remove(nsl_Path path);
 
+NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2);
+
 #endif // _NSL_OS_H_
