@@ -7,7 +7,6 @@
 
 #include "structs/test-list.c"
 #include "structs/test-map.c"
-#include "structs/test-set.c"
 #include "structs/test-builder.c"
 
 #include "types/test-char.c"
@@ -28,7 +27,6 @@ int main(void) {
     printf("structs\n"); fflush(stdout);
     run_test_list();
     run_test_map();
-    run_test_set();
     run_test_builder();
 
     printf("types\n"); fflush(stdout);

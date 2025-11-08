@@ -6,9 +6,9 @@
 - [ ] dir
     - currently just a dir iterator. should have directory functions like 'os_mkdir()'. or stat or stuff
     - get absolute path
-- [ ] merge set and hashmap functions
+- [x] merge set and hashmap functions
     - if you need a set just create a hashmap and store a bool (stolen from godot)
-    - i need to save the values :(
+    - i need to save the values :( (found out i don't)
 
 ## 1.0.0 - release
 - [ ] ditch the src dir
@@ -24,3 +24,5 @@
 - [ ] arena
     - temp buffer?
 - [ ] platform indipendent threads?
+- [ ] documentation
+    - map duplicate hash issue

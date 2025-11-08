@@ -133,6 +133,29 @@ static void test_clear(void) {
     nsl_map_free(&map);
 }
 
+static void test_map_subset(void) {
+    nsl_Arena arena = {0};
+
+    const nsl_MapItem n1[] = {{1, 1}, {2, 1}, {3, 1}};
+    nsl_Map map1 = {.arena = &arena};
+    nsl_map_extend(&map1, 3, n1);
+
+    const nsl_MapItem n2[] = {{2, 1}, {3, 1}, {4, 1}};
+    nsl_Map map2 = {.arena = &arena};
+    nsl_map_extend(&map2, 3, n2);
+
+    const nsl_MapItem n3[] = {{1, 1}, {2, 1}, {3, 1}, {4, 1}};
+    nsl_Map map3 = {.arena = &arena};
+    nsl_map_extend(&map3, 4, n3);
+
+    NSL_ASSERT(nsl_map_subset(&map1, &map2) == false && "'map1' should not be a subset of 'map2'");
+    NSL_ASSERT(nsl_map_subset(&map1, &map1) == true && "'map1' should be a subset of 'map1'");
+    NSL_ASSERT(nsl_map_subset(&map1, &map3) == true && "'map1' should be a subset of 'map3'");
+    NSL_ASSERT(nsl_map_subset(&map2, &map3) == true && "'map2' should be a subset of 'map3'");
+
+    nsl_arena_free(&arena);
+}
+
 static void test_stress(void) {
     nsl_Map map = {0};
 
@@ -176,6 +199,7 @@ void run_test_map(void) {
     test_clear();
     test_remove_entries();
     test_overwriting();
+    test_map_subset();
     test_stress();
 }
 

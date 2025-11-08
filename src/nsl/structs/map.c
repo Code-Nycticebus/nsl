@@ -85,7 +85,7 @@ NSL_API bool nsl_map_has(const nsl_Map *map, u64 hash) {
     }
 
     // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
-    if (NSL_UNLIKELY(hash == 0 || hash == NSL_SET_DELETED)) {
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_MAP_DELETED)) {
         hash = nsl_u64_hash(hash);
     }
 
