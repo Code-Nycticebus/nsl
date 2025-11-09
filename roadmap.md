@@ -19,6 +19,9 @@
 - [ ] ditch the src dir
     - clean up nsl.h
     - merge 'modules'
+- [ ] timing functions
+    - clock_gettime()
+    - GetPerformanceCounter()
 - [ ] string builder
     - replace the `nsl_Arena` in all the mutated string functions with a string builder instead. either in place or just copying (i would go with copying)
     - more string builder functions?
