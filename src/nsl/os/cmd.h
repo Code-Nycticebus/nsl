@@ -14,9 +14,9 @@ typedef nsl_List(const char*) nsl_Cmd;
     )
 
 #define NSL_CMD(...)                                                                               \
-    nsl_cmd_exec(NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
+    nsl_cmd_exec_argv(NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
 
-NSL_API nsl_Error nsl_cmd_exec(usize argc, const char** argv);
-NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd* args);
+NSL_API nsl_Error nsl_cmd_exec_argv(usize argc, const char** argv);
+NSL_API nsl_Error nsl_cmd_exec(const nsl_Cmd* args);
 
 #endif // _NSL_CMD_H_

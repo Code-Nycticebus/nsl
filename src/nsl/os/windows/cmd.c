@@ -5,7 +5,7 @@
 
 #include <windows.h>
 
-static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
+static void _nsl_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
     // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
     for (usize i = 0; i < argc; i++) {
         if (0 < i) nsl_list_push(sb, ' ');
@@ -37,7 +37,7 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb
     }
 }
 
-NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
+NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
     if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
 
     STARTUPINFOA si;
@@ -50,7 +50,7 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
 
     nsl_StrBuilder sb = {0};
 
-    _nc_cmd_win32_wrap(argc, argv, &sb);
+    _nsl_cmd_win32_wrap(argc, argv, &sb);
     nsl_list_push(&sb, '\0');
 
     if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {

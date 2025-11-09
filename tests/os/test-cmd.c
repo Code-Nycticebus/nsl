@@ -9,14 +9,14 @@ void run_test_cmd(void) {
 #else
     nsl_cmd_push(&cmd, "true");
 #endif
-    NSL_ASSERT(nsl_cmd_exec_list(&cmd) == NSL_NO_ERROR);
+    NSL_ASSERT(nsl_cmd_exec(&cmd) == NSL_NO_ERROR);
     nsl_list_clear(&cmd);
 
     nsl_cmd_push(&cmd, "not_existing_command");
-    NSL_ASSERT(nsl_cmd_exec_list(&cmd) == NSL_ERROR_FILE_NOT_FOUND);
+    NSL_ASSERT(nsl_cmd_exec(&cmd) == NSL_ERROR_FILE_NOT_FOUND);
     nsl_list_clear(&cmd);
 
-    NSL_ASSERT(nsl_cmd_exec_list(&cmd) == NSL_ERROR_FILE_NOT_FOUND);
+    NSL_ASSERT(nsl_cmd_exec(&cmd) == NSL_ERROR_FILE_NOT_FOUND);
     nsl_list_clear(&cmd);
 
     nsl_list_free(&cmd);

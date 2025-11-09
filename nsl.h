@@ -301,10 +301,10 @@ typedef nsl_List(const char*) nsl_Cmd;
     )
 
 #define NSL_CMD(...)                                                                               \
-    nsl_cmd_exec(NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
+    nsl_cmd_exec_argv(NSL_ARRAY_LEN((const char *[]){__VA_ARGS__}), (const char *[]){__VA_ARGS__})
 
-NSL_API nsl_Error nsl_cmd_exec(usize argc, const char** argv);
-NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd* args);
+NSL_API nsl_Error nsl_cmd_exec_argv(usize argc, const char** argv);
+NSL_API nsl_Error nsl_cmd_exec(const nsl_Cmd* args);
 
 
 
@@ -979,8 +979,8 @@ NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr) {
     free(chunk);
 }
 
-NSL_API nsl_Error nsl_cmd_exec_list(const nsl_Cmd *cmd) {
-    return nsl_cmd_exec(cmd->len, cmd->items);
+NSL_API nsl_Error nsl_cmd_exec(const nsl_Cmd *cmd) {
+    return nsl_cmd_exec_argv(cmd->len, cmd->items);
 }
 
 
@@ -1070,7 +1070,7 @@ NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
 #include <sys/wait.h>
 #include <unistd.h>
 
-NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
+NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
     if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
 
     errno = 0;
@@ -1368,7 +1368,7 @@ NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
 
 #include <windows.h>
 
-static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
+static void _nsl_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
     // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
     for (usize i = 0; i < argc; i++) {
         if (0 < i) nsl_list_push(sb, ' ');
@@ -1400,7 +1400,7 @@ static void _nc_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb
     }
 }
 
-NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
+NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
     if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
 
     STARTUPINFOA si;
@@ -1413,7 +1413,7 @@ NSL_API nsl_Error nsl_cmd_exec(size_t argc, const char **argv) {
 
     nsl_StrBuilder sb = {0};
 
-    _nc_cmd_win32_wrap(argc, argv, &sb);
+    _nsl_cmd_win32_wrap(argc, argv, &sb);
     nsl_list_push(&sb, '\0');
 
     if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {

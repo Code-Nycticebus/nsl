@@ -10,7 +10,7 @@
     - i need to save the values :( (found out i don't)
 - [x] os
     - get absolute path
-- [ ] cmd
+- [x] cmd
     - rename `nsl_cmd_exec_list` and `nsl_cmd_exec` (`nsl_cmd_exec_argv`)
 - [ ] documentation
     - map duplicate hash issue
