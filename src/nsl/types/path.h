@@ -16,4 +16,6 @@ NSL_API nsl_Str nsl_path_suffix(nsl_Path path);
 NSL_API nsl_Str nsl_path_stem(nsl_Path path);
 NSL_API nsl_Path nsl_path_parent(nsl_Path path);
 
+NSL_API nsl_Path nsl_path_absolute(nsl_Arena *arena, nsl_Path path);
+
 #endif // _NSL_PATH_H_

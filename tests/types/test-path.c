@@ -110,10 +110,28 @@ static void test_nc_path_parent(void) {
     NSL_ASSERT(nsl_str_eq(nsl_path_parent(NSL_PATH("")), NSL_PATH(".")));
 }
 
+static void test_path_absolute(void) {
+    nsl_Arena arena = {0};
+
+    nsl_Path test = nsl_path_absolute(&arena, NSL_PATH("/bin/test"));
+    NSL_ASSERT(nsl_str_eq(test, NSL_PATH("/bin/test")));
+
+    test = nsl_path_absolute(&arena, NSL_PATH("C:/bin/test"));
+    NSL_ASSERT(nsl_str_eq(test, NSL_PATH("C:/bin/test")));
+
+    test = nsl_path_absolute(&arena, NSL_PATH("./test"));
+    NSL_ASSERT(nsl_path_is_absolute(test));
+#if 0
+    printf(NSL_STR_REPR"\n", NSL_STR_ARG(test));
+#endif
+    nsl_arena_free(&arena);
+}
+
 void run_test_path(void);
 void run_test_path(void) {
     test_nc_path_eq();
     test_path_join();
     test_nc_path_normalize();
     test_nc_path_parent();
+    test_path_absolute();
 }

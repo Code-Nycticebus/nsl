@@ -140,3 +140,15 @@ NSL_API nsl_Path nsl_path_parent(nsl_Path path) {
     if (idx == NSL_STR_NOT_FOUND) return NSL_PATH(".");
     return nsl_str_substring(path, 0, nsl_usize_min(path.len, idx+1));
 }
+
+NSL_API nsl_Path nsl_path_absolute(nsl_Arena *arena, nsl_Path path) {
+    if (nsl_path_is_absolute(path)) return nsl_str_copy(path, arena);
+    nsl_Arena scratch = {0};
+
+    nsl_Path cwd = nsl_os_cwd(&scratch);
+    nsl_Path result = nsl_str_format(arena, NSL_STR_FMT"/"NSL_STR_FMT, NSL_STR_ARG(cwd), NSL_STR_ARG(path));
+
+    nsl_arena_free(&scratch);
+    return result;
+}
+

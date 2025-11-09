@@ -8,7 +8,7 @@
 - [x] merge set and hashmap functions
     - if you need a set just create a hashmap and store a bool (stolen from godot)
     - i need to save the values :( (found out i don't)
-- [ ] os
+- [x] os
     - get absolute path
 - [ ] cmd
     - rename `nsl_cmd_exec_list` and `nsl_cmd_exec` (`nsl_cmd_exec_argv`)
@@ -22,6 +22,8 @@
 - [ ] string builder
     - replace the `nsl_Arena` in all the mutated string functions with a string builder instead. either in place or just copying (i would go with copying)
     - more string builder functions?
+- [ ] path
+    - path relative to
 - [ ] cmd api
     - async
     - pipes

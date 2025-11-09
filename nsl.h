@@ -31,6 +31,23 @@ int main(void) {
 }
 ```
 
+Or a more complicated one:
+```c
+// build.c
+#define NSL_IMPLEMENTATION
+#include "nsl.h"
+
+int main(void) {
+    nsl_Cmd cmd = {0};
+    nsl_cmd_push(&cmd, "gcc");
+    nsl_cmd_push(&cmd, "-o", "main");
+    nsl_cmd_push(&cmd, "-Wall", "-Wextra");
+    nsl_cmd_push(&cmd, "main.c");
+    if (nsl_cmd_exec_list(&cmd)) return 1;
+}
+```
+
+
 ## Errors
 Functions that can fail return a `0` or `NSL_NO_ERROR` on success and a non-zero (truthy) value on failure.
 This mirrors the Unix convention where a non-zero exit code indicates an error. `nsl_Error` values range 1-255 are reserved for process return codes returned by `nsl_cmd_exec`.
@@ -41,9 +58,8 @@ if (error) {
     // handle error or crash
 }
 ```
-
 ## Data Structures
-The `nsl_List`, `nsl_Map`, and `nsl_Set` data structures are valid when zero-initialized and can be used without any setup:
+The `nsl_List` and `nsl_Map` data structures are valid when zero-initialized and can be used without any setup:
 ```c
 nsl_Map map = {0};
 // map operations
@@ -708,6 +724,8 @@ NSL_API nsl_Str nsl_path_name(nsl_Path path);
 NSL_API nsl_Str nsl_path_suffix(nsl_Path path);
 NSL_API nsl_Str nsl_path_stem(nsl_Path path);
 NSL_API nsl_Path nsl_path_parent(nsl_Path path);
+
+NSL_API nsl_Path nsl_path_absolute(nsl_Arena *arena, nsl_Path path);
 
 
 
@@ -2635,6 +2653,18 @@ NSL_API nsl_Path nsl_path_parent(nsl_Path path) {
     if (idx == NSL_STR_NOT_FOUND) return NSL_PATH(".");
     return nsl_str_substring(path, 0, nsl_usize_min(path.len, idx+1));
 }
+
+NSL_API nsl_Path nsl_path_absolute(nsl_Arena *arena, nsl_Path path) {
+    if (nsl_path_is_absolute(path)) return nsl_str_copy(path, arena);
+    nsl_Arena scratch = {0};
+
+    nsl_Path cwd = nsl_os_cwd(&scratch);
+    nsl_Path result = nsl_str_format(arena, NSL_STR_FMT"/"NSL_STR_FMT, NSL_STR_ARG(cwd), NSL_STR_ARG(path));
+
+    nsl_arena_free(&scratch);
+    return result;
+}
+
 
 
 #include <stdarg.h>
