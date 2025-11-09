@@ -115,7 +115,7 @@ static bool build_header_file(void) {
 
     nsl_cmd_push(&cmd, CC, "-c", "-o", "build/nsl.o", "-DNSL_IMPLEMENTATION", "nsl.h");
     collect_flags(&cmd);
-    if (nsl_cmd_exec_list(&cmd) != 0) NSL_DEFER(true);
+    if (nsl_cmd_exec(&cmd) != 0) NSL_DEFER(true);
 
 defer:
     if (nsl) nsl_file_close(nsl);
