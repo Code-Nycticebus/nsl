@@ -130,6 +130,7 @@ static bool build_tests(void) {
 }
 
 int main(int argc, const char **argv) {
+    nsl_os_mkdir(NSL_PATH("build"), .exists_ok=true);
     if (argc < 2 || strcmp("build", argv[1]) == 0 || strcmp("test", argv[1]) == 0) {
         if (build_header_file()) return 2;
     }
