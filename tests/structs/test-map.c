@@ -1,64 +1,5 @@
 #include "nsl.h"
 
-typedef struct {
-    nsl_Str name;
-    u32 age;
-} Person;
-
-typedef struct {
-    nsl_Arena *arena;
-    nsl_List(Person) list;
-    nsl_Map map;
-} PersonMap;
-
-void person_map_init(PersonMap *map, nsl_Arena* arena) {
-    NSL_ASSERT(arena);
-    map->arena = arena;
-    map->list.arena = arena;
-    map->map.arena = arena;
-}
-
-void person_add(PersonMap *map, nsl_Str name, u32 age) {
-    u64 hash = nsl_str_hash(name);
-    u64 *idx = nsl_map_get(&map->map, hash);
-    if (idx == NULL) {
-        u64 _idx = map->list.len;
-        nsl_list_push(&map->list, (Person){.name = nsl_str_copy(name, map->arena), .age = age});
-        nsl_map_insert(&map->map, hash, _idx);
-        return;
-    }
-    NSL_ASSERT(nsl_str_eq(map->list.items[*idx].name, name));
-    map->list.items[*idx].age = age;
-}
-
-Person *person_get(PersonMap *map, nsl_Str name) {
-    u64 hash = nsl_str_hash(name);
-    u64 *idx = nsl_map_get(&map->map, hash);
-    if (idx == NULL) return NULL;
-    return &map->list.items[*idx];
-}
-
-static void test_test(void) {
-    nsl_Arena arena = {0};
-    PersonMap map = {0};
-    person_map_init(&map, &arena);
-
-    person_add(&map, NSL_STR("Maksym"), 21);
-    person_add(&map, NSL_STR("Loris"), 27);
-    person_add(&map, NSL_STR("Ajlin"), 20);
-    person_add(&map, NSL_STR("Susanne"), 18);
-    person_add(&map, NSL_STR("Jen"), 200);
-    person_add(&map, NSL_STR("Jen"), 14);
-
-    nsl_list_for_each(Person*, person, &map.list) {
-        printf(NSL_STR_FMT" is %d years old\n", NSL_STR_ARG(person->name), person->age);
-    }
-    Person *person = person_get(&map, NSL_STR("Loris"));
-    printf(NSL_STR_FMT" is %d years old\n", NSL_STR_ARG(person->name), person->age);
-
-    nsl_arena_free(&arena);
-}
-
 static void test_init(void) {
     nsl_Map map = {0};
 
@@ -217,7 +158,6 @@ static void test_stress(void) {
 
 void run_test_map(void);
 void run_test_map(void) {
-    test_test();
     test_init();
     test_access();
     test_update();
