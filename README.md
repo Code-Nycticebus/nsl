@@ -56,6 +56,7 @@ if (error) {
 }
 ```
 ## Data Structures
+### Memory
 The `nsl_List` and `nsl_Map` data structures are valid when zero-initialized and can be used without any setup:
 ```c
 nsl_Map map = {0};
@@ -70,3 +71,6 @@ nsl_Map map = {.arena = &arena};
 // map operations
 nsl_arena_free(&arena);
 ```
+
+### Maps
+So the `nsl_Map` is weird. Its supposed to be only a way to lookup `u64` (mostly representing an index) via a hash.

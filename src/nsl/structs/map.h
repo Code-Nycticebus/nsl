@@ -35,6 +35,7 @@ NSL_API bool nsl_map_remove(nsl_Map *map, u64 hash);
 
 NSL_API bool nsl_map_insert(nsl_Map *map, u64 hash, u64 value);
 NSL_API u64 *nsl_map_get(nsl_Map *map, u64 hash);
+NSL_API u64 *nsl_map_get_or_insert(nsl_Map *map, u64 hash, u64 value);
 
 NSL_API bool nsl_map_eq(const nsl_Map *map, const nsl_Map *other);
 NSL_API bool nsl_map_subset(const nsl_Map *map, const nsl_Map *other);

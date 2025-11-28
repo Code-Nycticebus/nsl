@@ -35,10 +35,9 @@ int main(int argc, const char **argv) {
         // hash the word
         u64 hash = nsl_str_hash(word);
         // lookup idx with hash
-        const u64 *idx = nsl_map_get(&map, hash);
-        if (idx == NULL) {
+        const u64 *idx = nsl_map_get_or_insert(&map, hash, occurences.len);
+        if (*idx == occurences.len) {
             // if idx was not in map insert the hash and idx into map and add occurence to list
-            nsl_map_insert(&map, hash, occurences.len);
             nsl_list_push(&occurences, (Occurences){.word = word, .count = 1});
         } else {
             NSL_ASSERT(nsl_str_eq(occurences.items[*idx].word, word) && "duplicate hash");

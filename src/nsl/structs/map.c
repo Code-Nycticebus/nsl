@@ -171,6 +171,46 @@ u64 *nsl_map_get(nsl_Map *map, u64 hash) {
     return NULL;
 }
 
+u64 *nsl_map_get_or_insert(nsl_Map *map, u64 hash, u64 value) {
+    if (map->cap <= map->len + map->del) {
+        nsl_map_resize(map, map->cap * 2);
+    }
+
+    // NOTE: rehash in the slight chance that the hash is 0 or NSL_MAP_DELETED
+    if (NSL_UNLIKELY(hash == 0 || hash == NSL_MAP_DELETED)) {
+        hash = nsl_u64_hash(hash);
+    }
+
+    usize del_idx = (usize)-1;
+    while (true) {
+        usize idx = hash & (map->cap - 1);
+
+        for (usize i = 0; i < map->cap; i++) {
+            if (map->items[idx].hash == 0) {
+                // NOTE: reusing a deleted slot
+                if (del_idx != (usize)-1) {
+                    map->items[del_idx] = (nsl_MapItem){.hash = hash, .value = value};
+                    map->len++;
+                    map->del--;
+                    return &map->items[idx].value;
+                }
+                map->items[idx] = (nsl_MapItem){.hash = hash, .value = value};
+                map->len++;
+                return &map->items[idx].value;
+            } else if (map->items[idx].hash == hash) {
+                return &map->items[idx].value;
+            } else if (map->items[idx].hash == NSL_MAP_DELETED && del_idx == (usize)-1) {
+                del_idx = idx;
+            }
+            idx = (idx + i * i) & (map->cap - 1);
+        }
+
+        nsl_map_resize(map, map->cap * 2);
+    }
+
+    NSL_UNREACHABLE("nsl_map_insert");
+}
+
 NSL_API bool nsl_map_eq(const nsl_Map *map, const nsl_Map *other) {
   if (other->len != map->len) {
     return false;
