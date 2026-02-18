@@ -126,6 +126,11 @@ The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` va
 
 #define NSL_ARRAY_LEN(...) (sizeof(__VA_ARGS__) / sizeof((__VA_ARGS__)[0]))
 
+typedef struct {
+    usize len;
+    const char *data;
+} nsl_Str;
+
 #define NSL_STR(str) ((nsl_Str){.len = sizeof(str) - 1, .data = (str)})
 #define NSL_STR_STATIC(str) { .len = sizeof(str) - 1, .data = (str) }
 
@@ -134,9 +139,9 @@ The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` va
 #define NSL_STR_ARG(str) (i32)(str).len, (str).data
 
 typedef struct {
-    usize len;
-    const char *data;
-} nsl_Str;
+    usize size;
+    const u8 *data;
+} nsl_Bytes;
 
 #define NSL_BYTES(...)                                                                             \
     (nsl_Bytes) {                                                                                  \
@@ -148,15 +153,15 @@ typedef struct {
         .size = sizeof(s) - 1, .data = (const u8 *)(s),                                            \
     }
 
-typedef struct {
-    usize size;
-    const u8 *data;
-} nsl_Bytes;
-
 typedef nsl_Str nsl_Path;
 #define NSL_PATH(cstr) ((nsl_Path){.len = sizeof(cstr) - 1, .data = (cstr)})
 
-typedef struct nsl_Chunk nsl_Chunk;
+typedef struct nsl_Chunk {
+    struct nsl_Chunk *next, *prev;
+    usize cap;
+    usize allocated;
+    u8 data[];
+} nsl_Chunk;
 
 typedef struct {
     nsl_Chunk *begin, *end;
@@ -827,13 +832,6 @@ NSL_API u64 nsl_str_hash(nsl_Str s);
 
 // 4 kb
 #define CHUNK_DEFAULT_SIZE 4096
-
-struct nsl_Chunk {
-    nsl_Chunk *next, *prev;
-    usize cap;
-    usize allocated;
-    u8 data[];
-};
 
 static nsl_Chunk *chunk_allocate(usize size) {
     nsl_Chunk *chunk = malloc(sizeof(nsl_Chunk) + size);
