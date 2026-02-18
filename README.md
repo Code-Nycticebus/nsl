@@ -72,5 +72,13 @@ nsl_Map map = {.arena = &arena};
 nsl_arena_free(&arena);
 ```
 
+### Dynamic Arrays
+A straight reimplementation of [nob.h](https://github.com/tsoding/nob.h)'s dynamic arrays.
+
+I just added a creation helper.
+```c
+nsl_List(int) my_list = {0};
+```
+
 ### Maps
-So the `nsl_Map` is weird. Its supposed to be only a way to lookup `u64` (mostly representing an index) via a hash.
+The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` value (in most cases representing an index) via a `u64` hash. And you can build more complex data structures with it.
