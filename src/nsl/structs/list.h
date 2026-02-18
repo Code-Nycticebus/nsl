@@ -98,6 +98,9 @@
         (list)->len--;                                                                             \
     } while (0)
 
+#define nsl_list_remove_unordered(list, idx)                                                       \
+    (list)->items[idx] = (list)->items[--(list)->len]
+
 #define nsl_list_map(src, dest, map)                                                               \
     do {                                                                                           \
         nsl_list_reserve((dest), (src)->len);                                                      \

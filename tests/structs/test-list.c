@@ -244,6 +244,24 @@ static void test_remove(void) {
     nsl_list_free(&list);
 }
 
+static void test_remove_unordered(void) {
+    nsl_List(usize) list = {0};
+
+    nsl_list_push(&list, 1);
+    nsl_list_push(&list, 2);
+    nsl_list_push(&list, 3);
+    nsl_list_push(&list, 4);
+
+    nsl_list_remove_unordered(&list, 1);
+    nsl_list_remove_unordered(&list, 1);
+
+    NSL_ASSERT(list.len == 3 && "");
+    NSL_ASSERT(list.items[0] == 1 && "");
+    NSL_ASSERT(list.items[1] == 3 && "");
+
+    nsl_list_free(&list);
+}
+
 static void test_for_each(void) {
     nsl_List(usize) list = {0};
 
