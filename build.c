@@ -48,7 +48,7 @@ int main(int argc, const char **argv) {
     int result = 0;
     nsl_Cmd cmd = {0};
 
-    if (nsl_os_mkdir(NSL_PATH("build"), NSL_DEFAULT)) NSL_DEFER(1);
+    if (nsl_os_mkdir(NSL_PATH("build"), .exists_ok=true)) NSL_DEFER(1);
 
     if (build_header(&cmd))    NSL_DEFER(2);
     if (build_tests(&cmd))     NSL_DEFER(3);
@@ -56,6 +56,7 @@ int main(int argc, const char **argv) {
 
 defer:
     nsl_list_free(&cmd);
-    return 0;
+    printf("%d\n", result);
+    return result;
 }
 
