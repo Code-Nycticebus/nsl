@@ -255,7 +255,7 @@ static void test_remove_unordered(void) {
     nsl_list_remove_unordered(&list, 1);
     nsl_list_remove_unordered(&list, 1);
 
-    NSL_ASSERT(list.len == 3 && "");
+    NSL_ASSERT(list.len == 2 && "");
     NSL_ASSERT(list.items[0] == 1 && "");
     NSL_ASSERT(list.items[1] == 3 && "");
 
@@ -294,5 +294,6 @@ void run_test_list(void) {
     test_pop();
     test_insert();
     test_remove();
+    test_remove_unordered();
     test_for_each();
 }
