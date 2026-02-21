@@ -33,7 +33,7 @@ static nsl_Error build_tests(nsl_Cmd *cmd) {
     cmd_push_flags(cmd);
     if (nsl_cmd_exec(cmd)) return NSL_ERROR;
 
-    if (NSL_CMD("test")) return NSL_ERROR;
+    if (NSL_CMD("build/test")) return NSL_ERROR;
 
     return NSL_NO_ERROR;
 }
@@ -56,7 +56,6 @@ int main(int argc, const char **argv) {
 
 defer:
     nsl_list_free(&cmd);
-    printf("%d\n", result);
     return result;
 }
 
