@@ -91,10 +91,28 @@ The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` va
 #ifndef _NSL_H_
 #define _NSL_H_
 
-
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <stdarg.h>
+#include <ctype.h>
+
+#if defined(_WIN32)
+
+    #include <windows.h>
+    #include <io.h>
+
+#else
+
+    #include <sys/wait.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <dirent.h>
+    #include <dlfcn.h>
+
+#endif
 
 #ifndef NSL_NO_INT_TYPEDEFS
     #include <stdint.h>
@@ -415,9 +433,6 @@ NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2);
 #define nsl_bb_push_bytes(bb, size, bytes) nsl_list_extend(bb, size, (const u8*)bytes)
 #define nsl_bb_to_bytes(bb) nsl_bytes_from_parts((bb)->len, (bb)->items)
 
-
-
-#include <stdlib.h>
 
 #define NSL_LIST_INITIAL_CAPACITY 8
 
@@ -827,8 +842,6 @@ NSL_API u64 nsl_str_hash(nsl_Str s);
 #if defined(NSL_IMPLEMENTATION) && !defined(_NSL_IMPLEMENTED)
 #define _NSL_IMPLEMENTED
 
-#include <stdlib.h>
-#include <string.h>
 
 // 4 kb
 #define CHUNK_DEFAULT_SIZE 4096
@@ -970,11 +983,6 @@ NSL_API nsl_Error nsl_cmd_exec(const nsl_Cmd *cmd) {
 }
 
 
-
-#include <errno.h>
-#include <string.h>
-#include <stdarg.h>
-
 NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode) {
     errno = 0;
     char filepath[FILENAME_MAX] = {0};
@@ -1050,12 +1058,6 @@ NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
 }
 #if !defined(_WIN32)
 
-
-#include <string.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
 NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
     if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
 
@@ -1086,13 +1088,6 @@ NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
 #endif // !_WIN32
 
 #if !defined(_WIN32)
-
-
-#include <dirent.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <errno.h>
 
 typedef struct nsl_DirNode {
     struct nsl_DirNode *next;
@@ -1174,11 +1169,6 @@ NSL_API nsl_DirEntry *nsl_dir_next(nsl_DirIter *it) {
 
 #if !defined(_WIN32)
 
-
-#include <string.h>
-
-#include <dlfcn.h>
-
 NSL_API nsl_Error nsl_dll_load(nsl_Dll* dll, nsl_Path path) {
     if (!nsl_os_exists(path)) {
         return NSL_ERROR_FILE_NOT_FOUND;
@@ -1211,12 +1201,6 @@ NSL_API Function nsl_dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
 #endif // !_WIN32
 
 #if !defined(_WIN32)
-
-
-#include <string.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <unistd.h>
 
 #define NSL_OS_PATH_MAX FILENAME_MAX
 
@@ -1351,9 +1335,6 @@ NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
 
 #if defined(_WIN32)
 
-
-#include <windows.h>
-
 static void _nsl_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
     // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
     for (usize i = 0; i < argc; i++) {
@@ -1440,11 +1421,6 @@ defer:
 #endif // _WIN32
 
 #if defined(_WIN32)
-
-
-#include <windows.h>
-#include <io.h>
-#include <string.h>
 
 typedef struct nsl_DirNode {
     struct nsl_DirNode *next;
@@ -1536,11 +1512,6 @@ NSL_API nsl_DirEntry* nsl_dir_next(nsl_DirIter *it) {
 
 #if defined(_WIN32)
 
-
-#include <windows.h>
-
-#include <string.h>
-
 NSL_API nsl_Error nsl_dll_load(nsl_Dll *dll, nsl_Path path) {
     if (!nsl_os_exists(path)) {
         return NSL_ERROR_FILE_NOT_FOUND;
@@ -1592,11 +1563,6 @@ NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
 #endif // _WIN32
 
 #if defined(_WIN32)
-
-
-#include <windows.h>
-#include <string.h>
-#include <errno.h>
 
 #define NSL_OS_PATH_MAX PATH_MAX
 
@@ -1793,10 +1759,6 @@ defer:
     return result;
 }
 #endif // _WIN32
-
-
-
-#include <string.h>
 
 NSL_API void nsl_map_free(nsl_Map *map) {
     nsl_arena_free_chunk(map->arena, map->items);
@@ -2100,10 +2062,6 @@ NSL_API void nsl_map_union(const nsl_Map *map, const nsl_Map *other, nsl_Map *ou
     }
 }
 
-
-#include <stdio.h>
-#include <string.h>
-
 NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data) {
     return (nsl_Bytes){.size = size, .data = data};
 }
@@ -2176,9 +2134,6 @@ NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena) {
     return nsl_bytes_from_parts(idx, buffer);
 }
 
-
-#include <ctype.h>
-
 #define NSL_DBASE 10
 #define NSL_XBASE 16
 
@@ -2244,9 +2199,6 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
   }
   return 0;
 }
-
-
-#include <string.h>
 
 #define BITS(T) (sizeof(T) * 8)
 
@@ -2477,10 +2429,6 @@ INTEGER_IMPL(usize)
 #undef INTEGER_IMPL
 #undef BITS
 
-
-#include <stdio.h>
-#include <string.h>
-
 NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path *parts, nsl_Arena *arena) {
     if (len == 0) {
         return NSL_STR("");
@@ -2623,13 +2571,6 @@ NSL_API nsl_Path nsl_path_absolute(nsl_Arena *arena, nsl_Path path) {
     nsl_arena_free(&scratch);
     return result;
 }
-
-
-
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 NSL_API nsl_Str nsl_str_from_parts(usize size, const char *cstr) {
     return (nsl_Str){.len = size, .data = cstr};
