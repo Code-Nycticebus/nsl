@@ -309,7 +309,6 @@ typedef nsl_List(u8) nsl_ByteBuffer;
 #endif
 
 
-
 NSL_API void nsl_arena_free(nsl_Arena *arena);
 
 NSL_API void *nsl_arena_alloc(nsl_Arena *arena, usize size);
@@ -325,8 +324,6 @@ NSL_API void *nsl_arena_realloc_chunk(nsl_Arena *arena, void *ptr, usize size);
 NSL_API void nsl_arena_free_chunk(nsl_Arena *arena, void *ptr);
 
 
-
-
 typedef nsl_List(const char*) nsl_Cmd;
 
 #define nsl_cmd_push(cmd, ...)                                                                     \
@@ -340,7 +337,6 @@ typedef nsl_List(const char*) nsl_Cmd;
 
 NSL_API nsl_Error nsl_cmd_exec_argv(usize argc, const char** argv);
 NSL_API nsl_Error nsl_cmd_exec(const nsl_Cmd* args);
-
 
 
 typedef struct {
@@ -379,7 +375,6 @@ NSL_API void nsl_dll_close(nsl_Dll *dll);
 NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol);
 
 
-
 NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode);
 NSL_API void nsl_file_close(FILE *file);
 
@@ -394,7 +389,6 @@ NSL_API nsl_Bytes nsl_file_read_bytes(FILE *file, usize size, u8 *buffer);
 NSL_API NSL_FMT(2) void nsl_file_write_fmt(FILE* file, const char* fmt, ...);
 NSL_API void nsl_file_write_str(FILE *file, nsl_Str content);
 NSL_API void nsl_file_write_bytes(FILE *file, nsl_Bytes content);
-
 
 
 typedef struct {
@@ -415,7 +409,6 @@ NSL_API bool nsl_os_is_dir(nsl_Path path);
 NSL_API nsl_Error nsl_os_remove(nsl_Path path);
 
 NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2);
-
 
 
 #define nsl_sb_push_c(sb, c) nsl_list_push(sb, c)
@@ -589,7 +582,6 @@ NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2);
         for (T iter = (da)->items; iter <= &(da)->items[(da)->len - 1]; iter++)
 
 
-
 typedef struct {
     u64 hash;
     u64 value;
@@ -632,7 +624,6 @@ NSL_API void nsl_map_difference(const nsl_Map *map, const nsl_Map *other, nsl_Ma
 NSL_API void nsl_map_union(const nsl_Map *map, const nsl_Map *other, nsl_Map *out);
 
 
-
 NSL_API nsl_Bytes nsl_bytes_from_parts(usize size, const void *data);
 
 NSL_API nsl_Bytes nsl_bytes_copy(nsl_Bytes bytes, nsl_Arena *arena);
@@ -645,7 +636,6 @@ NSL_API u64 nsl_bytes_hash(nsl_Bytes bytes);
 
 NSL_API nsl_Str nsl_bytes_to_hex(nsl_Bytes bytes, nsl_Arena *arena);
 NSL_API nsl_Bytes nsl_bytes_from_hex(nsl_Str s, nsl_Arena *arena);
-
 
 
 NSL_API NSL_CONST_FN bool nsl_char_is_alnum(char c);
@@ -671,7 +661,6 @@ NSL_API NSL_CONST_FN u8 nsl_char_hex_to_u8(char c);
 NSL_API NSL_CONST_FN char nsl_char_from_u8(u8 d);
 NSL_API NSL_CONST_FN char nsl_char_hex_from_u8(u8 d);
 NSL_API NSL_CONST_FN char nsl_char_HEX_from_u8(u8 d);
-
 
 
 #define INTEGER_DECL(T)                                                                            \
@@ -720,7 +709,6 @@ INTEGER_DECL(usize)
 #undef INTEGER_DECL
 
 
-
 NSL_API nsl_Path nsl_path_join(usize len, const nsl_Path* parts, nsl_Arena* arena);
 NSL_API nsl_Path nsl_path_normalize(nsl_Path path, nsl_Arena* arena);
 
@@ -734,7 +722,6 @@ NSL_API nsl_Str nsl_path_stem(nsl_Path path);
 NSL_API nsl_Path nsl_path_parent(nsl_Path path);
 
 NSL_API nsl_Path nsl_path_absolute(nsl_Arena *arena, nsl_Path path);
-
 
 
 #define NSL_STR_NOT_FOUND ((usize)-1)
@@ -842,7 +829,6 @@ NSL_API u64 nsl_str_hash(nsl_Str s);
 #if defined(NSL_IMPLEMENTATION) && !defined(_NSL_IMPLEMENTED)
 #define _NSL_IMPLEMENTED
 
-
 // 4 kb
 #define CHUNK_DEFAULT_SIZE 4096
 
@@ -855,8 +841,8 @@ static nsl_Chunk *chunk_allocate(usize size) {
     return chunk;
 }
 
-static void chunk_free(nsl_Chunk *chunk) { 
-    free(chunk); 
+static void chunk_free(nsl_Chunk *chunk) {
+    free(chunk);
 }
 
 NSL_CONST_FN static usize align(usize size) {
