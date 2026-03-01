@@ -17,8 +17,13 @@ static void cmd_push_flags(nsl_Cmd *cmd) {
 
 static nsl_Error build_header(nsl_Cmd *cmd) {
     cmd->len = 0;
+    nsl_cmd_push(cmd, "gcc", "-c", "-o", "build/nsl.o", "-DNSL_IMPLEMENTATION", "nsl.h");
+    cmd_push_flags(cmd);
 
-    nsl_cmd_push(cmd, CC, "-c", "-o", "build/nsl.o", "-DNSL_IMPLEMENTATION", "nsl.h");
+    if (nsl_cmd_exec(cmd)) return NSL_ERROR;
+
+    cmd->len = 0;
+    nsl_cmd_push(cmd, "x86_64-w64-mingw32-gcc", "-c", "-o", "build/nsl.o", "-DNSL_IMPLEMENTATION", "nsl.h");
     cmd_push_flags(cmd);
 
     if (nsl_cmd_exec(cmd)) return NSL_ERROR;
