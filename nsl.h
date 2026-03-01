@@ -99,19 +99,17 @@ The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` va
 #include <stdarg.h>
 #include <ctype.h>
 
-#if defined(_WIN32)
-
-    #include <windows.h>
-    #include <io.h>
-
+#ifdef _WIN32
+#   define NSL_WIN32 1
+#   include <windows.h>
+#   include <io.h>
 #else
-
-    #include <sys/wait.h>
-    #include <sys/stat.h>
-    #include <unistd.h>
-    #include <dirent.h>
-    #include <dlfcn.h>
-
+#   define NSL_POSIX 1
+#   include <sys/wait.h>
+#   include <sys/stat.h>
+#   include <unistd.h>
+#   include <dirent.h>
+#   include <dlfcn.h>
 #endif
 
 #ifndef NSL_NO_INT_TYPEDEFS
@@ -362,7 +360,6 @@ NSL_API void nsl_dir_end(nsl_DirIter *it);
 NSL_API nsl_DirEntry *nsl_dir_next(nsl_DirIter *it);
 
 
-
 typedef struct {
   void *handle;
 } nsl_Dll;
@@ -397,7 +394,7 @@ typedef struct {
     bool parents;   // create parent paths
 } nsl_OsDirConfig;
 
-#define nsl_os_mkdir(path, ...) nsl_os_mkdir_conf(path, (nsl_OsDirConfig){ __VA_ARGS__ }) 
+#define nsl_os_mkdir(path, ...) nsl_os_mkdir_conf(path, (nsl_OsDirConfig){ __VA_ARGS__ })
 NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config);
 
 NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
@@ -1042,709 +1039,6 @@ NSL_API void nsl_file_write_str(FILE* file, nsl_Str content) {
 NSL_API void nsl_file_write_bytes(FILE* file, nsl_Bytes content) {
     fwrite(content.data, 1, content.size, file);
 }
-#if !defined(_WIN32)
-
-NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
-    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
-
-    errno = 0;
-    pid_t pid = fork();
-    if (pid == -1) {
-        NSL_PANIC("fork failed");
-    } else if (pid == 0) {
-        nsl_List(const char *) args = {0};
-
-        nsl_list_extend(&args, argc, argv);
-        nsl_list_push(&args, NULL);
-        execvp(args.items[0], (char *const *)(void *)args.items);
-
-        nsl_list_free(&args);
-        exit(127);
-    }
-
-    int status = 0;
-    waitpid(pid, &status, 0);
-    if (WIFEXITED(status)) {
-        nsl_Error exit_code = WEXITSTATUS(status);
-        return exit_code == 127 ? NSL_ERROR_FILE_NOT_FOUND : exit_code;
-    }
-
-    return NSL_NO_ERROR;
-}
-#endif // !_WIN32
-
-#if !defined(_WIN32)
-
-typedef struct nsl_DirNode {
-    struct nsl_DirNode *next;
-    DIR *handle;
-    char name[];
-} nsl_DirNode;
-
-NSL_API nsl_DirIter nsl_dir_begin(nsl_Path directory, bool recursive) {
-    nsl_DirIter it = {.recursive = recursive};
-
-    const usize size = sizeof(nsl_DirNode) + directory.len + 1;
-    nsl_DirNode* node = nsl_arena_calloc_chunk(&it.scratch, size);
-    memcpy(node->name, directory.data, directory.len);
-    it._handle = node;
-
-    node->handle = opendir(node->name);
-    if (node->handle == NULL) {
-        nsl_arena_free(&it.scratch);
-        it.done = true;
-    }
-
-    return it;
-}
-
-NSL_API void nsl_dir_end(nsl_DirIter *it) {
-    while (it->_handle != NULL) {
-        nsl_DirNode* node = it->_handle;
-        if (node->handle) closedir(node->handle);
-        it->_handle = node->next;
-    }
-    nsl_arena_free(&it->scratch);
-}
-
-NSL_API nsl_DirEntry *nsl_dir_next(nsl_DirIter *it) {
-    it->done = true;
-    while (it->_handle != NULL) {
-        nsl_arena_reset(&it->scratch);
-        nsl_DirNode *current = it->_handle;
-
-        struct dirent *entry = readdir(current->handle);
-        if (entry == NULL) {
-            closedir(current->handle);
-            it->_handle = current->next;
-            nsl_arena_free_chunk(&it->scratch, current);
-            continue;
-        }
-
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
-
-        nsl_DirEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_DirEntry));
-        nsl_Path parts[] = {
-            nsl_str_from_cstr(current->name), nsl_str_from_cstr(entry->d_name),
-        };
-        e->path = nsl_path_join(NSL_ARRAY_LEN(parts), parts, &it->scratch);
-
-        struct stat entry_info;
-        if (stat(e->path.data, &entry_info) == -1) continue;
-
-        e->is_dir = S_ISDIR(entry_info.st_mode);
-        e->size = (usize)entry_info.st_size;
-        e->mtime = (u64)entry_info.st_mtime;
-
-        if (it->recursive && e->is_dir) {
-            DIR *handle = opendir(e->path.data);
-            if (handle == NULL) continue;
-            const usize size = sizeof(nsl_DirNode) + e->path.len + 1;
-            nsl_DirNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
-            node->handle = handle;
-            memcpy(node->name, e->path.data, e->path.len);
-            node->next = it->_handle;
-            it->_handle = node;
-        }
-
-        return e;
-    }
-    return NULL;
-}
-#endif // !_WIN32
-
-#if !defined(_WIN32)
-
-NSL_API nsl_Error nsl_dll_load(nsl_Dll* dll, nsl_Path path) {
-    if (!nsl_os_exists(path)) {
-        return NSL_ERROR_FILE_NOT_FOUND;
-    }
-    char lib_path[FILENAME_MAX] = {0};
-    memcpy(lib_path, path.data, nsl_usize_min(path.len, FILENAME_MAX));
-
-    dll->handle = dlopen(lib_path, RTLD_LAZY);
-    if (dll->handle == NULL) {
-        return NSL_ERROR;
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API void nsl_dll_close(nsl_Dll *dll) {
-    dlclose(dll->handle);
-}
-
-NSL_API Function nsl_dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
-    Function result = NULL;
-    nsl_Arena arena = {0};
-
-    const char* s = nsl_str_to_cstr(symbol, &arena);
-    *(void **)(&result) = dlsym(handle, s);
-
-    nsl_arena_free(&arena);
-    return result;
-}
-#endif // !_WIN32
-
-#if !defined(_WIN32)
-
-#define NSL_OS_PATH_MAX FILENAME_MAX
-
-NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
-
-    if (config.parents) {
-        if (nsl_path_is_root(path))               return NSL_NO_ERROR;
-        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
-        nsl_OsDirConfig c = config;
-        c.exists_ok = true;
-        nsl_Error recursive_error = nsl_os_mkdir_conf(nsl_path_parent(path), c);
-        if (recursive_error) return recursive_error;
-    }
-
-    errno = 0;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    filepath[path.len] = '\0';
-
-    if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
-        if (config.exists_ok && errno == EEXIST) {
-            struct stat info;
-            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return NSL_NO_ERROR;
-        }
-        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
-        if (errno == EEXIST)  return NSL_ERROR_ALREADY_EXISTS;
-        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
-        NSL_PANIC(strerror(errno));
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
-
-    errno = 0;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    filepath[path.len] = '\0';
-
-    if (chdir(filepath) != 0) {
-        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
-        if (errno == ENOENT)  return NSL_ERROR_FILE_NOT_FOUND;
-        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
-        NSL_PANIC(strerror(errno));
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
-    errno = 0;
-    char *temp_path = getcwd(NULL, 0);
-    if (temp_path == NULL) {
-        NSL_PANIC(strerror(errno));
-    }
-    nsl_Path path = nsl_str_copy(nsl_str_from_cstr(temp_path), arena);
-    free(temp_path);
-    return path;
-}
-
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena* arena) {
-    const char *var = getenv(env);
-    return var ? nsl_str_copy(nsl_str_from_cstr(var), arena) : (nsl_Str){0};
-}
-
-NSL_API bool nsl_os_exists(nsl_Path path) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    filepath[path.len] = '\0';
-
-    return access(filepath, 0) == 0;
-}
-
-NSL_API bool nsl_os_is_dir(nsl_Path path) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    filepath[path.len] = '\0';
-
-    struct stat info;
-    if (stat(filepath, &info) == -1) {
-        return false;
-    }
-
-    return S_ISDIR(info.st_mode);
-}
-
-NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    filepath[path.len] = '\0';
-
-    errno = 0;
-    if (unlink(filepath) != 0) {
-        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
-        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
-        if (errno == EISDIR) return NSL_ERROR_NOT_DIRECTORY;
-        if (errno == EBUSY)  return NSL_ERROR_FILE_BUSY;
-        NSL_PANIC(strerror(errno));
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
-    if (p1.len >= NSL_OS_PATH_MAX - 1 || p1.len >= NSL_OS_PATH_MAX - 1) return false;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    struct stat info[2];
-
-    memcpy(filepath, p1.data, p1.len);
-    filepath[p1.len] = '\0';
-    if (stat(filepath, &info[0]) == -1) return false;
-
-    memcpy(filepath, p1.data, p1.len);
-    filepath[p2.len] = '\0';
-    if (stat(filepath, &info[1]) == -1) return false;
-
-    return info[0].st_mtime < info[1].st_mtime;
-}
-#endif // !_WIN32
-
-#if defined(_WIN32)
-
-static void _nsl_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
-    // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
-    for (usize i = 0; i < argc; i++) {
-        if (0 < i) nsl_list_push(sb, ' ');
-        const char *arg = argv[i];
-
-        nsl_list_push(sb, '\"');
-        usize backslashes = 0;
-        while (*arg) {
-            char c = *arg;
-            if (c == '\\') {
-                backslashes += 1;
-            } else {
-                if (c == '\"') {
-                    for (size_t k = 0; k < 1 + backslashes; k++) {
-                        nsl_list_push(sb, '\\');
-                    }
-                }
-                backslashes = 0;
-            }
-            nsl_list_push(sb, c);
-            arg++;
-        }
-
-        for (usize k = 0; k < backslashes; k++) {
-            nsl_list_push(sb, '\\');
-        }
-
-        nsl_list_push(sb, '\"');
-    }
-}
-
-NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
-    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
-
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-
-    DWORD result = 0;
-
-    nsl_StrBuilder sb = {0};
-
-    _nsl_cmd_win32_wrap(argc, argv, &sb);
-    nsl_list_push(&sb, '\0');
-
-    if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
-        DWORD ec = GetLastError();
-        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) NSL_DEFER(NSL_ERROR_FILE_NOT_FOUND);
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    WaitForSingleObject(pi.hProcess, INFINITE);
-    if (!GetExitCodeProcess(pi.hProcess, &result)) {
-        DWORD ec = GetLastError();
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-defer:
-    nsl_list_free(&sb);
-    return (nsl_Error)result;
-}
-
-
-#endif // _WIN32
-
-#if defined(_WIN32)
-
-typedef struct nsl_DirNode {
-    struct nsl_DirNode *next;
-    HANDLE handle;
-    char name[];
-} nsl_DirNode;
-
-NSL_API nsl_DirIter nsl_dir_begin(nsl_Path directory, bool recursive) {
-    nsl_DirIter it = {.recursive = recursive};
-
-    const usize len = directory.len + (sizeof("/*") - 1);
-    const usize size = sizeof(nsl_DirNode) + len + 1;
-    nsl_DirNode *node = nsl_arena_calloc_chunk(&it.scratch, size);
-    memcpy(node->name, directory.data, directory.len);
-    it._handle = node;
-
-    nsl_Path path = nsl_path_join(2, (nsl_Path[]){directory, NSL_STR("/*")}, &it.scratch);
-    WIN32_FIND_DATA findFileData;
-    node->handle = FindFirstFile(path.data, &findFileData);
-    if (node->handle == INVALID_HANDLE_VALUE) {
-        nsl_arena_free(&it.scratch);
-        it.done = true;
-    }
-
-    return it;
-}
-
-NSL_API void nsl_dir_end(nsl_DirIter *it) {
-    while (it->_handle != NULL) {
-        nsl_DirNode *current = it->_handle;
-        it->_handle = current->next;
-        if (current->handle != INVALID_HANDLE_VALUE) FindClose(current->handle);
-    }
-    nsl_arena_free(&it->scratch);
-}
-
-NSL_API nsl_DirEntry* nsl_dir_next(nsl_DirIter *it) {
-    it->done = true;
-    while (it->_handle != NULL) {
-        nsl_arena_reset(&it->scratch);
-        nsl_DirNode *current = it->_handle;
-
-        WIN32_FIND_DATA findFileData;
-        if (!FindNextFile(current->handle, &findFileData)) {
-            FindClose(current->handle);
-            it->_handle = current->next;
-            nsl_arena_free_chunk(&it->scratch, current);
-            continue;
-        }
-
-        // skip "." and ".." directories
-        if (strcmp(findFileData.cFileName, ".") == 0 || strcmp(findFileData.cFileName, "..") == 0) {
-            continue;
-        }
-
-        nsl_DirEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_DirEntry));
-        nsl_Path parts[] = {
-            nsl_str_from_cstr(current->name),
-            nsl_str_from_cstr(findFileData.cFileName),
-        };
-        e->path = nsl_path_join(NSL_ARRAY_LEN(parts), parts, &it->scratch);
-
-        e->is_dir = (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-        e->size = ((u64)findFileData.nFileSizeHigh << 32) | findFileData.nFileSizeLow;
-        e->mtime = ((u64)findFileData.ftLastWriteTime.dwHighDateTime << 32) | findFileData.ftLastWriteTime.dwLowDateTime;
-
-        if (e->is_dir && it->recursive) {
-            nsl_Path path = nsl_path_join(2, (nsl_Path[]){e->path, NSL_STR("/*")}, &it->scratch);
-            HANDLE handle = FindFirstFile(path.data, &findFileData);
-            if (handle == INVALID_HANDLE_VALUE) {
-                continue;
-            }
-
-            const usize size = sizeof(nsl_DirNode) + e->path.len + 1;
-            nsl_DirNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
-            memcpy(node->name, e->path.data, e->path.len);
-
-            node->handle = handle;
-            node->next = it->_handle;
-            it->_handle = node;
-        }
-
-        return e;
-    }
-
-    return NULL;
-}
-#endif // _WIN32
-
-#if defined(_WIN32)
-
-NSL_API nsl_Error nsl_dll_load(nsl_Dll *dll, nsl_Path path) {
-    if (!nsl_os_exists(path)) {
-        return NSL_ERROR_FILE_NOT_FOUND;
-    }
-    char lib_path[MAX_PATH] = {0};
-    memcpy(lib_path, path.data, nsl_usize_max(path.len, FILENAME_MAX));
-
-    char temp_path[MAX_PATH];
-    GetTempPathA(MAX_PATH, temp_path);
-
-    char temp_file_name[MAX_PATH];
-    GetTempFileNameA(temp_path, TEXT("lib"), 0, temp_file_name);
-    CopyFile(lib_path, temp_file_name, 0);
-
-    dll->handle = LoadLibraryA(temp_file_name);
-    if (dll->handle == NULL) {
-        DWORD ec = GetLastError();
-        if (ec == ERROR_FILE_NOT_FOUND) return NSL_ERROR_FILE_NOT_FOUND;
-        if (ec == ERROR_PATH_NOT_FOUND) return NSL_ERROR_FILE_NOT_FOUND;
-        if (ec == ERROR_ACCESS_DENIED)  return NSL_ERROR_ACCESS_DENIED;
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API void nsl_dll_close(nsl_Dll *dll) {
-  char temp_file_name[MAX_PATH];
-  GetModuleFileNameA(dll->handle, temp_file_name, MAX_PATH);
-  FreeLibrary(dll->handle);
-  DeleteFileA(temp_file_name);
-}
-
-NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
-  nsl_Arena arena = {0};
-  const char* s = nsl_str_to_cstr(symbol, &arena);
-  Function fn = (Function)GetProcAddress(dll->handle, s);
-  nsl_arena_free(&arena);
-  return fn;
-}
-#endif // _WIN32
-
-#if defined(_WIN32)
-
-#define NSL_OS_PATH_MAX PATH_MAX
-
-NSL_API nsl_Error nsl_os_mkdir_(nsl_Path path, nsl_OsDirConfig config) {
-    if (path.len >= NSL_OS_PATH_MAX) return NSL_ERROR_PATH_TOO_LONG;
-
-    nsl_Arena arena = {0};
-
-    if (config.parents) {
-        if (nsl_path_is_root(path))               return NSL_NO_ERROR;
-        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;
-        nsl_OsDirConfig c = config;
-        c.exists_ok = true;
-        nsl_Error recursive_error = nsl_os_mkdir_(nsl_path_parent(path), c);
-        if (recursive_error) return recursive_error;
-    }
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    filepath[path.len] = '\0';
-
-    if (!CreateDirectoryA(filepath, NULL)) {
-        DWORD ec = GetLastError();
-        if (config.exists_ok && ec == ERROR_ALREADY_EXISTS) {
-            DWORD attrs = GetFileAttributes(filepath);
-            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
-                return NSL_NO_ERROR;
-            }
-        }
-        if (ec == ERROR_ALREADY_EXISTS)     NSL_DEFER(NSL_ERROR_ALREADY_EXISTS);
-        if (ec == ERROR_ACCESS_DENIED)      NSL_DEFER(NSL_ERROR_ACCESS_DENIED);
-        if (ec == ERROR_PRIVILEGE_NOT_HELD) NSL_DEFER(NSL_ERROR_ACCESS_DENIED);
-        if (ec == ERROR_PATH_NOT_FOUND)     NSL_DEFER(NSL_ERROR_FILE_NOT_FOUND);
-        if (ec == ERROR_DIRECTORY)          NSL_DEFER(NSL_ERROR_NOT_DIRECTORY);
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
-
-    char pathname[NSL_OS_PATH_MAX] = {0};
-    memcpy(pathname, path.data, path.len);
-    pathname[path.len] = '\0';
-
-    if (!SetCurrentDirectoryA(pathname)) {
-        DWORD ec = GetLastError();
-        if (ec == ERROR_ALREADY_EXISTS)     return NSL_ERROR_ALREADY_EXISTS;
-        if (ec == ERROR_ACCESS_DENIED)      return NSL_ERROR_ACCESS_DENIED;
-        if (ec == ERROR_SHARING_VIOLATION)  return NSL_ERROR_ACCESS_DENIED;
-        if (ec == ERROR_PATH_NOT_FOUND)     return NSL_ERROR_FILE_NOT_FOUND;
-        if (ec == ERROR_DIRECTORY)          return NSL_ERROR_NOT_DIRECTORY;
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
-    DWORD size = GetCurrentDirectoryA(0, NULL);
-    if (size == 0) {
-        DWORD ec = GetLastError();
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    LPTSTR buffer = nsl_arena_alloc(arena, size);
-    GetCurrentDirectoryA(size, buffer);
-    return nsl_str_from_parts(size, buffer);
-}
-
-NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena) {
-    nsl_Arena scratch = {0};
-
-    DWORD size = GetEnvironmentVariableA(env, NULL, 0);
-    if (size == 0) {
-        DWORD ec = GetLastError();
-        if (ec == ERROR_ENVVAR_NOT_FOUND) return (nsl_Str){0};
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-    }
-
-    char *buffer = nsl_arena_calloc(&scratch, size);
-    GetEnvironmentVariableA(env, buffer, size);
-
-    nsl_Str result = nsl_str_copy(nsl_str_from_parts(size, buffer), arena);
-    nsl_arena_free(&scratch);
-    return result;
-}
-
-NSL_API bool nsl_os_exists(nsl_Path path) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    DWORD dwAttrib = GetFileAttributesA(filepath);
-
-    return (dwAttrib != INVALID_FILE_ATTRIBUTES);
-}
-
-NSL_API bool nsl_os_is_dir(nsl_Path path) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    filepath[path.len] = '\0';
-    DWORD dwAttrib = GetFileAttributesA(filepath);
-
-    return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
-}
-
-NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
-    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
-
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    memcpy(filepath, path.data, path.len);
-    filepath[path.len] = '\0';
-
-    if (DeleteFileA(filepath) == 0) {
-        DWORD ec = GetLastError();
-        if (ec == ERROR_ACCESS_DENIED)     return NSL_ERROR_ACCESS_DENIED;
-        if (ec == ERROR_SHARING_VIOLATION) return NSL_ERROR_FILE_BUSY;
-        if (ec == ERROR_FILE_NOT_FOUND)    return NSL_ERROR_FILE_NOT_FOUND;
-        if (ec == ERROR_PATH_NOT_FOUND)    return NSL_ERROR_FILE_NOT_FOUND;
-
-        char msg[512] = {0};
-        FormatMessageA(
-            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, ec,
-            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-            msg, (DWORD)sizeof(msg), NULL
-        );
-        NSL_PANIC(msg);
-
-    }
-
-    return NSL_NO_ERROR;
-}
-
-NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
-    char filepath[NSL_OS_PATH_MAX] = {0};
-    FILETIME ft[2] = {0};
-    HANDLE hFile[2] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE};
-
-    if (p1.len > NSL_OS_PATH_MAX || p2.len > NSL_OS_PATH_MAX) return false;
-
-    memcpy(filepath, p1.data, p1.len);
-    filepath[p1.len] = '\0';
-    hFile[0] = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hFile[0] == INVALID_HANDLE_VALUE)           NSL_DEFER(false);
-    if (GetFileTimeA(hFile[0], NULL, NULL, &ft[0])) NSL_DEFER(false);
-
-    memcpy(filepath, p2.data, p2.len);
-    filepath[p2.len] = '\0';
-    hFile[1] = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hFile[1] == INVALID_HANDLE_VALUE)           NSL_DEFER(false);
-    if (GetFileTimeA(hFile[1], NULL, NULL, &ft[1])) NSL_DEFER(false);
-
-    result = CompareFileTime(&ft[0], &ft[1]) == 1;
-defer:
-    if (hFile[0] != INVALID_HANDLE_VALUE) CloseHandle(hFile[0]);
-    if (hFile[1] != INVALID_HANDLE_VALUE) CloseHandle(hFile[1]);
-    return result;
-}
-#endif // _WIN32
 
 NSL_API void nsl_map_free(nsl_Map *map) {
     nsl_arena_free_chunk(map->arena, map->items);
@@ -3288,5 +2582,690 @@ NSL_API u64 nsl_str_hash(nsl_Str s) {
     }
     return hash;
 }
+
+#if NSL_POSIX
+
+NSL_API nsl_Error nsl_dll_load(nsl_Dll* dll, nsl_Path path) {
+    if (!nsl_os_exists(path)) {
+        return NSL_ERROR_FILE_NOT_FOUND;
+    }
+    char lib_path[FILENAME_MAX] = {0};
+    memcpy(lib_path, path.data, nsl_usize_min(path.len, FILENAME_MAX));
+
+    dll->handle = dlopen(lib_path, RTLD_LAZY);
+    if (dll->handle == NULL) {
+        return NSL_ERROR;
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API void nsl_dll_close(nsl_Dll *dll) {
+    dlclose(dll->handle);
+}
+
+NSL_API Function nsl_dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
+    Function result = NULL;
+    nsl_Arena arena = {0};
+
+    const char* s = nsl_str_to_cstr(symbol, &arena);
+    *(void **)(&result) = dlsym(handle, s);
+
+    nsl_arena_free(&arena);
+    return result;
+}
+
+NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
+    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
+
+    errno = 0;
+    pid_t pid = fork();
+    if (pid == -1) {
+        NSL_PANIC("fork failed");
+    } else if (pid == 0) {
+        nsl_List(const char *) args = {0};
+
+        nsl_list_extend(&args, argc, argv);
+        nsl_list_push(&args, NULL);
+        execvp(args.items[0], (char *const *)(void *)args.items);
+
+        nsl_list_free(&args);
+        exit(127);
+    }
+
+    int status = 0;
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status)) {
+        nsl_Error exit_code = WEXITSTATUS(status);
+        return exit_code == 127 ? NSL_ERROR_FILE_NOT_FOUND : exit_code;
+    }
+
+    return NSL_NO_ERROR;
+}
+
+typedef struct nsl_DirNode {
+    struct nsl_DirNode *next;
+    DIR *handle;
+    char name[];
+} nsl_DirNode;
+
+NSL_API nsl_DirIter nsl_dir_begin(nsl_Path directory, bool recursive) {
+    nsl_DirIter it = {.recursive = recursive};
+
+    const usize size = sizeof(nsl_DirNode) + directory.len + 1;
+    nsl_DirNode* node = nsl_arena_calloc_chunk(&it.scratch, size);
+    memcpy(node->name, directory.data, directory.len);
+    it._handle = node;
+
+    node->handle = opendir(node->name);
+    if (node->handle == NULL) {
+        nsl_arena_free(&it.scratch);
+        it.done = true;
+    }
+
+    return it;
+}
+
+NSL_API void nsl_dir_end(nsl_DirIter *it) {
+    while (it->_handle != NULL) {
+        nsl_DirNode* node = it->_handle;
+        if (node->handle) closedir(node->handle);
+        it->_handle = node->next;
+    }
+    nsl_arena_free(&it->scratch);
+}
+
+NSL_API nsl_DirEntry *nsl_dir_next(nsl_DirIter *it) {
+    it->done = true;
+    while (it->_handle != NULL) {
+        nsl_arena_reset(&it->scratch);
+        nsl_DirNode *current = it->_handle;
+
+        struct dirent *entry = readdir(current->handle);
+        if (entry == NULL) {
+            closedir(current->handle);
+            it->_handle = current->next;
+            nsl_arena_free_chunk(&it->scratch, current);
+            continue;
+        }
+
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+
+        nsl_DirEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_DirEntry));
+        nsl_Path parts[] = {
+            nsl_str_from_cstr(current->name), nsl_str_from_cstr(entry->d_name),
+        };
+        e->path = nsl_path_join(NSL_ARRAY_LEN(parts), parts, &it->scratch);
+
+        struct stat entry_info;
+        if (stat(e->path.data, &entry_info) == -1) continue;
+
+        e->is_dir = S_ISDIR(entry_info.st_mode);
+        e->size = (usize)entry_info.st_size;
+        e->mtime = (u64)entry_info.st_mtime;
+
+        if (it->recursive && e->is_dir) {
+            DIR *handle = opendir(e->path.data);
+            if (handle == NULL) continue;
+            const usize size = sizeof(nsl_DirNode) + e->path.len + 1;
+            nsl_DirNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
+            node->handle = handle;
+            memcpy(node->name, e->path.data, e->path.len);
+            node->next = it->_handle;
+            it->_handle = node;
+        }
+
+        return e;
+    }
+    return NULL;
+}
+
+#define NSL_OS_PATH_MAX FILENAME_MAX
+
+NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
+    if (config.parents) {
+        if (nsl_path_is_root(path))               return NSL_NO_ERROR;
+        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;;
+        nsl_OsDirConfig c = config;
+        c.exists_ok = true;
+        nsl_Error recursive_error = nsl_os_mkdir_conf(nsl_path_parent(path), c);
+        if (recursive_error) return recursive_error;
+    }
+
+    errno = 0;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
+    if (mkdir(filepath, config.mode ? config.mode : 0755) != 0) {
+        if (config.exists_ok && errno == EEXIST) {
+            struct stat info;
+            if (stat(filepath, &info) == 0 && S_ISDIR(info.st_mode)) return NSL_NO_ERROR;
+        }
+        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
+        if (errno == EEXIST)  return NSL_ERROR_ALREADY_EXISTS;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
+    errno = 0;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
+    if (chdir(filepath) != 0) {
+        if (errno == EACCES)  return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOENT)  return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == ENOTDIR) return NSL_ERROR_NOT_DIRECTORY;
+        NSL_PANIC(strerror(errno));
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
+    errno = 0;
+    char *temp_path = getcwd(NULL, 0);
+    if (temp_path == NULL) {
+        NSL_PANIC(strerror(errno));
+    }
+    nsl_Path path = nsl_str_copy(nsl_str_from_cstr(temp_path), arena);
+    free(temp_path);
+    return path;
+}
+
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena* arena) {
+    const char *var = getenv(env);
+    return var ? nsl_str_copy(nsl_str_from_cstr(var), arena) : (nsl_Str){0};
+}
+
+NSL_API bool nsl_os_exists(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
+    return access(filepath, 0) == 0;
+}
+
+NSL_API bool nsl_os_is_dir(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
+    struct stat info;
+    if (stat(filepath, &info) == -1) {
+        return false;
+    }
+
+    return S_ISDIR(info.st_mode);
+}
+
+NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
+    errno = 0;
+    if (unlink(filepath) != 0) {
+        if (errno == EACCES) return NSL_ERROR_ACCESS_DENIED;
+        if (errno == ENOENT) return NSL_ERROR_FILE_NOT_FOUND;
+        if (errno == EISDIR) return NSL_ERROR_NOT_DIRECTORY;
+        if (errno == EBUSY)  return NSL_ERROR_FILE_BUSY;
+        NSL_PANIC(strerror(errno));
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
+    if (p1.len >= NSL_OS_PATH_MAX - 1 || p1.len >= NSL_OS_PATH_MAX - 1) return false;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    struct stat info[2];
+
+    memcpy(filepath, p1.data, p1.len);
+    filepath[p1.len] = '\0';
+    if (stat(filepath, &info[0]) == -1) return false;
+
+    memcpy(filepath, p1.data, p1.len);
+    filepath[p2.len] = '\0';
+    if (stat(filepath, &info[1]) == -1) return false;
+
+    return info[0].st_mtime < info[1].st_mtime;
+}
+
+#elif NSL_WIN32
+
+static void _nsl_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
+    // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
+    for (usize i = 0; i < argc; i++) {
+        if (0 < i) nsl_list_push(sb, ' ');
+        const char *arg = argv[i];
+
+        nsl_list_push(sb, '\"');
+        usize backslashes = 0;
+        while (*arg) {
+            char c = *arg;
+            if (c == '\\') {
+                backslashes += 1;
+            } else {
+                if (c == '\"') {
+                    for (size_t k = 0; k < 1 + backslashes; k++) {
+                        nsl_list_push(sb, '\\');
+                    }
+                }
+                backslashes = 0;
+            }
+            nsl_list_push(sb, c);
+            arg++;
+        }
+
+        for (usize k = 0; k < backslashes; k++) {
+            nsl_list_push(sb, '\\');
+        }
+
+        nsl_list_push(sb, '\"');
+    }
+}
+
+NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
+    if (argc == 0) return NSL_ERROR_FILE_NOT_FOUND;
+
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    DWORD result = 0;
+
+    nsl_StrBuilder sb = {0};
+
+    _nsl_cmd_win32_wrap(argc, argv, &sb);
+    nsl_list_push(&sb, '\0');
+
+    if (!CreateProcessA(NULL, sb.items, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_FILE_NOT_FOUND || ec == ERROR_PATH_NOT_FOUND) NSL_DEFER(NSL_ERROR_FILE_NOT_FOUND);
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    if (!GetExitCodeProcess(pi.hProcess, &result)) {
+        DWORD ec = GetLastError();
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+defer:
+    nsl_list_free(&sb);
+    return (nsl_Error)result;
+}
+
+typedef struct nsl_DirNode {
+    struct nsl_DirNode *next;
+    HANDLE handle;
+    char name[];
+} nsl_DirNode;
+
+NSL_API nsl_DirIter nsl_dir_begin(nsl_Path directory, bool recursive) {
+    nsl_DirIter it = {.recursive = recursive};
+
+    const usize len = directory.len + (sizeof("/*") - 1);
+    const usize size = sizeof(nsl_DirNode) + len + 1;
+    nsl_DirNode *node = nsl_arena_calloc_chunk(&it.scratch, size);
+    memcpy(node->name, directory.data, directory.len);
+    it._handle = node;
+
+    nsl_Path path = nsl_path_join(2, (nsl_Path[]){directory, NSL_STR("/*")}, &it.scratch);
+    WIN32_FIND_DATA findFileData;
+    node->handle = FindFirstFile(path.data, &findFileData);
+    if (node->handle == INVALID_HANDLE_VALUE) {
+        nsl_arena_free(&it.scratch);
+        it.done = true;
+    }
+
+    return it;
+}
+
+NSL_API void nsl_dir_end(nsl_DirIter *it) {
+    while (it->_handle != NULL) {
+        nsl_DirNode *current = it->_handle;
+        it->_handle = current->next;
+        if (current->handle != INVALID_HANDLE_VALUE) FindClose(current->handle);
+    }
+    nsl_arena_free(&it->scratch);
+}
+
+NSL_API nsl_DirEntry* nsl_dir_next(nsl_DirIter *it) {
+    it->done = true;
+    while (it->_handle != NULL) {
+        nsl_arena_reset(&it->scratch);
+        nsl_DirNode *current = it->_handle;
+
+        WIN32_FIND_DATA findFileData;
+        if (!FindNextFile(current->handle, &findFileData)) {
+            FindClose(current->handle);
+            it->_handle = current->next;
+            nsl_arena_free_chunk(&it->scratch, current);
+            continue;
+        }
+
+        // skip "." and ".." directories
+        if (strcmp(findFileData.cFileName, ".") == 0 || strcmp(findFileData.cFileName, "..") == 0) {
+            continue;
+        }
+
+        nsl_DirEntry *e = nsl_arena_alloc(&it->scratch, sizeof(nsl_DirEntry));
+        nsl_Path parts[] = {
+            nsl_str_from_cstr(current->name),
+            nsl_str_from_cstr(findFileData.cFileName),
+        };
+        e->path = nsl_path_join(NSL_ARRAY_LEN(parts), parts, &it->scratch);
+
+        e->is_dir = (findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+        e->size = ((u64)findFileData.nFileSizeHigh << 32) | findFileData.nFileSizeLow;
+        e->mtime = ((u64)findFileData.ftLastWriteTime.dwHighDateTime << 32) | findFileData.ftLastWriteTime.dwLowDateTime;
+
+        if (e->is_dir && it->recursive) {
+            nsl_Path path = nsl_path_join(2, (nsl_Path[]){e->path, NSL_STR("/*")}, &it->scratch);
+            HANDLE handle = FindFirstFile(path.data, &findFileData);
+            if (handle == INVALID_HANDLE_VALUE) {
+                continue;
+            }
+
+            const usize size = sizeof(nsl_DirNode) + e->path.len + 1;
+            nsl_DirNode *node = nsl_arena_calloc_chunk(&it->scratch, size);
+            memcpy(node->name, e->path.data, e->path.len);
+
+            node->handle = handle;
+            node->next = it->_handle;
+            it->_handle = node;
+        }
+
+        return e;
+    }
+
+    return NULL;
+}
+
+NSL_API nsl_Error nsl_dll_load(nsl_Dll *dll, nsl_Path path) {
+    if (!nsl_os_exists(path)) {
+        return NSL_ERROR_FILE_NOT_FOUND;
+    }
+    char lib_path[MAX_PATH] = {0};
+    memcpy(lib_path, path.data, nsl_usize_max(path.len, FILENAME_MAX));
+
+    char temp_path[MAX_PATH];
+    GetTempPathA(MAX_PATH, temp_path);
+
+    char temp_file_name[MAX_PATH];
+    GetTempFileNameA(temp_path, TEXT("lib"), 0, temp_file_name);
+    CopyFile(lib_path, temp_file_name, 0);
+
+    dll->handle = LoadLibraryA(temp_file_name);
+    if (dll->handle == NULL) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_FILE_NOT_FOUND) return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_PATH_NOT_FOUND) return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_ACCESS_DENIED)  return NSL_ERROR_ACCESS_DENIED;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API void nsl_dll_close(nsl_Dll *dll) {
+  char temp_file_name[MAX_PATH];
+  GetModuleFileNameA(dll->handle, temp_file_name, MAX_PATH);
+  FreeLibrary(dll->handle);
+  DeleteFileA(temp_file_name);
+}
+
+NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
+  nsl_Arena arena = {0};
+  const char* s = nsl_str_to_cstr(symbol, &arena);
+  Function fn = (Function)GetProcAddress(dll->handle, s);
+  nsl_arena_free(&arena);
+  return fn;
+}
+
+#define NSL_OS_PATH_MAX PATH_MAX
+
+NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config) {
+    if (path.len >= NSL_OS_PATH_MAX) return NSL_ERROR_PATH_TOO_LONG;
+
+    if (config.parents) {
+        if (nsl_path_is_root(path))               return NSL_NO_ERROR;
+        if (path.len == 1 && path.data[0] == '.') return NSL_NO_ERROR;
+        nsl_OsDirConfig c = config;
+        c.exists_ok = true;
+        nsl_Error recursive_error = nsl_os_mkdir_conf(nsl_path_parent(path), c);
+        if (recursive_error) return recursive_error;
+    }
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
+    if (!CreateDirectoryA(filepath, NULL)) {
+        DWORD ec = GetLastError();
+        if (config.exists_ok && ec == ERROR_ALREADY_EXISTS) {
+            DWORD attrs = GetFileAttributes(filepath);
+            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+                return NSL_NO_ERROR;
+            }
+        }
+        if (ec == ERROR_ALREADY_EXISTS)     return NSL_ERROR_ALREADY_EXISTS;
+        if (ec == ERROR_ACCESS_DENIED)      return NSL_ERROR_ACCESS_DENIED;
+        if (ec == ERROR_PRIVILEGE_NOT_HELD) return NSL_ERROR_ACCESS_DENIED;
+        if (ec == ERROR_PATH_NOT_FOUND)     return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_DIRECTORY)          return NSL_ERROR_NOT_DIRECTORY;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API nsl_Error nsl_os_chdir(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
+    char pathname[NSL_OS_PATH_MAX] = {0};
+    memcpy(pathname, path.data, path.len);
+    pathname[path.len] = '\0';
+
+    if (!SetCurrentDirectoryA(pathname)) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_ALREADY_EXISTS)     return NSL_ERROR_ALREADY_EXISTS;
+        if (ec == ERROR_ACCESS_DENIED)      return NSL_ERROR_ACCESS_DENIED;
+        if (ec == ERROR_SHARING_VIOLATION)  return NSL_ERROR_ACCESS_DENIED;
+        if (ec == ERROR_PATH_NOT_FOUND)     return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_DIRECTORY)          return NSL_ERROR_NOT_DIRECTORY;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API nsl_Path nsl_os_cwd(nsl_Arena *arena) {
+    DWORD size = GetCurrentDirectoryA(0, NULL);
+    if (size == 0) {
+        DWORD ec = GetLastError();
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    LPTSTR buffer = nsl_arena_alloc(arena, size);
+    GetCurrentDirectoryA(size, buffer);
+    return nsl_str_from_parts(size, buffer);
+}
+
+NSL_API nsl_Str nsl_os_getenv(const char *env, nsl_Arena *arena) {
+    nsl_Arena scratch = {0};
+
+    DWORD size = GetEnvironmentVariableA(env, NULL, 0);
+    if (size == 0) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_ENVVAR_NOT_FOUND) return (nsl_Str){0};
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    char *buffer = nsl_arena_calloc(&scratch, size);
+    GetEnvironmentVariableA(env, buffer, size);
+
+    nsl_Str result = nsl_str_copy(nsl_str_from_parts(size, buffer), arena);
+    nsl_arena_free(&scratch);
+    return result;
+}
+
+NSL_API bool nsl_os_exists(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    DWORD dwAttrib = GetFileAttributesA(filepath);
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES);
+}
+
+NSL_API bool nsl_os_is_dir(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return false;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+    DWORD dwAttrib = GetFileAttributesA(filepath);
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+NSL_API nsl_Error nsl_os_remove(nsl_Path path) {
+    if (path.len >= NSL_OS_PATH_MAX - 1) return NSL_ERROR_PATH_TOO_LONG;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    memcpy(filepath, path.data, path.len);
+    filepath[path.len] = '\0';
+
+    if (DeleteFileA(filepath) == 0) {
+        DWORD ec = GetLastError();
+        if (ec == ERROR_ACCESS_DENIED)     return NSL_ERROR_ACCESS_DENIED;
+        if (ec == ERROR_SHARING_VIOLATION) return NSL_ERROR_FILE_BUSY;
+        if (ec == ERROR_FILE_NOT_FOUND)    return NSL_ERROR_FILE_NOT_FOUND;
+        if (ec == ERROR_PATH_NOT_FOUND)    return NSL_ERROR_FILE_NOT_FOUND;
+
+        char msg[512] = {0};
+        FormatMessageA(
+            FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+            NULL, ec,
+            MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+            msg, (DWORD)sizeof(msg), NULL
+        );
+        NSL_PANIC(msg);
+    }
+
+    return NSL_NO_ERROR;
+}
+
+NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
+    bool result = false;
+
+    char filepath[NSL_OS_PATH_MAX] = {0};
+    FILETIME ft[2] = {0};
+    HANDLE hFile[2] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE};
+
+    if (p1.len >= NSL_OS_PATH_MAX || p2.len >= NSL_OS_PATH_MAX) return false;
+
+    memcpy(filepath, p1.data, p1.len);
+    filepath[p1.len] = '\0';
+    hFile[0] = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile[0] == INVALID_HANDLE_VALUE)          NSL_DEFER(false);
+    if (GetFileTime(hFile[0], NULL, NULL, &ft[0])) NSL_DEFER(false);
+
+    memcpy(filepath, p2.data, p2.len);
+    filepath[p2.len] = '\0';
+    hFile[1] = CreateFile(filepath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile[1] == INVALID_HANDLE_VALUE)          NSL_DEFER(false);
+    if (GetFileTime(hFile[1], NULL, NULL, &ft[1])) NSL_DEFER(false);
+
+    result = CompareFileTime(&ft[0], &ft[1]) == 1;
+defer:
+    if (hFile[0] != INVALID_HANDLE_VALUE) CloseHandle(hFile[0]);
+    if (hFile[1] != INVALID_HANDLE_VALUE) CloseHandle(hFile[1]);
+    return result;
+}
+
+#else
+#   error "unknown platform"
+#endif
 
 #endif // NSL_IMPLEMENTATION
