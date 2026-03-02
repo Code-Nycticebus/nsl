@@ -680,7 +680,7 @@ NSL_API bool nsl_str_endswith(nsl_Str s1, nsl_Str suffix);
 NSL_API bool nsl_str_endswith_predicate(nsl_Str s1, bool (*predicate)(char));
 
 NSL_API bool nsl_str_contains(nsl_Str haystack, nsl_Str needle);
-NSL_API bool nsl_str_includes(nsl_Str haystack, char needle);
+NSL_API bool nsl_str_contains_c(nsl_Str haystack, char needle);
 NSL_API bool nsl_str_is_empty(nsl_Str s);
 
 NSL_API nsl_Str nsl_str_trim_left(nsl_Str s);
@@ -2083,7 +2083,7 @@ NSL_API bool nsl_str_contains(nsl_Str haystack, nsl_Str needle) {
     return false;
 }
 
-NSL_API bool nsl_str_includes(nsl_Str haystack, char needle) {
+NSL_API bool nsl_str_contains_c(nsl_Str haystack, char needle) {
     if (haystack.len == 0) {
         return false;
     }

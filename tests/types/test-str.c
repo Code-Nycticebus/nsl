@@ -15,9 +15,9 @@ static void test_str_compare(void) {
     NSL_ASSERT(nsl_str_contains(s, NSL_STR("T")) == false);
     NSL_ASSERT(nsl_str_contains(s, NSL_STR("")) == true);
 
-    NSL_ASSERT(nsl_str_includes(s, 'H') == true);
-    NSL_ASSERT(nsl_str_includes(s, 'e') == true);
-    NSL_ASSERT(nsl_str_includes(s, 'T') == false);
+    NSL_ASSERT(nsl_str_contains_c(s, 'H') == true);
+    NSL_ASSERT(nsl_str_contains_c(s, 'e') == true);
+    NSL_ASSERT(nsl_str_contains_c(s, 'T') == false);
 
     NSL_ASSERT(nsl_str_is_empty(s) == false && "string should not be empty");
     NSL_ASSERT(nsl_str_is_empty(NSL_STR("")) == true && "string should be empty");
