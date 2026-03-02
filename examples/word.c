@@ -5,11 +5,16 @@
 typedef struct {
     nsl_Str word;
     usize count;
-} Occurences;
+} Occurence;
 
-i32 cmp(const void *a, const void *b) {
-    return ((const Occurences *)b)->count - ((const Occurences *)a)->count;
+static i32 cmp(const void *a, const void *b) {
+    return ((const Occurence *)b)->count - ((const Occurence *)a)->count;
 }
+
+typedef struct {
+    nsl_Map map;
+    nsl_List(Occurence) list;
+} Occurences;
 
 int main(int argc, const char **argv) {
     // using 'NSL_STR' for string literals and 'nsl_str_from_cstr' for 'char *'
@@ -25,8 +30,10 @@ int main(int argc, const char **argv) {
     nsl_file_close(file);
 
     // initializing the map and list to allocate memory inside the arena
-    nsl_Map map = {.arena = &arena};
-    nsl_List(Occurences) occurences = {.arena = &arena};
+    Occurences occurences = {
+        .map.arena = &arena,
+        .list.arena = &arena,
+    };
 
     // for (word in content)
     for (nsl_Str word = {0}; nsl_str_try_chop_by_predicate(&content, nsl_char_is_space, &word);) {
@@ -35,23 +42,23 @@ int main(int argc, const char **argv) {
         // hash the word
         u64 hash = nsl_str_hash(word);
         // lookup idx with hash
-        const u64 *idx = nsl_map_get_or_insert(&map, hash, occurences.len);
-        if (*idx == occurences.len) {
+        const u64 *idx = nsl_map_get_or_insert(&occurences.map, hash, occurences.list.len);
+        if (*idx == occurences.list.len) {
             // if idx was not in map insert the hash and idx into map and add occurence to list
-            nsl_list_push(&occurences, (Occurences){.word = word, .count = 1});
+            nsl_list_push(&occurences.list, (Occurence){.word = word, .count = 1});
         } else {
-            NSL_ASSERT(nsl_str_eq(occurences.items[*idx].word, word) && "duplicate hash");
+            NSL_ASSERT(nsl_str_eq(occurences.list.items[*idx].word, word) && "duplicate hash");
             // if idx was found, increase the count of occurence
-            occurences.items[*idx].count++;
+            occurences.list.items[*idx].count++;
         }
     }
 
     // sort list with qsort
-    nsl_list_sort(&occurences, cmp);
+    nsl_list_sort(&occurences.list, cmp);
 
     // list top 3 occurences
     for (usize i = 0; i < 3; i++) {
-        Occurences *o = &occurences.items[i];
+        Occurence *o = &occurences.list.items[i];
         printf("%ld: " NSL_STR_REPR ": %ld\n", i + 1, NSL_STR_ARG(o->word), o->count);
     }
 
