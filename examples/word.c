@@ -53,7 +53,7 @@ int main(int argc, const char **argv) {
         }
     }
 
-    // sort list with qsort
+    // sort list with qsort (invalidates map)
     nsl_list_sort(&occurences.list, cmp);
 
     // list top 3 occurences
