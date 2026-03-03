@@ -12,7 +12,7 @@
     - get absolute path
 - [x] cmd
     - rename `nsl_cmd_exec_list` and `nsl_cmd_exec` (`nsl_cmd_exec_argv`)
-- [ ] documentation
+- [x] documentation
     - map duplicate hash issue
 
 ## 1.0.0 - release

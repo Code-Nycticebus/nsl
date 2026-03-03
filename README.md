@@ -81,4 +81,4 @@ nsl_List(int) my_list = {0};
 ```
 
 ### Maps
-The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` value (in most cases representing an index) via a `u64` hash. And you can build more complex data structures with it.
+The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` value (in most cases representing an index) via a `u64` hash. And you can build more complex data structures with it. You are responsible for the uniqueness of the hash/keys.
