@@ -56,29 +56,16 @@ if (error) {
 }
 ```
 ## Data Structures
-### Memory
-The `nsl_List` and `nsl_Map` data structures are valid when zero-initialized and can be used without any setup:
-```c
-nsl_Map map = {0};
-// map operations
-nsl_map_free(&map);
-```
-
-Or, you can allocate all internal memory from a `nsl_Arena`.
-```c
-nsl_Arena arena = {0};
-nsl_Map map = {.arena = &arena};
-// map operations
-nsl_arena_free(&arena);
-```
-
 ### Dynamic Arrays
-A straight reimplementation of [nob.h](https://github.com/tsoding/nob.h)'s dynamic arrays.
-
-I just added a creation helper.
+A straight reimplementation of [nob.h](https://github.com/tsoding/nob.h)'s dynamic arrays. Like all the data structures in nsl, the `nsl_List` is valid when zero-initialized and can be used without any setup.
 ```c
-nsl_List(int) my_list = {0};
+nsl_List(int) my_list = {0}
+// list operations
+nsl_list_free(&my_list);
 ```
 
 ### Maps
-The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` value (in most cases representing an index) via a `u64` hash. And you can build more complex data structures with it. You are responsible for the uniqueness of the hash/keys.
+The `nsl_Map` is very minimal. It's supposed to be only a way to lookup `u64` value (in most cases representing an index) via a `u64` hash. And you can build more complex data structures with it. 
+
+> :warning: You are responsible for the uniqueness of the hash/keys.
+
