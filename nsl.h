@@ -62,6 +62,8 @@ typedef struct {
 #define NSL_STR(str) ((nsl_Str){.len = sizeof(str) - 1, .data = (str)})
 #define NSL_STR_STATIC(str) { .len = sizeof(str) - 1, .data = (str) }
 
+#define NSL_STR_NOT_FOUND ((usize)-1)
+
 #define NSL_STR_FMT "%.*s"
 #define NSL_STR_REPR "'%.*s'"
 #define NSL_STR_ARG(str) (i32)(str).len, (str).data
@@ -118,8 +120,27 @@ typedef enum {
         T *items;                                                                                  \
     }
 
-typedef nsl_List(char) nsl_StrBuilder;
+typedef nsl_List(char) nsl_StrBuffer;
+
+#define nsl_sb_push_c(sb, c)       nsl_list_push(sb, c)
+#define nsl_sb_push_cstr(sb, cstr) nsl_list_extend(sb, strlen(cstr), cstr)
+#define nsl_sb_push_str(sb, str)   nsl_list_extend(sb, (str).len, (str).data)
+#define nsl_sb_to_str(sb)          nsl_str_from_parts((sb)->len, (sb)->items)
+
+#define nsl_sb_push_fmt(sb, ...)                                                                   \
+    do {                                                                                           \
+        i32 size = snprintf(NULL, 0, __VA_ARGS__);                                                 \
+        nsl_list_reserve(sb, size + 1);                                                            \
+        snprintf(&(sb)->items[(sb)->len ? (sb)->len - 1 : 0], size + 1, __VA_ARGS__);              \
+        (sb)->len += size;                                                                         \
+    } while (0)
+
+
 typedef nsl_List(u8) nsl_ByteBuffer;
+
+#define nsl_bb_push_bytes(bb, size, bytes) nsl_list_extend(bb, size, (const u8*)bytes)
+#define nsl_bb_to_bytes(bb) nsl_bytes_from_parts((bb)->len, (bb)->items)
+
 
 #define NSL_UNUSED(v) (void)(v)
 #define NSL_PASS ((void)(0))
@@ -290,8 +311,8 @@ NSL_API void nsl_file_close(FILE *file);
 NSL_API usize nsl_file_size(FILE *file);
 
 NSL_API nsl_Str nsl_file_read_str(FILE *file, nsl_Arena *arena);
-NSL_API nsl_Str nsl_file_read_sb(FILE *file, nsl_StrBuilder *sb);
-NSL_API nsl_Str nsl_file_read_line(FILE *file, nsl_StrBuilder *sb);
+NSL_API nsl_Str nsl_file_read_sb(FILE *file, nsl_StrBuffer *sb);
+NSL_API nsl_Str nsl_file_read_line(FILE *file, nsl_StrBuffer *sb);
 
 NSL_API nsl_Bytes nsl_file_read_bytes(FILE *file, usize size, u8 *buffer);
 
@@ -318,22 +339,6 @@ NSL_API bool nsl_os_is_dir(nsl_Path path);
 NSL_API nsl_Error nsl_os_remove(nsl_Path path);
 
 NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2);
-
-
-#define nsl_sb_push_c(sb, c) nsl_list_push(sb, c)
-#define nsl_sb_push_cstr(sb, cstr) nsl_list_extend(sb, strlen(cstr), cstr)
-#define nsl_sb_push_str(sb, str) nsl_list_extend(sb, (str).len, (str).data)
-#define nsl_sb_push_fmt(sb, ...)                                                                   \
-    do {                                                                                           \
-        i32 size = snprintf(NULL, 0, __VA_ARGS__);                                                 \
-        nsl_list_reserve(sb, size + 1);                                                            \
-        snprintf(&(sb)->items[(sb)->len ? (sb)->len - 1 : 0], size + 1, __VA_ARGS__);              \
-        (sb)->len += size;                                                                         \
-    } while (0)
-#define nsl_sb_to_str(sb) nsl_str_from_parts((sb)->len, (sb)->items)
-
-#define nsl_bb_push_bytes(bb, size, bytes) nsl_list_extend(bb, size, (const u8*)bytes)
-#define nsl_bb_to_bytes(bb) nsl_bytes_from_parts((bb)->len, (bb)->items)
 
 
 #define NSL_LIST_INITIAL_CAPACITY 8
@@ -633,16 +638,6 @@ NSL_API nsl_Path nsl_path_parent(nsl_Path path);
 NSL_API nsl_Path nsl_path_absolute(nsl_Arena *arena, nsl_Path path);
 
 
-#define NSL_STR_NOT_FOUND ((usize)-1)
-
-#define NSL_STR_LETTERS     NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-#define NSL_STR_UPPERCASE   NSL_STR("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-#define NSL_STR_LOWERCASE   NSL_STR("abcdefghijklmnopqrstuvwxyz")
-#define NSL_STR_DIGITS      NSL_STR("0123456789")
-#define NSL_STR_HEXDIGITS   NSL_STR("0123456789abcdefABCDEF")
-#define NSL_STR_PUNCTUATION NSL_STR("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
-#define NSL_STR_WHITESPACE  NSL_STR(" \t\n\r\x0b\x0c")
-
 NSL_API nsl_Str nsl_str_from_parts(usize size, const char *cstr);
 NSL_API nsl_Str nsl_str_from_bytes(nsl_Bytes bytes);
 NSL_API nsl_Bytes nsl_str_to_bytes(nsl_Str s);
@@ -663,15 +658,6 @@ NSL_API nsl_Str nsl_str_join_suffix(nsl_Str suffix, usize count, nsl_Str *s, nsl
 NSL_API nsl_Str nsl_str_join_prefix(nsl_Str prefix, usize count, nsl_Str *s, nsl_Arena *arena);
 // Joins and wraps the elements
 NSL_API nsl_Str nsl_str_join_wrap(nsl_Str sep, nsl_Str wrap, usize count, nsl_Str *s, nsl_Arena *arena);
-
-NSL_API nsl_Str nsl_str_upper(nsl_Str s, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_lower(nsl_Str s, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_replace(nsl_Str s, nsl_Str old, nsl_Str new, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_center(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_ljust(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_rjust(nsl_Str s, usize width, char fillchar, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_repeat(nsl_Str s, usize count, nsl_Arena *arena);
-NSL_API nsl_Str nsl_str_reverse(nsl_Str s, nsl_Arena *arena);
 
 NSL_API bool nsl_str_eq(nsl_Str s1, nsl_Str s2);
 NSL_API bool nsl_str_eq_ignorecase(nsl_Str s1, nsl_Str s2);
@@ -913,7 +899,7 @@ NSL_API nsl_Str nsl_file_read_str(FILE* file, nsl_Arena* arena) {
     return nsl_str_from_parts(size, data);
 }
 
-NSL_API nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
+NSL_API nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuffer* sb) {
     usize size = nsl_file_size(file);
     nsl_list_reserve(sb, size);
     char* start = sb->len ? &sb->items[sb->len - 1] : sb->items;
@@ -922,7 +908,7 @@ NSL_API nsl_Str nsl_file_read_sb(FILE* file, nsl_StrBuilder* sb) {
     return nsl_str_from_parts(size, start);
 }
 
-NSL_API nsl_Str nsl_file_read_line(FILE* file, nsl_StrBuilder* sb) {
+NSL_API nsl_Str nsl_file_read_line(FILE* file, nsl_StrBuffer* sb) {
     usize off = sb->len;
     i32 c = 0;
     while (!feof(file) && c != '\n') {
@@ -1917,118 +1903,6 @@ NSL_API nsl_Str nsl_str_join_wrap(nsl_Str sep, nsl_Str wrap, usize count, nsl_St
     return nsl_str_from_parts(size, buffer);
 }
 
-NSL_API nsl_Str nsl_str_upper(nsl_Str s, nsl_Arena *arena) {
-    char *buffer = nsl_arena_alloc(arena, s.len + 1);
-    buffer[s.len] = '\0';
-    for (usize i = 0; i < s.len; i++) {
-        buffer[i] = nsl_char_to_upper(s.data[i]);
-    }
-    return nsl_str_from_parts(s.len, buffer);
-}
-
-NSL_API nsl_Str nsl_str_lower(nsl_Str s, nsl_Arena *arena) {
-    char *buffer = nsl_arena_alloc(arena, s.len + 1);
-    buffer[s.len] = '\0';
-    for (usize i = 0; i < s.len; i++) {
-        buffer[i] = nsl_char_to_lower(s.data[i]);
-    }
-    return nsl_str_from_parts(s.len, buffer);
-}
-
-NSL_API nsl_Str nsl_str_replace(nsl_Str s, nsl_Str old, nsl_Str new, nsl_Arena *arena) {
-    usize count = nsl_str_count(s, old);
-    usize new_size = (s.len - (old.len * count) + (count * new.len));
-    char *buffer = nsl_arena_alloc(arena, new_size + 1);
-    buffer[new_size] = '\0';
-
-    for (usize i = 0, j = 0; i < s.len;) {
-        if (old.len <= s.len - i && memcmp(&s.data[i], old.data, old.len) == 0) {
-            memcpy(&buffer[j], new.data, new.len);
-            i += old.len;
-            j += new.len;
-        } else {
-            buffer[j++] = s.data[i++];
-        }
-    }
-
-    return nsl_str_from_parts(new_size, buffer);
-}
-
-NSL_API nsl_Str nsl_str_center(nsl_Str s, usize width, char fillchar, nsl_Arena *arena) {
-    if (width < s.len) {
-        return nsl_str_copy(s, arena);
-    }
-    char *buffer = nsl_arena_calloc(arena, width + 1);
-    const usize left_width = (width - s.len) / 2;
-    const usize right_width = (width - s.len - left_width);
-    usize idx = 0;
-    for (usize i = 0; i < left_width; i++) {
-        buffer[idx++] = fillchar;
-    }
-    for (usize i = 0; i < s.len; i++) {
-        buffer[idx++] = s.data[i];
-    }
-    for (usize i = 0; i < right_width; i++) {
-        buffer[idx++] = fillchar;
-    }
-    return nsl_str_from_parts(width, buffer);
-}
-
-NSL_API nsl_Str nsl_str_ljust(nsl_Str s, usize width, char fillchar, nsl_Arena *arena) {
-    if (width < s.len) {
-        return nsl_str_copy(s, arena);
-    }
-    char *buffer = nsl_arena_calloc(arena, width + 1);
-    usize idx = 0;
-    for (usize i = 0; i < s.len; i++) {
-        buffer[idx++] = s.data[i];
-    }
-    for (usize i = 0; i < width - s.len; i++) {
-        buffer[idx++] = fillchar;
-    }
-    return nsl_str_from_parts(width, buffer);
-}
-
-NSL_API nsl_Str nsl_str_rjust(nsl_Str s, usize width, char fillchar, nsl_Arena *arena) {
-    if (width < s.len) {
-        return nsl_str_copy(s, arena);
-    }
-    char *buffer = nsl_arena_calloc(arena, width + 1);
-    usize idx = 0;
-    for (usize i = 0; i < width - s.len; i++) {
-        buffer[idx++] = fillchar;
-    }
-    for (usize i = 0; i < s.len; i++) {
-        buffer[idx++] = s.data[i];
-    }
-
-    return nsl_str_from_parts(width, buffer);
-}
-
-NSL_API nsl_Str nsl_str_repeat(nsl_Str s, usize count, nsl_Arena *arena) {
-    usize len = s.len * count;
-    char *buffer = nsl_arena_alloc(arena, len + 1);
-    buffer[len] = '\0';
-
-    usize idx = 0;
-    for (usize i = 0; i < count; i++) {
-        for (usize j = 0; j < s.len; j++) {
-            buffer[idx++] = s.data[j];
-        }
-    }
-
-    return nsl_str_from_parts(len, buffer);
-}
-
-NSL_API nsl_Str nsl_str_reverse(nsl_Str s, nsl_Arena *arena) {
-    char *buffer = nsl_arena_alloc(arena, s.len + 1);
-    buffer[s.len] = '\0';
-    for (usize i = 0; i < s.len; i++) {
-        buffer[i] = s.data[s.len - i - 1];
-    }
-    return nsl_str_from_parts(s.len, buffer);
-}
-
 NSL_API bool nsl_str_eq(nsl_Str s1, nsl_Str s2) {
     if (s1.len != s2.len) {
         return false;
@@ -2764,7 +2638,7 @@ NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
 
 #elif NSL_WIN32
 
-static void _nsl_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuilder *sb) {
+static void _nsl_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuffer *sb) {
     // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
     for (usize i = 0; i < argc; i++) {
         if (0 < i) nsl_list_push(sb, ' ');
@@ -2807,7 +2681,7 @@ NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
 
     DWORD result = 0;
 
-    nsl_StrBuilder sb = {0};
+    nsl_StrBuffer sb = {0};
 
     _nsl_cmd_win32_wrap(argc, argv, &sb);
     nsl_list_push(&sb, '\0');

@@ -1,7 +1,7 @@
 #include "nsl.h"
 
 static void test_string_builder(void) {
-    nsl_StrBuilder sb = {0};
+    nsl_StrBuffer sb = {0};
 
     nsl_sb_push_fmt(&sb, "%s", "what");
     nsl_Str s = nsl_sb_to_str(&sb);

@@ -12,7 +12,7 @@ static void test_file_read_str(void) {
     nsl_Error err = nsl_file_open(&file, NSL_PATH(__FILE__), "r");
     NSL_ASSERT(file && err == 0);
 
-    nsl_StrBuilder sb = {0};
+    nsl_StrBuffer sb = {0};
 
     nsl_Str content = nsl_file_read_sb(file, &sb);
     nsl_Str line = nsl_str_chop_by_delim(&content, '\n');
@@ -29,7 +29,7 @@ static void test_file_read_sb(void) {
     nsl_Error error = nsl_file_open(&file, NSL_PATH(__FILE__), "r");
     NSL_ASSERT(file && error == 0);
 
-    nsl_StrBuilder sb = {0};
+    nsl_StrBuffer sb = {0};
 
     nsl_Str content = nsl_file_read_sb(file, &sb);
     nsl_Str line = nsl_str_chop_by_delim(&content, '\n');
@@ -44,7 +44,7 @@ static void test_file_read_line(void) {
     nsl_Error error = nsl_file_open(&file, NSL_PATH(__FILE__), "r");
     NSL_ASSERT(file && error == 0);
 
-    nsl_StrBuilder sb = {0};
+    nsl_StrBuffer sb = {0};
 
     nsl_Str line = nsl_file_read_line(file, &sb);
     NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../../nsl.h\"\n")));

@@ -23,18 +23,6 @@ static void test_str_compare(void) {
     NSL_ASSERT(nsl_str_is_empty(NSL_STR("")) == true && "string should be empty");
 }
 
-static void test_str_transform(void) {
-    nsl_Arena arena = {0};
-    nsl_Str s = NSL_STR("Hello, World");
-    nsl_Str lower = nsl_str_lower(s, &arena);
-    nsl_Str upper = nsl_str_upper(s, &arena);
-
-    NSL_ASSERT(nsl_str_eq(lower, NSL_STR("hello, world")));
-    NSL_ASSERT(nsl_str_eq(upper, NSL_STR("HELLO, WORLD")));
-
-    nsl_arena_free(&arena);
-}
-
 static void test_str_copy(void) {
     nsl_Arena arena = {0};
 
@@ -207,32 +195,6 @@ static void test_str_count(void) {
     NSL_ASSERT(c == 2);
 }
 
-static void test_str_replace(void) {
-    nsl_Arena arena = {0};
-
-    nsl_Str s = NSL_STR("Hello, World");
-    nsl_Str goodbye = nsl_str_replace(s, NSL_STR("Hello"), NSL_STR("Goodbye"), &arena);
-    nsl_Str all = nsl_str_replace(s, NSL_STR("World"), NSL_STR("All!"), &arena);
-
-    NSL_ASSERT(nsl_str_eq(s, NSL_STR("Hello, World")));
-    NSL_ASSERT(nsl_str_eq(goodbye, NSL_STR("Goodbye, World")));
-    NSL_ASSERT(nsl_str_eq(all, NSL_STR("Hello, All!")));
-
-    nsl_Str max_test = NSL_STR("test test test");
-    nsl_Str result = nsl_str_replace(max_test, NSL_STR("test"), NSL_STR("result"), &arena);
-    NSL_ASSERT(nsl_str_eq(result, NSL_STR("result result result")));
-
-    nsl_Str dash = NSL_STR("c-language");
-    nsl_Str res = nsl_str_replace(dash, NSL_STR("-"), NSL_STR(""), &arena);
-    NSL_ASSERT(nsl_str_eq(res, NSL_STR("clanguage")));
-
-    nsl_Str edge = NSL_STR("-language");
-    nsl_Str res2 = nsl_str_replace(edge, NSL_STR("-"), NSL_STR(""), &arena);
-    NSL_ASSERT(nsl_str_eq(res2, NSL_STR("language")));
-
-    nsl_arena_free(&arena);
-}
-
 static void test_str_substring(void) {
     nsl_Str s = NSL_STR("Hello, World");
     nsl_Str substring = nsl_str_substring(s, 0, 4);
@@ -265,32 +227,6 @@ static void test_str_join(void) {
     nsl_Str res5 = nsl_str_join(NSL_STR(" "), 0, NULL, &arena);
     NSL_ASSERT(nsl_str_eq(res5, NSL_STR("")));
 
-    nsl_arena_free(&arena);
-}
-
-static void test_str_justify(void) {
-    nsl_Arena arena = {0};
-    const usize width = 10;
-    nsl_Str center = nsl_str_center(NSL_STR("Hello"), width, ' ', &arena);
-    NSL_ASSERT(nsl_str_eq(center, NSL_STR("  Hello   ")));
-    nsl_Str left = nsl_str_ljust(NSL_STR("Hello"), width, ' ', &arena);
-    NSL_ASSERT(nsl_str_eq(left, NSL_STR("Hello     ")));
-    nsl_Str right = nsl_str_rjust(NSL_STR("Hello"), width, ' ', &arena);
-    NSL_ASSERT(nsl_str_eq(right, NSL_STR("     Hello")));
-    nsl_arena_free(&arena);
-}
-
-static void test_str_repeat(void) {
-    nsl_Arena arena = {0};
-    nsl_Str tf_fleet = nsl_str_repeat(NSL_STR("|-#-| "), 4, &arena);
-    NSL_ASSERT(nsl_str_eq(tf_fleet, NSL_STR("|-#-| |-#-| |-#-| |-#-| ")));
-    nsl_arena_free(&arena);
-}
-
-static void test_str_reverse(void) {
-    nsl_Arena arena = {0};
-    nsl_Str s = nsl_str_reverse(NSL_STR("Hello, World"), &arena);
-    NSL_ASSERT(nsl_str_eq(s, NSL_STR("dlroW ,olleH")));
     nsl_arena_free(&arena);
 }
 
@@ -348,7 +284,6 @@ static void test_str_try_take(void) {
 void run_test_str(void);
 void run_test_str(void) {
     test_str_compare();
-    test_str_transform();
     test_str_copy();
     test_str_append();
     test_str_trim();
@@ -358,12 +293,8 @@ void run_test_str(void) {
     test_str_number_converting();
     test_str_find();
     test_str_count();
-    test_str_replace();
     test_str_substring();
     test_str_join();
-    test_str_justify();
-    test_str_repeat();
-    test_str_reverse();
     test_str_hash();
     test_str_format();
     test_str_take();
