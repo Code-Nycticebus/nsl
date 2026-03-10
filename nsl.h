@@ -11,17 +11,21 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-#ifdef _WIN32
-#   define NSL_WIN32 1
+#if defined(_WIN32) || defined(_WIN64)
+#   define NSL_WIN32
 #   include <windows.h>
 #   include <io.h>
 #else
-#   define NSL_POSIX 1
+#   define NSL_POSIX
 #   include <sys/wait.h>
 #   include <sys/stat.h>
 #   include <unistd.h>
 #   include <dirent.h>
 #   include <dlfcn.h>
+#endif
+
+#ifndef NSL_API
+#    define NSL_API
 #endif
 
 #ifndef NSL_NO_INT_TYPEDEFS
@@ -98,8 +102,11 @@ typedef struct {
 } nsl_Arena;
 
 typedef enum {
-    NSL_NO_ERROR = 0,
+    NSL_ERROR    = -1,
+    NSL_NO_ERROR =  0,
+
     // 1-255 reserved for process return values
+
     NSL_ERROR_FILE_NOT_FOUND = 256,
     NSL_ERROR_ACCESS_DENIED,
     NSL_ERROR_ALREADY_EXISTS,
@@ -108,8 +115,6 @@ typedef enum {
     NSL_ERROR_FILE_BUSY,
     NSL_ERROR_PARSE,
     NSL_ERROR_PATH_TOO_LONG,
-
-    NSL_ERROR = -1,
 } nsl_Error;
 
 #define nsl_List(T)                                                                                \
@@ -172,30 +177,7 @@ typedef nsl_List(u8) nsl_ByteBuffer;
     } while (0)
 
 
-#if defined(__clang__)
-#    define NSL_COMPILER_CLANG
-#    define NSL_COMPILER_NAME "clang"
-#elif defined(__GNUC__) && !defined(__clang__)
-#    define NSL_COMPILER_GCC
-#    define NSL_COMPILER_NAME "gcc"
-#elif defined(__TINYC__)
-#    define NSL_COMPILER_TCC
-#    define NSL_COMPILER_NAME "tcc"
-#elif defined(_MSC_VER)
-#    define NSL_COMPILER_MSVC
-#    define NSL_COMPILER_NAME "cl"
-#elif defined(__MINGW32__)
-#    define NSL_COMPILER_MINGW32
-#    define NSL_COMPILER_NAME "mingw32"
-#elif defined(__MINGW64__)
-#    define NSL_COMPILER_MINGW64
-#    define NSL_COMPILER_NAME "mingw64"
-#else
-#    define NSL_COMPILER_UNKNOWN
-#    define NSL_COMPILER_NAME "unknown"
-#endif
-
-#if defined(NSL_COMPILER_GCC) || defined(NSL_COMPILER_CLANG)
+#if defined(__GNUC__) || defined(__clang__) // could be improved by '__has_attribute'
 #    define NSL_EXPORT        __attribute__((used))
 #    define NSL_NORETURN      __attribute__((noreturn))
 #    define NSL_PURE_FN       __attribute__((pure)) __attribute__((warn_unused_result))
@@ -203,7 +185,7 @@ typedef nsl_List(u8) nsl_ByteBuffer;
 #    define NSL_LIKELY(exp)   __builtin_expect(!!(exp), 1)
 #    define NSL_UNLIKELY(exp) __builtin_expect(!!(exp), 0)
 #    define NSL_FMT(fmt_idx)  __attribute__((format(printf, fmt_idx, fmt_idx + 1)))
-#elif defined(NSL_COMPILER_MSVC)
+#elif defined(_MSC_VER)
 #    include <sal.h>
 #    define NSL_EXPORT        __declspec(dllexport)
 #    define NSL_NORETURN      __declspec(noreturn)
@@ -221,10 +203,6 @@ typedef nsl_List(u8) nsl_ByteBuffer;
 #    define NSL_LIKELY(exp)   (exp)
 #    define NSL_UNLIKELY(exp) (exp)
 #    define NSL_FMT(fmt_idx)
-#endif
-
-#ifndef NSL_API
-#    define NSL_API
 #endif
 
 #if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && defined(__ORDER_LITTLE_ENDIAN__)
@@ -2369,7 +2347,7 @@ NSL_API u64 nsl_str_hash(nsl_Str s) {
     return hash;
 }
 
-#if NSL_POSIX
+#if defined(NSL_POSIX)
 
 NSL_API nsl_Error nsl_dll_load(nsl_Dll* dll, nsl_Path path) {
     if (!nsl_os_exists(path)) {
@@ -2636,7 +2614,7 @@ NSL_API bool nsl_os_older_than(nsl_Path p1, nsl_Path p2) {
     return info[0].st_mtime < info[1].st_mtime;
 }
 
-#elif NSL_WIN32
+#elif defined(NSL_WIN32)
 
 static void _nsl_cmd_win32_wrap(usize argc, const char **argv, nsl_StrBuffer *sb) {
     // https://github.com/tsoding/nob.h/blob/45fa6efcd3e105bb4e39fa4cb9b57c19690d00a2/nob.h#L893
