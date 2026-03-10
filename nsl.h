@@ -414,15 +414,15 @@ NSL_API NSL_CONST_FN char nsl_char_HEX_from_u8(u8 d);
     NSL_API NSL_CONST_FN T nsl_##T##_to_be(T value);                                               \
     NSL_API NSL_CONST_FN T nsl_##T##_from_be(T value);                                             \
     NSL_API T nsl_##T##_from_be_bytes(nsl_Bytes bytes);                                            \
-    NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_Arena *arena);                            \
+    NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_ByteBuffer *buffer);                      \
                                                                                                    \
     NSL_API NSL_CONST_FN T nsl_##T##_to_le(T value);                                               \
     NSL_API NSL_CONST_FN T nsl_##T##_from_le(T value);                                             \
     NSL_API T nsl_##T##_from_le_bytes(nsl_Bytes bytes);                                            \
-    NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_Arena *arena);                            \
+    NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_ByteBuffer *buffer);                      \
                                                                                                    \
     NSL_API T nsl_##T##_from_ne_bytes(nsl_Bytes bytes);                                            \
-    NSL_API nsl_Bytes nsl_##T##_to_ne_bytes(T value, nsl_Arena *arena);                            \
+    NSL_API nsl_Bytes nsl_##T##_to_ne_bytes(T value, nsl_ByteBuffer *buffer);                      \
                                                                                                    \
     NSL_API NSL_CONST_FN T nsl_##T##_max(T a, T b);                                                \
     NSL_API NSL_CONST_FN T nsl_##T##_min(T a, T b);                                                \
@@ -1469,17 +1469,18 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
         return value;                                                                              \
     }                                                                                              \
                                                                                                    \
-    NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_Arena *arena) {                           \
-        u8 *buffer = nsl_arena_alloc(arena, sizeof(value));                                        \
+    NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_ByteBuffer *buffer) {                     \
+        nsl_list_reserve(buffer, sizeof(value));                                                   \
+        u8 *ptr = &buffer->items[buffer->len];                                                     \
         u8 *bytes = (u8 *)&value;                                                                  \
         for (usize i = 0; i < sizeof(value); i++) {                                                \
             if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                \
-                buffer[i] = bytes[i];                                                              \
+                ptr[i] = bytes[i];                                                                 \
             } else {                                                                               \
-                buffer[sizeof(value) - i - 1] = bytes[i];                                          \
+                ptr[sizeof(value) - i - 1] = bytes[i];                                             \
             }                                                                                      \
         }                                                                                          \
-        return nsl_bytes_from_parts(sizeof(value), buffer);                                        \
+        return nsl_bytes_from_parts(sizeof(value), ptr);                                           \
     }                                                                                              \
                                                                                                    \
     NSL_API T nsl_##T##_to_le(T value) {                                                           \
@@ -1506,17 +1507,18 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
         return value;                                                                              \
     }                                                                                              \
                                                                                                    \
-    NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_Arena *arena) {                           \
-        u8 *buffer = nsl_arena_alloc(arena, sizeof(value));                                        \
+    NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_ByteBuffer *buffer) {                     \
+        nsl_list_reserve(buffer, sizeof(value));                                                   \
+        u8 *ptr = &buffer->items[buffer->len];                                                     \
         u8 *bytes = (u8 *)&value;                                                                  \
         for (usize i = 0; i < sizeof(value); i++) {                                                \
             if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                             \
-                buffer[i] = bytes[i];                                                              \
+                ptr[i] = bytes[i];                                                                 \
             } else {                                                                               \
-                buffer[sizeof(value) - i - 1] = bytes[i];                                          \
+                ptr[sizeof(value) - i - 1] = bytes[i];                                             \
             }                                                                                      \
         }                                                                                          \
-        return nsl_bytes_from_parts(sizeof(value), buffer);                                        \
+        return nsl_bytes_from_parts(sizeof(value), ptr);                                           \
     }                                                                                              \
                                                                                                    \
     NSL_API T nsl_##T##_from_ne_bytes(nsl_Bytes bytes) {                                           \
@@ -1526,11 +1528,11 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
         return value;                                                                              \
     }                                                                                              \
                                                                                                    \
-    NSL_API nsl_Bytes nsl_##T##_to_ne_bytes(T value, nsl_Arena *arena) {                           \
+    NSL_API nsl_Bytes nsl_##T##_to_ne_bytes(T value, nsl_ByteBuffer *buffer) {                     \
         if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
-            return nsl_##T##_to_be_bytes(value, arena);                                            \
+            return nsl_##T##_to_be_bytes(value, buffer);                                           \
         }                                                                                          \
-        return nsl_##T##_to_le_bytes(value, arena);                                                \
+        return nsl_##T##_to_le_bytes(value, buffer);                                               \
     }                                                                                              \
                                                                                                    \
     NSL_API T nsl_##T##_max(T a, T b) {                                                            \

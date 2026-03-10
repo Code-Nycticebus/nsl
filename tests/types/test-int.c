@@ -35,19 +35,19 @@ static void test_u8_from_bytes(void) {
 }
 
 static void test_u8_to_bytes(void) {
-    nsl_Arena arena = {0};
-    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_be_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
+    nsl_ByteBuffer buffer = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_be_bytes(0x12, &buffer), NSL_BYTES(0x12)) &&
            "Not converted correctly");
-    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_le_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_le_bytes(0x12, &buffer), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
-    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_ne_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_ne_bytes(0x12, &buffer), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #else
-    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_ne_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u8_to_ne_bytes(0x12, &buffer), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #endif
-    nsl_arena_free(&arena);
+    nsl_list_free(&buffer);
 }
 
 static void test_u8_hash(void) {
@@ -100,19 +100,19 @@ static void test_i8_from_bytes(void) {
 }
 
 static void test_i8_to_bytes(void) {
-    nsl_Arena arena = {0};
-    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_be_bytes((i8)0x12, &arena), NSL_BYTES(0x12)) &&
+    nsl_ByteBuffer buffer = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_be_bytes((i8)0x12, &buffer), NSL_BYTES(0x12)) &&
            "Not converted correctly");
-    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_le_bytes((i8)0x12, &arena), NSL_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_le_bytes((i8)0x12, &buffer), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
-    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_ne_bytes(0x12, &arena), NSL_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_ne_bytes(0x12, &buffer), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #else
-    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_ne_bytes((i8)0x12, &arena), NSL_BYTES(0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i8_to_ne_bytes((i8)0x12, &buffer), NSL_BYTES(0x12)) &&
            "Not converted correctly");
 #endif
-    nsl_arena_free(&arena);
+    nsl_list_free(&buffer);
 }
 
 static void test_i8_hash(void) {
@@ -170,19 +170,19 @@ static void test_u16_from_bytes(void) {
 }
 
 static void test_u16_to_bytes(void) {
-    nsl_Arena arena = {0};
-    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_be_bytes(0x1234, &arena), NSL_BYTES(0x12, 0x34)) &&
+    nsl_ByteBuffer buffer = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_be_bytes(0x1234, &buffer), NSL_BYTES(0x12, 0x34)) &&
            "Not converted correctly");
-    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_le_bytes(0x1234, &arena), NSL_BYTES(0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_le_bytes(0x1234, &buffer), NSL_BYTES(0x34, 0x12)) &&
            "Not converted correctly");
 #if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
-    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_ne_bytes(0x1234, &arena), NSL_BYTES(0x12, 0x34)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_ne_bytes(0x1234, &buffer), NSL_BYTES(0x12, 0x34)) &&
            "Not converted correctly");
 #else
-    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_ne_bytes(0x1234, &arena), NSL_BYTES(0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u16_to_ne_bytes(0x1234, &buffer), NSL_BYTES(0x34, 0x12)) &&
            "Not converted correctly");
 #endif
-    nsl_arena_free(&arena);
+    nsl_list_free(&buffer);
 }
 
 static void test_u16_hash(void) {
@@ -238,19 +238,19 @@ static void test_i16_from_bytes(void) {
 }
 
 static void test_i16_to_bytes(void) {
-    nsl_Arena arena = {0};
-    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_be_bytes(0x1234, &arena), NSL_BYTES(0x12, 0x34)) &&
+    nsl_ByteBuffer buffer = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_be_bytes(0x1234, &buffer), NSL_BYTES(0x12, 0x34)) &&
            "Not converted correctly");
-    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_le_bytes(0x1234, &arena), NSL_BYTES(0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_le_bytes(0x1234, &buffer), NSL_BYTES(0x34, 0x12)) &&
            "Not converted correctly");
 #if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
-    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_ne_bytes(0x1234, &arena), NSL_BYTES(0x12, 0x34)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_ne_bytes(0x1234, &buffer), NSL_BYTES(0x12, 0x34)) &&
            "Not converted correctly");
 #else
-    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_ne_bytes(0x1234, &arena), NSL_BYTES(0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i16_to_ne_bytes(0x1234, &buffer), NSL_BYTES(0x34, 0x12)) &&
            "Not converted correctly");
 #endif
-    nsl_arena_free(&arena);
+    nsl_list_free(&buffer);
 }
 
 static void test_i16_hash(void) {
@@ -310,19 +310,19 @@ static void test_u32_from_bytes(void) {
 }
 
 static void test_u32_to_bytes(void) {
-    nsl_Arena arena = {0};
-    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_be_bytes(0x12345678, &arena), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
+    nsl_ByteBuffer buffer = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_be_bytes(0x12345678, &buffer), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
            "Not converted correctly");
-    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_le_bytes(0x12345678, &arena), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_le_bytes(0x12345678, &buffer), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
            "Not converted correctly");
 #if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
-    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_ne_bytes(0x12345678, &arena), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_ne_bytes(0x12345678, &buffer), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
            "Not converted correctly");
 #else
-    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_ne_bytes(0x12345678, &arena), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_u32_to_ne_bytes(0x12345678, &buffer), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
            "Not converted correctly");
 #endif
-    nsl_arena_free(&arena);
+    nsl_list_free(&buffer);
 }
 
 static void test_u32_hash(void) {
@@ -382,19 +382,19 @@ static void test_i32_from_bytes(void) {
 }
 
 static void test_i32_to_bytes(void) {
-    nsl_Arena arena = {0};
-    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_be_bytes(0x12345678, &arena), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
+    nsl_ByteBuffer buffer = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_be_bytes(0x12345678, &buffer), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
            "Not converted correctly");
-    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_le_bytes(0x12345678, &arena), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_le_bytes(0x12345678, &buffer), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
            "Not converted correctly");
 #if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
-    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_ne_bytes(0x12345678, &arena), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_ne_bytes(0x12345678, &buffer), NSL_BYTES(0x12, 0x34, 0x56, 0x78)) &&
            "Not converted correctly");
 #else
-    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_ne_bytes(0x12345678, &arena), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
+    NSL_ASSERT(nsl_bytes_eq(nsl_i32_to_ne_bytes(0x12345678, &buffer), NSL_BYTES(0x78, 0x56, 0x34, 0x12)) &&
            "Not converted correctly");
 #endif
-    nsl_arena_free(&arena);
+    nsl_list_free(&buffer);
 }
 
 static void test_i32_hash(void) {
@@ -455,19 +455,19 @@ static void test_u64_from_bytes(void) {
 }
 
 static void test_u64_to_bytes(void) {
-    nsl_Arena arena = {0};
-    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_be_bytes(0x1234567812345678, &arena),
+    nsl_ByteBuffer buffer = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_be_bytes(0x1234567812345678, &buffer),
                        NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
-    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_le_bytes(0x1234567812345678, &arena),
+    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_le_bytes(0x1234567812345678, &buffer),
                        NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
 #if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
-    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_ne_bytes(0x1234567812345678, &arena),
+    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_ne_bytes(0x1234567812345678, &buffer),
                        NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
 #else
-    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_ne_bytes(0x1234567812345678, &arena),
+    NSL_ASSERT(nsl_bytes_eq(nsl_u64_to_ne_bytes(0x1234567812345678, &buffer),
                        NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
 #endif
-    nsl_arena_free(&arena);
+    nsl_list_free(&buffer);
 }
 
 static void test_u64_hash(void) {
@@ -528,19 +528,19 @@ static void test_i64_from_bytes(void) {
 }
 
 static void test_i64_to_bytes(void) {
-    nsl_Arena arena = {0};
-    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_be_bytes(0x1234567812345678, &arena),
+    nsl_ByteBuffer buffer = {0};
+    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_be_bytes(0x1234567812345678, &buffer),
                        NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
-    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_le_bytes(0x1234567812345678, &arena),
+    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_le_bytes(0x1234567812345678, &buffer),
                        NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
 #if NSL_BYTE_ORDER == NSL_ENDIAN_BIG
-    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_ne_bytes(0x1234567812345678, &arena),
+    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_ne_bytes(0x1234567812345678, &buffer),
                        NSL_BYTES(0x12, 0x34, 0x56, 0x78, 0x12, 0x34, 0x56, 0x78)));
 #else
-    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_ne_bytes(0x1234567812345678, &arena),
+    NSL_ASSERT(nsl_bytes_eq(nsl_i64_to_ne_bytes(0x1234567812345678, &buffer),
                        NSL_BYTES(0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12)));
 #endif
-    nsl_arena_free(&arena);
+    nsl_list_free(&buffer);
 }
 
 static void test_i64_hash(void) {
