@@ -3,9 +3,15 @@
 static void test_string_builder(void) {
     nsl_StrBuffer sb = {0};
 
-    nsl_sb_push_fmt(&sb, "%s", "what");
+    u64 idx = sb.len;
+    nsl_sb_push_fmt(&sb, "%s", "What");
+    for (u64 i = idx; i < sb.len; ++i) {
+        sb.items[i] = nsl_char_to_lower(sb.items[i]);
+    }
+
     nsl_Str s = nsl_sb_to_str(&sb);
     NSL_ASSERT(nsl_str_eq(s, NSL_STR("what")));
+
 
     nsl_list_free(&sb);
 }
