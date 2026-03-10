@@ -275,12 +275,12 @@ typedef struct {
   void *handle;
 } nsl_Dll;
 
-typedef void (*Function)(void);
+typedef void (*nsl_Function)(void);
 
 NSL_API nsl_Error nsl_dll_load(nsl_Dll* dll, nsl_Path path);
 NSL_API void nsl_dll_close(nsl_Dll *dll);
 
-NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol);
+NSL_API nsl_Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol);
 
 
 NSL_API nsl_Error nsl_file_open(FILE** out, nsl_Path path, const char *mode);
@@ -2368,8 +2368,8 @@ NSL_API void nsl_dll_close(nsl_Dll *dll) {
     dlclose(dll->handle);
 }
 
-NSL_API Function nsl_dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
-    Function result = NULL;
+NSL_API nsl_Function nsl_dll_symbol(nsl_Dll *handle, nsl_Str symbol) {
+    nsl_Function result = NULL;
     nsl_Arena arena = {0};
 
     const char* s = nsl_str_to_cstr(symbol, &arena);
@@ -2826,10 +2826,10 @@ NSL_API void nsl_dll_close(nsl_Dll *dll) {
   DeleteFileA(temp_file_name);
 }
 
-NSL_API Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
+NSL_API nsl_Function nsl_dll_symbol(nsl_Dll *dll, nsl_Str symbol) {
   nsl_Arena arena = {0};
   const char* s = nsl_str_to_cstr(symbol, &arena);
-  Function fn = (Function)GetProcAddress(dll->handle, s);
+  nsl_Function fn = (nsl_Function)GetProcAddress(dll->handle, s);
   nsl_arena_free(&arena);
   return fn;
 }
