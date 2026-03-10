@@ -1,7 +1,6 @@
-#include "nsl.h"
+#include "../nsl.h"
 
-void run_test_cmd(void);
-void run_test_cmd(void) {
+int main(void) {
     nsl_Cmd cmd = {0};
 
 #if defined(_WIN32)

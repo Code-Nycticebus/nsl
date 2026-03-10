@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 static void test_init(void) {
     nsl_Map map = {0};
@@ -156,8 +156,7 @@ static void test_stress(void) {
     nsl_map_free(&map);
 }
 
-void run_test_map(void);
-void run_test_map(void) {
+int main(void) {
     test_init();
     test_access();
     test_update();

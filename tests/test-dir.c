@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 static void test_dir_iteration(void) {
     bool is_empty = true;
@@ -9,9 +9,6 @@ static void test_dir_iteration(void) {
     NSL_ASSERT(is_empty == false && "the directory should not be empty");
 }
 
-
-
-void run_test_dir(void);
-void run_test_dir(void) {
+int main(void) {
     test_dir_iteration();
 }

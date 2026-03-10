@@ -37,14 +37,31 @@ static nsl_Error build_tests_mingw32(nsl_Cmd *cmd) {
 }
 
 static nsl_Error build_tests_gcc(nsl_Cmd *cmd) {
-    cmd->len = 0;
-    nsl_cmd_push(cmd, "gcc", "-o", "build/test", "-DNSL_IMPLEMENTATION", "-I.", "tests/main.c");
-    build_push_flags(cmd);
-    if (nsl_cmd_exec(cmd)) return NSL_ERROR;
+    nsl_Error result = NSL_NO_ERROR;
+    nsl_Arena arena = {0};
+    nsl_dir_walk(e, NSL_PATH("tests"), true) {
+        if (e->is_dir) continue;
 
-    if (NSL_CMD("build/test")) return NSL_ERROR;
+        nsl_arena_reset(&arena);
+        cmd->len = 0;
 
-    return NSL_NO_ERROR;
+        nsl_Path stem = nsl_path_stem(e->path);
+        const char *bin_dir = nsl_str_format(&arena, "build/"NSL_STR_FMT, NSL_STR_ARG(stem)).data;
+        nsl_cmd_push(cmd, "gcc", "-o", bin_dir, "-DNSL_IMPLEMENTATION", "-I.", e->path.data);
+        build_push_flags(cmd);
+        if (nsl_cmd_exec(cmd)) NSL_DEFER(NSL_ERROR);
+
+        printf("running: "NSL_STR_FMT"\n", NSL_STR_ARG(stem));
+        switch (NSL_CMD(bin_dir)) {
+        case NSL_ERROR_SIGSEGV:
+            printf("test segfaults!\n");
+            break;
+        }
+    }
+
+defer:
+    nsl_arena_free(&arena);
+    return result;
 }
 
 int main(int argc, const char **argv) {

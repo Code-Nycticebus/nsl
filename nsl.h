@@ -102,8 +102,8 @@ typedef struct {
 } nsl_Arena;
 
 typedef enum {
-    NSL_ERROR    = -1,
-    NSL_NO_ERROR =  0,
+    NSL_ERROR = -1,
+    NSL_NO_ERROR = 0,
 
     // 1-255 reserved for process return values
 
@@ -115,6 +115,8 @@ typedef enum {
     NSL_ERROR_FILE_BUSY,
     NSL_ERROR_PARSE,
     NSL_ERROR_PATH_TOO_LONG,
+    NSL_ERROR_SIGABRT, // Process called `abort()`
+    NSL_ERROR_SIGSEGV, // Segmentation fault
 } nsl_Error;
 
 #define nsl_List(T)                                                                                \
@@ -2395,6 +2397,13 @@ NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
     if (WIFEXITED(status)) {
         nsl_Error exit_code = WEXITSTATUS(status);
         return exit_code == 127 ? NSL_ERROR_FILE_NOT_FOUND : exit_code;
+    }
+    if (WIFSIGNALED(status)) {
+        int signal = WTERMSIG(status);
+        switch (signal) {
+            case  6: return NSL_ERROR_SIGABRT;
+            case 11: return NSL_ERROR_SIGSEGV;
+        }
     }
 
     return NSL_NO_ERROR;

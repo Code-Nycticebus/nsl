@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 static void test_bytes(void) {
     nsl_Arena arena = {0};
@@ -102,8 +102,7 @@ static void test_nc_bytes_hash(void) {
     NSL_ASSERT(nsl_bytes_hash(b1) != nsl_bytes_hash(b3) && "should not be equal");
 }
 
-void run_test_bytes(void);
-void run_test_bytes(void) {
+int main(void) {
     test_bytes();
     test_nc_bytes_str();
     test_to_hex();

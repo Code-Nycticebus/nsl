@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 #include <string.h>
 
@@ -117,8 +117,7 @@ static void test_null(void) {
     nsl_arena_free_chunk(NULL, buffer);
 }
 
-void run_test_arena(void);
-void run_test_arena(void) {
+int main(void) {
     test_arena();
     test_chunks();
     test_calloc();

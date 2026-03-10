@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 static void test_str_compare(void) {
     nsl_Str s = NSL_STR("Hello, World");
@@ -281,8 +281,7 @@ static void test_str_try_take(void) {
     NSL_ASSERT(nsl_str_try_take_right(&s, 2, &chunk) == false);
 }
 
-void run_test_str(void);
-void run_test_str(void) {
+int main(void) {
     test_str_compare();
     test_str_copy();
     test_str_append();

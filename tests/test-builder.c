@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 static void test_string_builder(void) {
     nsl_StrBuffer sb = {0};
@@ -29,8 +29,7 @@ static void test_bytes_builder(void) {
 }
 
 
-void run_test_builder(void);
-void run_test_builder(void) {
+int main(void) {
     test_string_builder();
     test_bytes_builder();
 }

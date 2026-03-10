@@ -1,4 +1,4 @@
-#include "../../nsl.h"
+#include "../nsl.h"
 
 static void test_file_open(void) {
     FILE* file = NULL;
@@ -16,7 +16,7 @@ static void test_file_read_str(void) {
 
     nsl_Str content = nsl_file_read_sb(file, &sb);
     nsl_Str line = nsl_str_chop_by_delim(&content, '\n');
-    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../../nsl.h\"")));
+    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../nsl.h\"")));
 
     NSL_ASSERT(err == 0);
 
@@ -33,7 +33,7 @@ static void test_file_read_sb(void) {
 
     nsl_Str content = nsl_file_read_sb(file, &sb);
     nsl_Str line = nsl_str_chop_by_delim(&content, '\n');
-    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../../nsl.h\"")));
+    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../nsl.h\"")));
 
     nsl_file_close(file);
     nsl_list_free(&sb);
@@ -47,7 +47,7 @@ static void test_file_read_line(void) {
     nsl_StrBuffer sb = {0};
 
     nsl_Str line = nsl_file_read_line(file, &sb);
-    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../../nsl.h\"\n")));
+    NSL_ASSERT(nsl_str_eq(line, NSL_STR("#include \"../nsl.h\"\n")));
 
     line = nsl_file_read_line(file, &sb);
     NSL_ASSERT(nsl_str_eq(line, NSL_STR("\n")));
@@ -92,8 +92,7 @@ static void test_file_write_bytes(void) {
     nsl_file_close(file);
 }
 
-void run_test_file(void);
-void run_test_file(void) {
+int main(void) {
     test_file_open();
     test_file_read_str();
     test_file_read_sb();

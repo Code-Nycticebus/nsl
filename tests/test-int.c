@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 /* u8 */
 static void test_u8_leading_bits(void) {
@@ -557,8 +557,7 @@ static void test_i64_next_pow2(void) {
 
 /* i64 */
 
-void run_test_int(void);
-void run_test_int(void) {
+int main(void) {
     test_u8_leading_bits();
     test_u8_swaping_bits();
     test_u8_endian();

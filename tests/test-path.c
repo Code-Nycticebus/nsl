@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 #include <stdio.h>
 
@@ -127,8 +127,7 @@ static void test_path_absolute(void) {
     nsl_arena_free(&arena);
 }
 
-void run_test_path(void);
-void run_test_path(void) {
+int main(void) {
     test_nc_path_eq();
     test_path_join();
     test_nc_path_normalize();

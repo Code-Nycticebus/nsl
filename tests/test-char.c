@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 static void test_char_test(void) {
     NSL_ASSERT(nsl_char_is_alnum('a') == true && "Did not test correctly");
@@ -64,8 +64,7 @@ static void test_char_convertion(void) {
     NSL_ASSERT(nsl_char_HEX_from_u8(10) == 'A' && "should be 'A'");
 }
 
-void run_test_char(void);
-void run_test_char(void) {
+int main(void) {
     test_char_test();
     test_char_convertion();
 }

@@ -1,4 +1,4 @@
-#include "nsl.h"
+#include "../nsl.h"
 
 #include <stdio.h>
 
@@ -278,8 +278,7 @@ static void test_for_each(void) {
     nsl_list_free(&list);
 }
 
-void run_test_list(void);
-void run_test_list(void) {
+int main(void) {
     test_vec();
     test_list_init();
     test_map();
