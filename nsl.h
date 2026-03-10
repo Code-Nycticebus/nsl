@@ -144,6 +144,7 @@ typedef nsl_List(char) nsl_StrBuffer;
 typedef nsl_List(u8) nsl_ByteBuffer;
 
 #define nsl_bb_push_bytes(bb, size, bytes) nsl_list_extend(bb, size, (const u8*)bytes)
+#define nsl_bb_push_var(bb, var) nsl_list_extend(bb, sizeof(var), (const u8*)&var)
 #define nsl_bb_to_bytes(bb) nsl_bytes_from_parts((bb)->len, (bb)->items)
 
 
@@ -1470,16 +1471,11 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
     }                                                                                              \
                                                                                                    \
     NSL_API nsl_Bytes nsl_##T##_to_be_bytes(T value, nsl_ByteBuffer *buffer) {                     \
-        nsl_list_reserve(buffer, sizeof(value));                                                   \
-        u8 *ptr = &buffer->items[buffer->len];                                                     \
-        u8 *bytes = (u8 *)&value;                                                                  \
-        for (usize i = 0; i < sizeof(value); i++) {                                                \
-            if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                \
-                ptr[i] = bytes[i];                                                                 \
-            } else {                                                                               \
-                ptr[sizeof(value) - i - 1] = bytes[i];                                             \
-            }                                                                                      \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                                 \
+            value = nsl_##T##_swap_bytes(value);                                                   \
         }                                                                                          \
+        u8 *ptr = &buffer->items[buffer->len];                                                     \
+        nsl_bb_push_var(buffer, value);                                                            \
         return nsl_bytes_from_parts(sizeof(value), ptr);                                           \
     }                                                                                              \
                                                                                                    \
@@ -1508,16 +1504,11 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
     }                                                                                              \
                                                                                                    \
     NSL_API nsl_Bytes nsl_##T##_to_le_bytes(T value, nsl_ByteBuffer *buffer) {                     \
-        nsl_list_reserve(buffer, sizeof(value));                                                   \
-        u8 *ptr = &buffer->items[buffer->len];                                                     \
-        u8 *bytes = (u8 *)&value;                                                                  \
-        for (usize i = 0; i < sizeof(value); i++) {                                                \
-            if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                             \
-                ptr[i] = bytes[i];                                                                 \
-            } else {                                                                               \
-                ptr[sizeof(value) - i - 1] = bytes[i];                                             \
-            }                                                                                      \
+        if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
+            value = nsl_##T##_swap_bytes(value);                                                   \
         }                                                                                          \
+        u8 *ptr = &buffer->items[buffer->len];                                                     \
+        nsl_bb_push_var(buffer, value);                                                            \
         return nsl_bytes_from_parts(sizeof(value), ptr);                                           \
     }                                                                                              \
                                                                                                    \
