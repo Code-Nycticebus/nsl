@@ -703,8 +703,7 @@ NSL_API u64 nsl_str_hash(nsl_Str s);
 
 #endif // _NSL_H_
 
-#if defined(NSL_IMPLEMENTATION) && !defined(_NSL_IMPLEMENTED)
-#define _NSL_IMPLEMENTED
+#if defined(NSL_IMPLEMENTATION)
 
 // 4 kb
 #define CHUNK_DEFAULT_SIZE 4096
