@@ -2698,7 +2698,7 @@ NSL_API nsl_Error nsl_cmd_exec_argv(size_t argc, const char **argv) {
     CloseHandle(pi.hThread);
 defer:
     nsl_list_free(&sb);
-    return (nsl_Error)result;
+    return result == STATUS_ACCESS_VIOLATION ? NSL_ERROR_SIGSEGV : (nsl_Error)result;
 }
 
 typedef struct nsl_DirNode {
