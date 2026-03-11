@@ -1478,6 +1478,7 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
         if (NSL_BYTE_ORDER == NSL_ENDIAN_LITTLE) {                                                 \
             value = nsl_##T##_swap_bytes(value);                                                   \
         }                                                                                          \
+        nsl_list_reserve(buffer, sizeof(T));                                                       \
         u8 *ptr = &buffer->items[buffer->len];                                                     \
         nsl_bb_push_var(buffer, value);                                                            \
         return nsl_bytes_from_parts(sizeof(value), ptr);                                           \
@@ -1511,6 +1512,7 @@ NSL_API char nsl_char_HEX_from_u8(u8 d) {
         if (NSL_BYTE_ORDER == NSL_ENDIAN_BIG) {                                                    \
             value = nsl_##T##_swap_bytes(value);                                                   \
         }                                                                                          \
+        nsl_list_reserve(buffer, sizeof(T));                                                       \
         u8 *ptr = &buffer->items[buffer->len];                                                     \
         nsl_bb_push_var(buffer, value);                                                            \
         return nsl_bytes_from_parts(sizeof(value), ptr);                                           \
