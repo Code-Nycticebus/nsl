@@ -549,9 +549,10 @@ NSL_API u64 nsl_str_hash(nsl_Str s);
 
 #define NSL_LIST_INITIAL_CAPACITY 8
 
-#define nsl_list_first(list) (NSL_ASSERT((list)->len > 0), (list)->items[0])
-#define nsl_list_last(list)  (NSL_ASSERT((list)->len > 0), (list)->items[(list)->len - 1])
-#define nsl_list_pop(list)   (NSL_ASSERT((list)->len > 0), (list)->items[--(list)->len])
+// https://github.com/tsoding/nob.h/blob/3f835d7bf0e5321fbcf8fbded06fa4ad30d282f3/nob.h#L386
+#define nsl_list_first(list) (list)->items[(NSL_ASSERT((list)->len > 0), 0)]
+#define nsl_list_last(list)  (list)->items[(NSL_ASSERT((list)->len > 0), (list)->len - 1)]
+#define nsl_list_pop(list)   (list)->items[(NSL_ASSERT((list)->len > 0), --(list)->len)]
 
 #define nsl_list_is_empty(list) (!(list)->len)
 #define nsl_list_clear(list) ((list)->len = 0)
