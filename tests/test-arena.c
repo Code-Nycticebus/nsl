@@ -90,9 +90,8 @@ static void test_reset(void) {
     char *big_buffer_after_reset = nsl_arena_alloc(&arena, more_bytes);
     NSL_ASSERT(big_buffer_after_reset && "Buffer was not allocated");
 
-    TestChunk *chunk_after_reset =
-        (TestChunk *)((usize)chunk - sizeof(TestChunk));
-    NSL_ASSERT(chunk_after_reset->allocated == sizeof(int) && "");
+    TestChunk *chunk_after_reset = (TestChunk *)((usize)chunk - sizeof(TestChunk));
+    NSL_ASSERT(chunk_after_reset->allocated == 0 && "");
 
     nsl_arena_free(&arena);
 }

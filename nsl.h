@@ -739,9 +739,8 @@ NSL_API void nsl_arena_free(nsl_Arena *arena) {
 
 NSL_API void nsl_arena_reset(nsl_Arena *arena) {
     for (nsl_Chunk *next = arena->begin; next != NULL; next = next->next) {
-        if (next->cap != 0) {
-            next->allocated = 0;
-        }
+        if (next->cap == 0) next->cap = next->allocated;
+        next->allocated = 0;
     }
 }
 
@@ -792,6 +791,16 @@ NSL_API void *nsl_arena_calloc(nsl_Arena *arena, usize size) {
 }
 
 NSL_API void *nsl_arena_alloc_chunk(nsl_Arena *arena, usize size) {
+    if (arena == NULL) return chunk_allocate(size)->data;
+
+    for (nsl_Chunk *chunk = arena->begin; chunk != NULL; chunk = chunk->next) {
+        if (/*!*/ chunk->cap /*!*/ && size <= chunk->cap && chunk->allocated == 0) {
+            chunk->allocated = chunk->cap;
+            chunk->cap = 0;
+            return chunk->data;
+        }
+    }
+
     nsl_Chunk *chunk = chunk_allocate(size);
     if (arena == NULL) return chunk->data;
     chunk->cap = 0;
