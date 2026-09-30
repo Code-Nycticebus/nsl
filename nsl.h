@@ -51,7 +51,7 @@
 #endif
 
 // used when a function has default arguments. I design every config to be zero initialized by default
-#define NSL_DEFAULT 0
+#define NSL_DEFAULT_ARGS 0
 
 #define NSL_BOOL_FMT "%s"
 #define NSL_BOOL_ARG(b) (b ? "true" : "false")
@@ -63,7 +63,7 @@ typedef struct {
     const char *data;
 } nsl_Str;
 
-#define NSL_STR(str) ((nsl_Str){.len = sizeof(str) - 1, .data = (str)})
+#define NSL_STR(str) (nsl_Str){.len = sizeof(str) - 1, .data = (str)}
 #define NSL_STR_STATIC(str) { .len = sizeof(str) - 1, .data = (str) }
 
 #define NSL_STR_NOT_FOUND ((usize)-1)
@@ -102,7 +102,7 @@ typedef struct {
 } nsl_Arena;
 
 // used when propagating errors from commands: if (NSL_ERROR_PROCESS_RETURN(error)) { ... }
-#define NSL_ERROR_PROCESS_RETURN(e) (error && error <= _NSL_ERROR_PROCESS_RETURN)
+#define NSL_ERROR_PROCESS_RETURN(error) (error && error <= _NSL_ERROR_PROCESS_RETURN)
 
 typedef enum {
     NSL_ERROR    = -1,     // generic error
