@@ -98,8 +98,21 @@ int main(int argc, const char **argv) {
 
     if (nsl_os_mkdir(NSL_PATH("build"), .exists_ok=true)) NSL_DEFER(1);
 
-    if (build_header_gcc(&cmd)) NSL_DEFER(2);
-    if (build_tests_gcc(&cmd))  NSL_DEFER(3);
+    nsl_Str arg = argc > 1 ? nsl_str_from_cstr(argv[1]) : NSL_STR("all");
+
+    bool all     = nsl_str_eq(arg, NSL_STR("all"));
+    bool linux   = nsl_str_eq(arg, NSL_STR("linux"));
+    bool windows = nsl_str_eq(arg, NSL_STR("windows"));
+
+    if (all || linux) {
+        if (build_header_gcc(&cmd)) NSL_DEFER(2);
+        if (build_tests_gcc(&cmd))  NSL_DEFER(3);
+    }
+
+    if (all || windows) {
+        if (build_header_mingw32(&cmd)) NSL_DEFER(4);
+        if (build_tests_mingw32(&cmd))  NSL_DEFER(5);
+    }
 
 defer:
     nsl_list_free(&cmd);
