@@ -1,6 +1,7 @@
 #include "../nsl.h"
 
 /* u8 */
+
 static void test_u8_leading_bits(void) {
     NSL_ASSERT(nsl_u8_leading_ones(0xe0) == 3 && "Did not count correctly");
     NSL_ASSERT(nsl_u8_leading_zeros(0x1f) == 3 && "Did not count correctly");

@@ -12,16 +12,16 @@
 #include <ctype.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-#   define NSL_WIN32
-#   include <windows.h>
-#   include <io.h>
+#    define NSL_WIN32
+#    include <io.h>
+#    include <windows.h>
 #else
-#   define NSL_POSIX
-#   include <sys/wait.h>
-#   include <sys/stat.h>
-#   include <unistd.h>
-#   include <dirent.h>
-#   include <dlfcn.h>
+#    define NSL_POSIX
+#    include <dirent.h>
+#    include <dlfcn.h>
+#    include <sys/stat.h>
+#    include <sys/wait.h>
+#    include <unistd.h>
 #endif
 
 #ifndef NSL_API
@@ -29,8 +29,8 @@
 #endif
 
 #ifndef NSL_NO_INT_TYPEDEFS
-    #include <stdint.h>
-    #include <stddef.h>
+#   include <stdint.h>
+#   include <stddef.h>
     typedef uint8_t   u8;
     typedef int8_t    i8;
     typedef uint16_t  u16;
@@ -316,6 +316,7 @@ typedef struct {
 } nsl_OsDirConfig;
 
 #define nsl_os_mkdir(path, ...) nsl_os_mkdir_conf(path, (nsl_OsDirConfig){ __VA_ARGS__ })
+
 NSL_API nsl_Error nsl_os_mkdir_conf(nsl_Path path, nsl_OsDirConfig config);
 
 NSL_API nsl_Error nsl_os_chdir(nsl_Path path);
