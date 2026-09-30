@@ -745,7 +745,7 @@ NSL_API void nsl_arena_free(nsl_Arena *arena) {
 
 NSL_API void nsl_arena_reset(nsl_Arena *arena) {
     for (nsl_Chunk *next = arena->begin; next != NULL; next = next->next) {
-        if (next->cap == 0) next->cap = next->allocated;
+        if (next->cap == 0) continue; // skip custom chunk allocations
         next->allocated = 0;
     }
 }
@@ -753,6 +753,7 @@ NSL_API void nsl_arena_reset(nsl_Arena *arena) {
 NSL_API usize nsl_arena_size(nsl_Arena *arena) {
     usize size = 0;
     for (nsl_Chunk *chunk = arena->begin; chunk != NULL; chunk = chunk->next) {
+        if (chunk->cap == 0) continue; // skip custom chunk allocations
         size += chunk->allocated;
     }
     return size;
