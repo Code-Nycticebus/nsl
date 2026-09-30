@@ -101,13 +101,17 @@ typedef struct {
     nsl_Chunk *begin, *end;
 } nsl_Arena;
 
+// used when propagating errors from commands: if (NSL_ERROR_PROCESS_RETURN(error)) { ... }
+#define NSL_ERROR_PROCESS_RETURN(e) (error && error <= _NSL_ERROR_PROCESS_RETURN)
+
 typedef enum {
-    NSL_ERROR = -1,
-    NSL_NO_ERROR = 0,
+    NSL_ERROR    = -1,     // generic error
+    NSL_NO_ERROR =  0,
 
     // 1-255 reserved for process return values
+    _NSL_ERROR_PROCESS_RETURN = 255,
 
-    NSL_ERROR_FILE_NOT_FOUND = 256,
+    NSL_ERROR_FILE_NOT_FOUND,
     NSL_ERROR_ACCESS_DENIED,
     NSL_ERROR_ALREADY_EXISTS,
     NSL_ERROR_NOT_DIRECTORY,
@@ -115,6 +119,7 @@ typedef enum {
     NSL_ERROR_FILE_BUSY,
     NSL_ERROR_PARSE,
     NSL_ERROR_PATH_TOO_LONG,
+
     NSL_ERROR_SIGABRT, // Process called `abort()`
     NSL_ERROR_SIGSEGV, // Segmentation fault
 } nsl_Error;
