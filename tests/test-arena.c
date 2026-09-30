@@ -76,7 +76,11 @@ static void test_reset(void) {
     char *big_buffer = nsl_arena_alloc(&arena, more_bytes);
     NSL_ASSERT(big_buffer && "Buffer was not allocated");
 
+
+    const usize real_size = nsl_arena_real_size(&arena);
     nsl_arena_reset(&arena);
+    NSL_ASSERT(nsl_arena_size(&arena) == 0);
+    NSL_ASSERT(nsl_arena_real_size(&arena) == real_size && "reseting the arena should not affect the real size");
 
     TestChunk *tc = (TestChunk *)arena.begin;
     NSL_ASSERT(tc->allocated == 0 && "First Chunk was not reset");
@@ -100,8 +104,10 @@ static void test_size(void) {
     nsl_Arena arena = {0};
 
     int *i = nsl_arena_alloc(&arena, sizeof(*i));
+    const usize real_size = nsl_arena_real_size(&arena);
     NSL_ASSERT(nsl_arena_size(&arena) == test_align(sizeof(*i)) && "size not matching");
-    NSL_ASSERT(nsl_arena_real_size(&arena) == 4096 && "chunk is not the same size as a page");
+    nsl_arena_reset(&arena);
+    NSL_ASSERT(nsl_arena_real_size(&arena) == real_size && "reseting the arena should not affect the real size");
 
     nsl_arena_free(&arena);
 }
